@@ -5,7 +5,7 @@ namespace Statventure.Tests.Render3D;
 /// on the geometry's edges and inside surfaces (<see cref="Render3DReferenceTests.CompareShadowed"/>) and the ink
 /// lines' (<see cref="Render3DReferenceTests.CompareInk"/>). <see cref="M6"/> is M6's, measured over the test
 /// scenes, for every scene but a detailed stage or figure (<see cref="DetailedFigure"/>, GM2 step 4a: the humanoid
-/// family's figures). <see cref="DetailedStage"/> (Docs/Scene.md, S7-12) is set from
+/// family's figures) or a race emblem (<see cref="Emblem"/>, GM2 step 10). <see cref="DetailedStage"/> (Docs/Scene.md, S7-12) is set from
 /// the measurement of Ji'ruan's stage (step 7's ink study), where two things part the engine from Freestyle
 /// that M6's scenes don't have: Freestyle drops the far scenery's sub-pixel detail (bark, branches and foliage
 /// 30 m away: about 56 % of the extra lines), and it draws no line where separate objects meet or rest in each
@@ -90,5 +90,26 @@ internal sealed record ReferenceLimits
         // Measured 0.13–7.56 % (the woman geared from the side, both drivers: the sword's and the shield's lines; 12.71 %
         // before the ink task).
         Unlike = 0.083,
+    };
+
+    /// <summary>
+    /// The race emblems (GM2 step 10; Docs/Game/Hero.md, "How it works", step 10; EmblemReferenceTests' nine medallions at
+    /// 640 × 640 from the pictures' camera, 5° up): the detailed figures' limits with three widened, the user's Q70
+    /// ("Accept for now, fix the engine later", 2026-11-21), each the worst measured on the PC's GPU and on lavapipe plus
+    /// about a tenth. What parts the engine from Blender: the engine draws a line along the top of every raised outline,
+    /// where its side, seen nearly edge-on, rises from the field or from the outline under it; no mesh edge runs there, so
+    /// Freestyle draws none (the engine "can't tell two surfaces crossing from a silhouette": Docs/Renderer-3D.md, "Ink
+    /// comparison"). An engine task is to stop that line (Docs/Game-Plan.md, "Engine items the port will meet"); then these
+    /// are measured again and tightened. The rest are DetailedFigure's: the shading (inside 20–34 pixels off by more than 2
+    /// levels of 409,600, edge 20–33, the edges' mean 3.1–3.9), missed lines (0–1.54 %) and unlike ink (0.09–4.03 %).
+    /// </summary>
+    public static readonly ReferenceLimits Emblem = DetailedFigure with
+    {
+        // Measured 5.50–13.02 % (the Half-Beast's claw marks on lavapipe; 12.77 % on the GPU).
+        Extra = 0.143,
+        // Measured 6.01–16.95 % more ink than Freestyle's (the Half-Beast's, on the GPU).
+        TotalInk = 0.186,
+        // Measured 0.097–0.140 (the Half-Beast's).
+        Coverage = 0.154,
     };
 }

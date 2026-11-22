@@ -1304,6 +1304,17 @@ the design and the tests):
   shown only when its slot has two or more swatches (the human's brows and eye whites gone from the maker), the look still
   holding the swatch; with the manager's GM2-P35 (two close-ups of hair locks owed to an engine task, no limit touched) and
   GM2-P36 (a part's place in its category's list, `look.part`'s `order`, "None" first); in the same two places.
+  **Step 10's, the nine emblems (recorded by step 10; `Docs/Game/Hero.md`, "Questions from the steps" and "Decisions"):**
+  Q66 (2026-11-20) the nine motifs chosen from two sketches each (the keep, the great tree, the black sun, the helm and
+  beard, the pipe, the crested head, the claw marks, the cairn, the shell); the nine medallions approved as renders ("Yes,
+  all nine"); Q67 (2026-11-20) the live emblem rocks about 35° to each side, never showing its back (changing Q36's
+  "slowly turning"); Q70 (2026-11-21) "Accept for now, fix the engine later": the emblems' own limits
+  (`ReferenceLimits.Emblem`: the detailed figures' with extra lines 14.3 %, total ink 18.6 %, coverage 0.154) until an
+  engine task stops the line the engine draws where one surface rises from another (`Docs/Game-Plan.md`, "Engine items
+  the port will meet"); Q71 (2026-11-21) the carousel's pictures as shown (94 px in the medallion, 36 px in the strip's);
+  Q72 (2026-11-21) the dark theme's sepia kept on the sheet's seal; with the manager's GM2-P31 (the emblems' colours from
+  the race's accent by one rule), GM2-P32 (the medallion's make) and GM2-P34 (the pictures scaled down from the 640 px
+  render).
 - **Decisions for GM3 (2026-11-20, asked early at the user's request, before GM3 starts):** `Docs/Game-Plan.md`, GM3,
   "Decisions for GM3": GM3-1 the item models made for close-up, GM3-2 live 3D item pictures, GM3-3 armour fitted to
   every body, GM3-5 the hintless masterworks and Exotics designed by the port for approval (all as recommended); GM3-4,
@@ -4701,6 +4712,18 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     the ground test over the six bodies (the builds measured: the strong ones lie and kneel under the man's bounds, for
     the manager). Recorded: the user's Q61–Q65, Q73 and the approvals of 9a, the manager's GM2-P25–GM2-P30, GM2-P35,
     GM2-P36. 4660 + 951 → 5266 + 1000 = 6266 tests, on the GPU and lavapipe.
+  - **GM2 step 10, the nine race emblems in the repo (2026-11-20 to 22, a worker on the branch `gm2-step10`, rebased on
+    step 9a; `Docs/Game/Hero.md`, "How it works", step 10):** the manager's approved art brought in: the builder
+    (`Tools/Models/humanoid/emblems/medallion.py`) and the chosen outlines (`chosen.json`, Q66), the nine models byte for byte
+    his, in `models.pak` (`models/humanoid/emblems/<name>`); the emblems' colours from the race's accent by one rule
+    (GM2-P31) in the game (`Figures/Emblems.cs`, with `Emblems.PaletteOf(data, race)` for step 11's live emblem) and in the
+    scripts (`emblems/palette.py`), held alike; their pictures (ten sizes, as the screens lay an emblem out at 1 and 1.65,
+    from Blender's 640 px renders scaled down, GM2-P34; `make-emblem-pictures.sh`) in `ui.pak`, chosen per image by a resize
+    observer on its device-pixel box, shown by the sheet's seal and the carousel's medallion and strip where the ✦ stood
+    (Q71; the dark seal's sepia kept, Q72); the engine's emblems held to Blender's under `ReferenceLimits.Emblem` (Q70; an
+    engine item: the line the engine draws where one surface rises from another). Found: the seal's picture is 72 % of the
+    button's content box (113.76 px, not 124: step 7's note corrected); a square picture in a round button takes the pointer
+    at its corners (`pointer-events: none`). 5266 + 1000 → 5285 + 1084 = 6369 tests, on the GPU and lavapipe.
 
 ## Milestones
 

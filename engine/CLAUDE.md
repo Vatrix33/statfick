@@ -30,7 +30,9 @@ the user and wait for their go-ahead before starting the next one.
 - Packs (`.pak`, `Docs/Assets.md`) in `git diff` as their dumps: once per clone, from the repo's root,
   `git config diff.pak.textconv engine/Tools/Packer/textconv.sh`.
   `Tools/Scripts/make-ui-pack.sh` makes `Assets/Packs/ui.pak` (the old game's five fonts and their licences, and the
-  port's stylesheets from `Assets/UI/styles/*.css`, compiled as `ui/styles/<name>`; GM1 step 1a).
+  port's stylesheets from `Assets/UI/styles/*.css`, compiled as `ui/styles/<name>`; GM1 step 1a; since GM2 step 10 the race
+  emblems' pictures `Assets/UI/emblems/<emblem>-<size>.png` at `ui/emblems/`, made from Blender's renders of the emblems
+  by `Tools/Scripts/make-emblem-pictures.sh`: `Docs/Game/Hero.md`, "How it works", step 10).
   `Tools/Scripts/make-data-pack.sh` makes `Assets/Packs/data.pak` afresh from `Assets/Data/` (the game's records as JSON
   forms at their paths: the 28 races, `data/races/<id>.json`, written from the old `races.json` by the game's tests'
   converter with `STATVENTURE_RACE_DATA=write`, each race's swatches kept from its file; GM2 step 1, `Docs/Game/Hero.md`,
@@ -104,6 +106,12 @@ the user and wait for their go-ahead before starting the next one.
   Blender from the data: `make-humanoid.sh assemble --out <folder> --name <stem> --look-hero <look.json> --data <folder>
   [...]` for pictures; `make-blender-references.sh` assembles and renders the game's tests' samples
   (`Reference/assembly-looks.json`, written with `STATVENTURE_ASSEMBLY_LOOKS=write`, `AssemblyTests`).
+  Since step 10 (`Docs/Game/Hero.md`, "How it works", step 10) the nine race emblems: medallions in relief built by
+  `Tools/Models/humanoid/emblems/medallion.py` from the chosen outlines `emblems/chosen.json` (the manifest's
+  `emblems/<name>`, the races' `emblem` values; `models.pak`'s `models/humanoid/emblems/<name>`), coloured from the race's
+  accent by one rule (`Game/Statventure.Game/Figures/Emblems.cs`, `emblems/palette.py`), held to Blender under
+  `ReferenceLimits.Emblem` (the user's Q70); their pictures in `ui.pak` made by `Tools/Scripts/make-emblem-pictures.sh`
+  (the game's tests write the scenes, Blender renders them, the tests make the pictures, `make-ui-pack.sh` packs them).
 - Cutscenes (M10, `Docs/Scene.md`, step 7): `Tools/Scripts/play-cutscene.sh jiruan [--volume 0-100]` plays Ji'ruan's intro, the proof, with its sound in
   the sandbox's window (Escape or its Skip button skips, R replays; `--dump <folder>` writes its frames instead);
   `Tools/Scripts/make-cutscene-references.sh` captures the old game's card in Chromium at the sampled times.

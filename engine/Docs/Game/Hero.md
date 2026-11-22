@@ -237,7 +237,27 @@ hand-over, `claude-work/gm2/step9a/handover/HANDOVER.md`):**
   follows. **`hair.tie` and `marking` in the game's look file:** left as they are (the figure mode shows its placeholders for
   them; the model test names them as the swatches' alone).
 
-### Questions from the steps (Q43–Q65 and Q73, the user, 2026-11-15 to 2026-11-21)
+**GM2-P31, the emblems' colours (the manager, 2026-11-20; recorded by step 10):** an emblem's materials are six palette
+slots of its own (`emblem.rim`, `emblem.field`, `emblem.high`, `emblem.metal`, `emblem.accent`, `emblem.cut`), filled from
+the race's accent colour (`race.accent`) by one rule: rim and metal the look's gold `#bb8d3c`; high the bone `#e1d3ad`;
+field the accent mixed 58 % toward the ink `#1a120d`; accent the accent mixed 18 % toward the bone; cut the accent mixed
+90 % toward the ink. So a race record's accent colours its emblem, and the rule is one place in the game and one in the
+scripts (`Figures/Emblems.cs`, `Tools/Models/humanoid/emblems/palette.py`; "How it works", step 10).
+
+**GM2-P32, the medallion's make (the manager, 2026-11-20; recorded by step 10):** one unit is the field's radius, 0.08 m;
+the body turned (128 sides) with a rim to 1.33 units carrying 40 beads, the field set 0.145 units under the rim's top, a
+plain back; each raised outline a slab chamfered at its top (`hi` 0.070, `acc` 0.056, `mid` 0.050 units off the field; an
+element lying over an earlier one at least 0.022 higher); a `lo` element a thin inlay with no ink; the front along the
+figures' front (glTF's +Z), the medallion's middle at the origin.
+
+**GM2-P34, how the emblems' small pictures are made (the manager, 2026-11-21, on step 10's question):** every picture is
+the emblem's 640 px render (the approval renders' camera and size) scaled down, as the small copies the user approved were
+(`emblem_render.py`'s sheet scaled the 640 px renders with Pillow's Lanczos); a render made at the small size itself has the
+look's 3 px lines swallow the medallion (at 72 px its 40 beads become a black ring, the 36 px one mostly ink:
+`claude-work/gm2/step10-repo/try1/compare.png`). The filter step 10 chose: Lanczos of three lobes stretched to the scale,
+in sRGB with the cover multiplied in, the scaling part of the regenerable script ("How it works", step 10).
+
+### Questions from the steps (Q43–Q67 and Q70–Q73, the user, 2026-11-15 to 2026-11-21)
 
 Q43 and Q44 raised by step 1 (the `race` kind's fields; the docs didn't answer them) and asked by the manager with the
 question tool the same day; both the recommended option. Q45 asked by the manager on 2026-11-16 for step 6 (step 2 had
@@ -418,6 +438,41 @@ the sheets the user saw: `claude-work/gm2/step9a/approval/` `builds-faces/`, `se
   hidden** ("Hide the row"): a colour row is shown only when its slot has two or more swatches; the human's brows and eye
   whites disappear from the maker, and a race or a mod that gives them more swatches gets the row. The look still holds the
   swatch (step 6's check). Built by step 9a (`LookMaker.OfferedSlots`, "How it works", step 9a).
+
+Step 10's, the nine emblems (the numbers the manager's): Q66 and Q67 and the medallions' approval came with the art
+(the manager's hand-over, `claude-work/gm2/step10/handover/HANDOVER.md`); Q70 was raised by step 10's comparison with
+Blender, Q71 and Q72 by its captures of the screens; each asked by the manager with the question tool and recorded by
+step 10 ("How it works", step 10).
+- **Q66 The nine motifs, chosen from two sketches each** (2026-11-20; Q37's "each proposed as a sketch first",
+  `claude-work/gm2/step10/approval/emblem-sketches.png`): Human: the keep (a castle keep flying a banner); Elf: the great
+  tree (an ancient oak, crown and roots; the other sketch was a stag's head, the manager's pick); Dark Elf: the black sun (an
+  eclipsed sun ringed with rays; the other a spider in its web); Dwarf: the helm and beard; Hobbit: the pipe; Lizardman: the
+  crested head (a lizardman's head in profile; the other a lizard from above, the manager's pick); Half-Beast: the claw
+  marks; Goliath: the cairn (stacked stones with a rune); Merfolk: the shell (the other a tail fluke; the user was told the
+  Merfolk walk on legs). None repeats an old seal's motif (Q37).
+- **The nine medallions approved as renders** (2026-11-20, "Yes, all nine"; `claude-work/gm2/step10/approval/emblems.png`):
+  step 10's second approval stop.
+- **Q67 The live emblem rocks from side to side** (2026-11-20, "Rock from side to side"): it sways slowly about 35 degrees
+  to each side and back and never shows its back; the back of the model stays plain. This changes Q36's "slowly turning"
+  for the carousel's live emblem; its period is step 11's proposal (8 s).
+- **Q70 The emblems' lines against Freestyle** (2026-11-21; raised by step 10: the engine's lines on the nine emblems
+  passed neither the detailed figures' limits nor M6's: extra lines 5.5–13.0 % against 3 %, total ink up to 17.0 % over
+  Freestyle's against 10 %, the coverage difference up to 0.140 against 0.12, every Freestyle line drawn; the engine draws a
+  line along the top of every raised outline, seen nearly edge-on from 5° up, where its side rises from the field or the
+  outline under it, where no mesh edge runs and Freestyle draws none; shown the Half-Beast's emblem both ways).
+  **Answer: "Accept for now, fix the engine later":** the emblems go in as they are, held to limits of their own,
+  `ReferenceLimits.Emblem`: the detailed figures' with extra lines 14.3 %, total ink 18.6 % and the coverage difference
+  0.154 (each the worst measured plus about a tenth); an engine task later stops the engine drawing a line where one surface
+  rises from another, then the limits are measured again and tightened (`Docs/Game-Plan.md`, "Engine items the port will
+  meet"). (Not an engine task first; not the raised shapes joined into the field in the model, which changes the approved
+  look: the manager tried an exact union of each raised shape with the body in Blender on 2026-11-21: two emblems came out
+  the same to the eye and the elf's killed Blender, so it is not pursued.)
+- **Q71 The carousel's emblems** (2026-11-21, shown step 10's captures, `claude-work/gm2/step10-repo/captures/`): **"Yes,
+  as shown"**: each emblem's picture fills its medallion's inside where the ✦ stood, 94 px in the large one and 36 px in a
+  medallion of the strip; the enemy-only races, which have no emblem, keep the ✦.
+- **Q72 The sheet's seal in the dark theme** (2026-11-21, the same captures): **"Keep the sepia tone"**: the old
+  stylesheet's filter on the seal's image in the dark theme (`game.css`, `html.dark-mode .hero-sigil img`, step 7's approved
+  stylesheet) stays and tones the emblem; the light theme shows the emblem's own colours.
 
 ### Earlier decisions that bind GM2
 
@@ -711,7 +766,8 @@ dagger with a lilac star (Dark Elf); mountains over an anvil and a hammer striki
 leaves (Hobbit); a scaled diamond with a reptile eye and two fangs (Lizardman). **The three placeholders** (Goliath,
 Half-Beast, Merfolk; 0.7–0.9 KB, marked "PLACEHOLDER ART (port task 11, T5)"): a flat field and a plain rim, a snow-capped
 mountain, a paw print, two waves under a fin. **Where they show:** the sheet's seal button, rotated 11° (the image about
-124 px, 99 px under 840 px, 72 px under 650 px; `styles.css` 216–240, 2466, 2915, 2933; sepia-toned in dark mode, 3648);
+124 px, 99 px under 840 px, 72 px under 650 px, *measured by step 10: 113.75, 89.27 and 61.92 px wide, the button's
+own padding taken off first*; `styles.css` 216–240, 2466, 2915, 2933; sepia-toned in dark mode, 3648);
 the race list (56 px, 617–618); the companion sheet (68 px, 52 px under 560 px; `companions.js` 269). The engine's own
 tests read the six older seals as text, as the captured old sheet names them (`Tests/Statventure.Tests/Ui/
 GamePaintTests.cs` 62–80).
@@ -1132,10 +1188,10 @@ M7's rules made concrete for the game's first family (GM2-P8, GM2-P9):
 Each race's emblem a medallion in relief (Q35): a rim, a field and the race's motif raised, in the game's new look; **nine
 new motifs** (Q37), each proposed as a sketch first, before any modelling: the six older seals' motifs are not kept (so
 T5's "seals that sit with the six older ones" has no six to sit with: the nine are one new set). Shown as pictures where
-small (Q36): the sheet's seal button (about 124, 99 or 72 px), a companion's sheet (68 or 52 px), PNGs in `ui.pak` rendered
+small (Q36): the sheet's seal button (about 124, 99 or 72 px; *113.76, 89.28 and 61.92 px as laid out, step 10*), a companion's sheet (68 or 52 px), PNGs in `ui.pak` rendered
 by Blender from the emblem's script at each size and at 1 and 1.65, regenerable (GP-4) and compared with the engine's
-render; and live, slowly turning, only for the race shown in the carousel (Q36, one live view, GM2-P16). Approved as
-sketches, then as renders of all nine together.
+render; and live, slowly turning (*rocking about 35° to each side since Q67*), only for the race shown in the carousel (Q36, one live view, GM2-P16). Approved as
+sketches, then as renders of all nine together (Q66; "How it works", step 10).
 
 ### Meeting GP-8
 
@@ -1939,6 +1995,20 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
     - Approval stops: **the nine motifs as sketches, before any modelling** (`claude-work/gm2/step10/approval/`); the
       nine as renders together; then the tests.
     - Finished: approved; pictures and models against Blender; regenerable.
+    - **The art done by the manager (2026-11-20):** two sketches a race, the user's Q66, the medallions modelled and
+      approved as renders ("Yes, all nine"), Q67 (the live emblem rocks), GM2-P31 and GM2-P32; then **the repo's part by a
+      worker (2026-11-20 to 22, the branch `gm2-step10`, rebased on step 9a; "How it works", step 10)**, with the user's
+      Q70 (the emblems' own
+      limits until an engine task), Q71 (the carousel's pictures as shown) and Q72 (the dark seal's sepia kept) and the
+      manager's GM2-P34 (the pictures scaled down from the 640 px render). **Done (2026-11-22).** Its choices: the builder
+      `emblems/medallion.py` (the manager's geometry unchanged: the nine models byte for byte his) with the outlines
+      `chosen.json` beside it (one element a line, written and checked by `chosen.py`); the six slots `look.EMBLEM_SLOTS`; the
+      rule in the game `Figures/Emblems.cs` and in the scripts `emblems/palette.py`, held alike by the tests; the pictures'
+      scene a 640 × 640 render over black and over white (the cover from the two), made transparent, lined and scaled
+      down by the game's tests from the committed renders (`make-emblem-pictures.sh` runs the chain); one picture per size
+      a screen lays an emblem out at, 1 and 1.65 (ten sizes, measured), named by its size in device pixels and chosen per
+      image by a resize observer on its device-pixel box; the medallion's and the strip's pictures absolutely placed in
+      their insides; the harness's images as the program's host loads them; Chromium's captures given the pictures' files.
 11. **The live figures and the live emblem** (game; anywhere for the tests). After 5, 7 and 8, with 9a's human; finished
     when 9e and 10 are in.
     - Owns: the views' code in the three screens (the hero's actor in the sheet's panel, idle in a fixed ¾ view, Q31;
@@ -3087,8 +3157,11 @@ did). The tests' stand-in for the flow is `ScreensHarness.NewHero` (New, `Ready`
 the panel's width the middle column's); its ground the surface's computed `background-color` (`--portrait-ground`,
 `#2a1f1a`, the same in both themes); the view must pause while the page is hidden (`SheetScreen.Showing`) or covered
 (GM2-P16); the screens' fixtures compare the panel unmasked until step 5's mask is in place, which must come before a
-view draws there. *Step 10:* `EmblemPictures.For(race)`, by the race's `Emblem`; the seal is 172 px (138 under 840 px, 123
-under 760, 93 under 470), its picture 72 % of it, turned 11° with the button and back. *Step 5:* the fixtures' mask hook
+view draws there. *Step 10:* `EmblemPictures.For(race)`, by the race's `Emblem`; the seal is 172 px (138 at 840 px or
+less, 100 at 650 px or less: game.css's later rules win; *corrected by step 10, 2026-11-21: this note said "123 under 760,
+93 under 470"*), its picture 72 % of the button's content box (the button less its 1 px border and its own padding of 1 by
+6 px, so 113.76 × 120.96 CSS px, 89.28 × 96.48, 61.92 × 69.12, the square picture drawn as wide as that: measured in the
+engine and in Chromium alike; *the note said "72 % of it"*), turned 11° with the button and back. *Step 5:* the fixtures' mask hook
 below. *Step 13:* `end_to_end.py`'s Continue and load now expect the new hero's flow for PlayerFolderTests' character
 (no race): the log line and the page alone; GM2's whole flow (a race and a look, then the sheet) is step 13's to write.
 *GM3:* the slots' `equipment-slot-future` and their ids are the old page's; *GM8:* class points (the Classes tool's
@@ -4355,6 +4428,209 @@ lie and kneel under the man's bounds: the manager's to judge with Q59). *Step 11
 face (`HeroFigure` does it). *GM2-P22's task and step 11:* the four new bodies are in `models.pak` (Q59's check is on the
 hobbit's and the Goliath's).
 
+### Step 10: the nine emblems in the repo (2026-11-20 to 22, the branch `gm2-step10`)
+
+The manager's art (the motifs' sketches, the user's Q66, the medallions modelled and approved as renders, Q67; GM2-P31,
+GM2-P32: `claude-work/gm2/step10/`, its hand-over `handover/HANDOVER.md`) brought into the repo: the scripts, the models,
+the pictures in `ui.pak`, the screens showing them, the rule of their colours in the game for the live emblem (step 11's),
+the tests. Decided on the way: the user's Q70 (the emblems' own limits against Blender until an engine task), Q71 (the
+carousel's pictures as shown) and Q72 (the dark seal's sepia kept); the manager's GM2-P34 (the pictures scaled down from
+the 640 px render). On the PC only for what runs Blender; the tests run anywhere (what Blender made is committed).
+
+**The scripts** (`Tools/Models/humanoid/emblems/`; `__init__.py` says what each file is):
+- `medallion.py`, the builder (the manifest's `emblems.medallion:emblem_model <name>`): the manager's `emblem_build.py`
+  with its paths made the repo's and nothing of its geometry, heights or materials changed (GM2-P32): the body turned in
+  128 sides (a plain back 0.10 units behind the field, the rim to 1.33 units, the field 0.145 under the rim's top), 40
+  beads, each outline of the motif a slab chamfered at its top (`hi` 0.070, `acc` 0.056, `mid` 0.050 units off the
+  field, an element over an earlier one at least 0.022 higher; the chamfer at most 0.020 units, 0.24 of the outline's
+  thickness, 0.45 of its height), a `lo` element a thin inlay 0.006 units over what it lies on, drawn without ink; smooth
+  shading split at 32°; the pieces joined per ink flag (GM2-P19: `emblem-<name>` and `emblem-<name>-unlined`); the front
+  along glTF's +Z, the middle at the origin; one unit 0.08 m.
+- `chosen.json`: the outlines of the nine chosen motifs (Q66), each element `points` in the unit field, a `tone` and
+  `outline`; written by `chosen.py` from `motifs.py` (one element a line; its values the hand-over's to the last digit,
+  `chosen.py check` holds the file to it). `motifs.py` and `sketchkit.py` are the manager's sketch scripts, kept for the
+  record and for redrawing a motif (Pillow draws the sketches).
+- `palette.py`, the rule of the colours (GM2-P31) in plain Python: `GOLD`, `BONE`, `INK` and `RULE` (each slot: from the
+  accent or a colour, toward what, how far), a mix per sRGB channel `a + (b − a)·t` rounded half to even (the approval
+  renders' Python `round`); `palette.py <#accent>` prints the six colours, `palette.py check` holds every scene of
+  `Reference/emblem-scenes.json` (written by the game's tests with the game's rule) to it for its race's accent.
+- `look.py`'s `EMBLEM_SLOTS` (the six, after `SLOTS` and `GEAR_SLOTS`; a look may name them); `manifest.json`: nine entries
+  `emblems/<name>` (the races' `emblem` values), no detail level, out `Assets/Models/humanoid/emblems/<name>.glb`.
+- `make-humanoid.sh check` also runs `chosen.py check` and `palette.py check`.
+
+**The models** (`Assets/Models/humanoid/emblems/`, in `models.pak` as `models/humanoid/emblems/<name>`): built by
+`make-humanoid.sh build emblems/<name>`, **each byte for byte the manager's** `claude-work/gm2/step10/out/models/<name>.glb`
+(compared file against file; the export is deterministic). Vertices / triangles / primitives / bytes: human 5,020 / 6,228
+/ 6 / 203,880; elf 8,898 / 10,404 / 4 / 351,100; dark elf 4,802 / 6,052 / 6 / 195,864; dwarf 10,118 / 11,540 / 5 /
+398,008; hobbit 7,286 / 8,880 / 5 / 291,428; lizardman 6,398 / 7,848 / 5 / 256,824; half-beast 6,582 / 8,164 / 5 / 264,600;
+goliath 11,388 / 12,900 / 6 / 447,724; merfolk 6,364 / 7,912 / 5 / 256,112 (2,665,540 bytes in all). `make-humanoid.sh
+check`: every model of the manifest the same bytes, twice (28 of 28 on the figure's ground; 180 of 180 after the rebase on
+step 9a; step 9a's flake on the twin braids' hair cap not met). `models.pak` 10,860,567
+bytes, 173 entries (`main` before, step 9a: 10,425,256 bytes, 164 entries; the nine emblems 435,311 bytes of it).
+
+**The rule in the game** (`Game/Statventure.Game/Figures/Emblems.cs`): `ModelPath(emblem)` = `models/humanoid/emblems/
+<emblem>`; `Gold`, `Bone`, `Ink`, `Rule` and `Colours(accent)` (the six slots, the same arithmetic as `palette.py`:
+doubles, `MidpointRounding.ToEven`); `PaletteOf(race)` and **`PaletteOf(VirtualFileSystem data, string race)`**, the live
+emblem's seam (a race's id in the game's data to a `Palette` with the six slots filled; a race the data hasn't refused);
+`Unit`, `Radius`; `PictureCamera()` (the approval renders' camera: orthographic, 3 units high, at the middle from (0,
+0.35, 4) m, about 5° up). **For step 11** (its branch's `LiveHeroViews`): the emblem's model is `Emblems.ModelPath(race.Emblem)`
+(`models/humanoid/emblems/<emblem>` in models.pak; a race with no `emblem` has none: the ✦), its colours
+`LiveHeroViews.EmblemPalette = Emblems.PaletteOf` (the `(data, race id) → Palette` seam), its style the game's
+(`GameStyle.Load`); its framing step 11's own (the medallion's middle at the origin, its front +Z, 2.66 units = 0.2128 m
+across); `LiveViewReferenceTests.EmblemSamples` takes the real emblems from models.pak in place of its stand-ins.
+Whoever merges second wires the seam (the manager's word).
+
+**The pictures** (GM2-P34; `engine/Assets/UI/emblems/<emblem>-<size>.png`, ui.pak's `ui/emblems/`, made by
+`Tools/Scripts/make-emblem-pictures.sh`):
+1. The game's tests write the scenes (`EmblemReferenceTests.SceneFile`, `Reference/emblem-scenes.json`,
+   `STATVENTURE_EMBLEM_SCENES=write`): each race's emblem from models.pak's file in `Assets/Models`, its race's colours by
+   the game's rule, the game's style and sun (data.pak's `render/styles/game`), `Emblems.PictureCamera()`, 640 × 640 (the
+   approval renders' size), over black and over white (`emblem-<name>`, `emblem-<name>-white`).
+2. `make-blender-references.sh` renders them (its seventh part; `--out` rewrites the scene file's model folder as the
+   humanoid scenes'): `Golden/r3d-emblem-<name>[-white].png` and `-ink.png` (36 files, 3.0 MB; the two inks the same
+   bytes).
+3. The game's tests make the pictures from those renders (`EmblemPicturesTests.Master` and `Picture`,
+   `STATVENTURE_EMBLEM_PICTURES=write`; otherwise every committed picture must be what the renders make, pixel for pixel):
+   the ground made transparent (a pixel's cover is one less the mean, over its channels, of the white render less the
+   black in linear light; its colour over black is already that cover times the emblem's), the lines laid over (the ink
+   render's coverage in the look's ink `#080605`, as `compose.py` and the engine lay lines over a view; the cover grows
+   by the ink's past the edge), then scaled down to each size with a Lanczos filter of three lobes stretched to the scale
+   (the approval copies' filter), in sRGB with the cover multiplied in (so a picture laid over the page is the render laid
+   over it made smaller, as the approved copies over the dark ground were), across then down, each pixel's weights summing
+   to one, the cover and the colour clamped to what a pixel holds, then the colour divided by the cover (PNG's straight
+   alpha), each rounded to the nearest level; written by the engine's PNG writer (stb's).
+4. `make-ui-pack.sh` packs `Assets/UI/emblems/*.png` at `ui/emblems/` (files, as they are).
+`make-emblem-pictures.sh` runs the four (step 4 uses the shared build cache: under the shared lock when workers run
+beside). Made again twice on the PC: the renders, the 90 pictures and the pack the same bytes each time.
+
+**Their sizes** (`EmblemPictures.Places`; measured in the engine and in Chromium alike on the screens' fixtures): the
+sheet's seal draws its picture 72 % of the seal button's content box, the button 172 px (138 at 840 px or less, 100 at 650
+px or less: the later rules of game.css win) less its 1 px border and the button's own padding of 1 by 6 px: 113.76 ×
+120.96 CSS px (89.28 × 96.48, 61.92 × 69.12), the square picture as wide as the box (`object-fit: contain`); Chromium lays
+out 113.75 × 120.953 and 89.266 × 96.469 at 1, 114.328 and 89.848 CSS px wide at 1.65 (188.6 and 148.3 device pixels).
+(Step 7's note and the design's "about 124, 99 or 72 px" counted 72 % of the whole button; corrected.) The carousel's
+medallion holds its picture in its inside, 94 px (156.4 device pixels at 1.65, its border a whole device pixel); a medallion
+of the strip in its inside, 36 px (60.7). So ten sizes, device pixels: **36, 61, 62, 89, 94, 103, 114, 148, 156, 189**
+(each place at 1 and 1.65, rounded): 90 pictures, 1,693,509 bytes. ui.pak 2,769,289 bytes (110 entries; was 1,098,522,
+20).
+
+**The screens** (Q36, Q71, Q72): `Screens/Sheet/EmblemPictures.cs`, one per screen: `Show(img, emblem)` shows the emblem's
+picture in an `img` (true) or hides it with no `src` (false: no emblem, or an emblem without a picture at every size in
+the document's data, a mod's), the picture the one whose size is nearest the image's box in device pixels by their ratio
+(the smaller side: `object-fit: contain`), chosen again whenever that box changes (a `ResizeObserver` on the
+device-pixel content box: the window's width past a breakpoint, its scale, the page's zoom; set at once on a new emblem
+from the size last seen), `Forget(img)` for an image taken out of the page. The sheet (`SheetScreen`) shows the hero's
+race's picture on the seal's `#race-icon`, the ✦ (`.hero-sigil-fallback`) only without one; the old stylesheet's dark
+theme sepia on it stays (Q72). The carousel (`RacesScreen`): a strip medallion holds `img.races-strip-picture` where its ✦
+stood (class `has-picture` on the medallion; the ✦ for a race without), the stage's medallion `img#races-emblem-picture`
+before its live view's `surface`, its ✦ hidden while the picture shows, and both gone under a live emblem (`.is-live`);
+`races.css`: the pictures absolutely placed in their medallion's inside (`.races-strip-item.has-picture { position:
+relative }`), the strip's letting the pointer through (`pointer-events: none`: the square picture's corners lie outside its
+round medallion, which the engine and Chromium hit-test by its border's curve; taking the pointer there gave the headless
+compositor's resting pointer a hover and the title's tooltip over the half-beast's medallion at 1.65, which
+`HeroScreenFixturesTests` holds the fixtures free of), nothing of the approved look else changed (Q71). `IHeroViews` is unchanged (its comment's "✦ in the
+race's colour" until a live view is now the emblem's picture: step 11's file to word).
+
+**The tests' harness:** `GameUiHarness` gives its document's images as the program's window host does (`UiHost`: the
+layout's image sizes and the painter's images from the document's data, `UiResources`), and `GameScreenTests.Render`
+paints them, so the fixtures, the screens' tests and `ProgramPathScreenTests`' real window agree on the pictures.
+`make-game-screen-references.sh` gives Chromium an image the document reads from `ui.pak` (`src="ui/....png"`) as its
+committed file (`engine/Assets/UI/...`, which ui.pak holds as it is), by its file url.
+
+**Against Blender** (`EmblemReferenceTests`, the game's tests: each emblem built as the live view will build it, the model
+from models.pak, the rule's palette, the game's style, the pictures' camera, 640 × 640): the shading over both grounds and
+the lines under **`ReferenceLimits.Emblem`** (the user's Q70: the detailed figures' limits with extra lines 14.3 %, total
+ink 18.6 %, the coverage difference 0.154; pinned by a test; each widened limit bites on the Half-Beast's emblem set just
+under what it measured on both drivers). Measured (the PC's GPU / lavapipe): the shading's inside pixels off by more than 2
+levels 20 / 34 of 409,600 in every scene (the limit 97), edge pixels 20–28 / 22–33 (372), the edges' mean 3.07–3.87 levels
+(4); the lines: missed 0–1.54 % (2 %), extra 5.50–12.77 / 5.63–13.02 % (DetailedFigure's and M6's 3 %), total ink
++6.0–17.0 % (10 %), coverage 0.097–0.140 (0.12), unlike 0.09–4.03 % (DetailedFigure's 8.3 %; M6's 3 % fails on the dark
+elf and the half-beast). Under M6 every scene fails its stray pixels (none allowed) and the lines. What parts them: the
+engine draws a line along the top of every raised outline where its side, seen nearly edge-on from 5° up, rises from the
+field or from the outline under it; no mesh edge runs there and Freestyle draws none (`Docs/Renderer-3D.md`, "Ink
+comparison": the engine "can't tell two surfaces crossing from a silhouette"); every line Freestyle draws, the engine
+draws. An engine task is to stop that line, then these limits are measured again and tightened (`Docs/Game-Plan.md`,
+"Engine items the port will meet"). Not to try again: the manager joined each raised shape with the body in Blender by an
+exact union (2026-11-21): two emblems came out the same to the eye, the elf's killed Blender; not pursued.
+
+**Tests** (engine: `EmblemModelTests` 19 (the manifest makes the races' emblems by the builder at no level; each medallion
+rigid, its materials the emblems' slots with rim and field, the inlays unhatched and the one piece without ink, one
+primitive per material and ink flag; its middle at the origin, its field flat at z = 0 facing +Z, its rim 1.33 units,
+its back 0.10 behind); `HumanoidFiles.Figures()` leaves the emblems out (they are no figures), `Emblems()` lists them;
+`UiResourcesTests` with the pictures in ui.pak; `EntryListTests` with the editor tree's `ui/emblems`. Game:
+`EmblemPaletteTests` 15 (the nine races' approved colours, half to even, the slots of `EMBLEM_SLOTS`, palette.py's
+constants and rule read from the file, Blender's scenes coloured by the rule, the seam for every race of the data),
+`EmblemReferenceTests` 23, `EmblemPicturesTests` 20 (the pictures what the renders make, ui.pak holding them, the two
+renders one scene, the making on small made-up renders), `EmblemScreensTests` 26 (the sizes, the nearest picture, the
+seal at each width and scale as Chromium lays it out, the picture following the zoom and the race, an emblem with no or
+some pictures, the carousel's strip and medallion at 1 and 1.65, the ✦ for an enemy-only race, the live emblem taking the
+picture's place, the images let go when the strip is made again); `SheetScreenTests` two lines.)
+
+**What moved beside:** `models.pak` and `ui.pak` made again; the game-screen goldens of the 26 fixtures whose page now
+shows a picture captured again in Chromium at 1 and 1.65 (the carousel's 7, where the strip shows the pictures; the
+sheet's 14 and GM1's `page-*` and `menu-page-*` 5, where the seal is masked, Q50, so the comparison doesn't see it but the
+golden is the markup's): every fixture passes as before. 20 of them came out changed; the sheet's six scrolled down past
+the seal (`sheet-attributes-dark`, `-light`, `sheet-dev-attributes-dark`, `sheet-doll-dark`, `-light`,
+`sheet-narrow-doll-dark`) the same bytes. Five of the carousel's at 1.65 captured once more after the
+pictures were given `pointer-events: none` (their first capture had the compositor's pointer hovering the half-beast's
+medallion through its picture's corner: the hover ring, whose timing made a recapture differ by up to 5 levels). The maker's 7 fixtures' markup changed only in the hidden
+carousel's section (no picture shows): not captured again. The editor's 12 fixtures that list the game's packs (`ui.pak`
+gains the folder `ui/emblems`) captured again at both scales; `EntryListTests` 322 rows. After the rebase on step 9a:
+`models.pak` made again (`make-models-pack.sh`; `ui.pak` and `data.pak` made again by their scripts came out the same
+bytes, `data.pak` step 9a's), both fixture lists written again by the tests; the two fixtures both steps had changed
+(`maker-half-beast-light`, 9a's colour rows beside this step's hidden carousel, and the editor's `preview-cutscene`, whose
+model list holds 9a's models and the emblems) captured again at 1 and 1.65: each the same bytes as step 9a's golden (the
+carousel hidden in the maker; the preview's list a closed one).
+
+**Shown able to fail** (`claude-work/gm2/step10-repo/`). *The C# rules and the manifest's* (`mutate.py` under the shared
+lock in a headless cage; `mutations.json`, made by `make-mutations.py`): 70 mutations: the rule (each colour, amount,
+target and source, the slots' order, the rounding, a colour's checks, the seam's race and refusal), the model's folder,
+the pictures' camera, the pictures' sizes and their choice (the nearest by ratio, a tie, the device-pixel box, the smaller
+side, a box of no size, every size or none), showing, hiding and forgetting an image, the sheet's and the carousel's use
+of them, the making of the pictures (the cover, the lines, the ink over, sRGB with the cover, the filter's lobes, stretch
+and weights, the clamp and the division), the emblems' limits and their bite, the harness's images, the manifest's
+emblems. The first run: 66 killed, 4 survived; three were gaps, closed and killed in the rerun (`mutations-rerun.json`): a
+colour's `#` unchecked, the CSS box observed instead of the device pixels' (every case had changed both: now a page zoom
+that keeps the CSS box), a box of no size taken (chosen again before a frame paints: now an image shown again at once);
+one can't differ: a tie of two sizes going to the smaller (the boxes are whole device pixels and no whole number lies on
+the geometric mean of two neighbouring sizes: no product of neighbours is a square). **The standing list: 70, 69 killed,
+1 that can't differ.** *The carousel's sheet* (`css-mutate.py`: `ui.pak` made again for each; the screens' comparisons, the
+emblem screens' tests and, for the pointer's rule, `HeroScreenFixturesTests`): 7, 5 killed (the strip's picture taking
+the pointer among them; the same rule on the medallion's picture showed itself redundant, the medallion clipping its
+inside to its circle and having no hover or title, and was taken out with its mutation) (one after a gap closed: the medallion's picture now held to its inside exactly),
+2 that can't differ: the medallion's and a strip medallion's picture in the flow instead of placed absolutely (each is its
+medallion's only shown item, so the grid gives it the same box; the rule keeps that box free of the picture's own size,
+156 and 61 px at 1.65, larger than the medallion). *The scripts* (`script-breaks.py`, each break through the check that
+must notice): the builder and the outlines 12 of 12 (`make-humanoid.sh check` of one emblem, `chosen.py check`), the rule
+7 of 7 (`palette.py check`, the game's tests reading `palette.py` and `look.py`); *the two tools* by hand
+(`tool-breaks.sh`): `make-ui-pack.sh` without the pictures (the engine's `UiResourcesTests` and the game's emblem tests
+fail), `make-game-screen-references.sh` without the pictures' files (the carousel's comparisons fail at 1 and 1.65), each put back
+and made again (the pack the same bytes; a Chromium recapture of `races-playable-dark` at 1.65 came out 316 pixels at most 5
+levels off the committed golden, all in one strip medallion: the hover the compositor's pointer gave it through its
+picture's corner, since prevented, above). After the rebase on step 9a (which changed the manifest, the screens' test
+harness and the family's scripts beside the builder) the C# list, the carousel's sheet and the scripts' breaks were run
+again (`claude-work/gm2/step10-repo/rebase/`): the same, 69 of 70 (the tie), 5 of 7 (the two in the flow), 12 of 12 and 7
+of 7; the two tools' breaks not again (neither tool nor what it reads changed). Nothing written to the player's real folders.
+
+**Runs** (each full run under the shared lock in a headless cage, a scratch per-user folder, sound to the null device;
+logs in `claude-work/gm2/step10-repo/`): the first on the figure's ground, on the GPU, found the strip's pictures taking
+the compositor's pointer (five of `HeroScreenFixturesTests`' fixtures at 1.65; fixed above); then 4679 + 1035 = 5714
+passed on the GPU and on lavapipe (`318af40` on `a6eb02a`: 4660 + 951 = 5611; `full-step10-gpu-2.log`,
+`full-step10-lavapipe.log`). The final ones on the branch rebased on step 9a (`8c17686` and `a580250` on `d1da4b9`; only
+the docs' words after them): the GPU 5285 + 1084 = 6369 passed (`full-final-gpu.log`), lavapipe 6369 passed
+(`full-final-lavapipe.log`); `main` `d1da4b9` 5266 + 1000 = 6266, 103 new. After the rebase `make-blender-references.sh
+--out` (10 min) and `compare_references.py`: 314 files byte-equal (step 9a's 278 and the emblems' 36), none different or
+missing. The player's real folders the same before and after every run.
+
+**Choices made (internal, recorded here):** the builder a module of its own beside the outlines (the package's `__init__`
+kept free of Blender, so `palette.py` runs as plain Python); the outlines one element a line; `EMBLEM_SLOTS` a third list
+in `look.py`; the rule's place in the game `Figures/Emblems.cs` with the pictures' camera beside it; the pictures made in the
+game's tests from committed renders (the repo's way for generated data: the C# composer runs everywhere, the renders only
+on the PC), over two grounds for the cover; the pictures named by their size in device pixels, one per place and scale as
+laid out, chosen per image by a resize observer (the engine has no `srcset`, `image-set()` or resolution media query);
+the nearest by ratio, the smaller side; "every size or none" for a mod's emblem; the strip's picture absolutely placed (a
+class on its medallion); the harness's images; Chromium given the committed files; the maker's fixtures not recaptured.
+
 ## Status
 
 - **2026-11-15:** written on the user's go for GM2 (docs only, the branch `gm2-design` from `8c7d07d`), after the user's
@@ -4528,3 +4804,14 @@ hobbit's and the Goliath's).
   4660 + 951 → 5266 + 1000 = 6266 tests, on the GPU and lavapipe. Found: the hair beads in a gear's slot (the walk); the hair locks' seams up close (GM2-P35); the thicker builds
   lying and kneeling under the man's ground bounds (measured, for the manager with Q59); the woman's twin braids' hair cap
   one normal off now and then when Blender builds it under load (`make-humanoid.sh check` flaky on it).
+- **2026-11-22, step 10 done** (the manager's art, 2026-11-20: the motifs chosen, Q66, the medallions approved as renders,
+  Q67; the repo's part by a worker on the branch `gm2-step10`, rebased on step 9a; "How it works", step 10): the nine emblems' builder and
+  outlines in `Tools/Models/humanoid/emblems/` (the models byte for byte the manager's), in `models.pak`; their colours'
+  rule in the game (`Figures/Emblems.cs`, with `Emblems.PaletteOf(data, race)` for step 11's live emblem) and in the
+  scripts (`palette.py`), held alike; their pictures (ten sizes as the screens lay them out, from the 640 px renders scaled
+  down, GM2-P34) in `ui.pak`, shown by the sheet's seal and the carousel's medallion and strip where the ✦ stood (Q71;
+  the dark seal's sepia kept, Q72); held to Blender under `ReferenceLimits.Emblem` (Q70: the engine draws a line where a
+  raised outline rises from the field, Freestyle doesn't; an engine task). Found: the seal's picture is 113.76 px, not the
+  design's 124 (step 7's note corrected); a square picture in a round medallion takes the pointer at its corners. 5266 +
+  1000 → 5285 + 1084 = 6369 tests on the GPU and on lavapipe (`main` `d1da4b9`; 103 new); mutations 69 of 70 killed (a tie
+  of two sizes can't differ), the carousel's sheet 5 of 7 (two can't differ), the scripts 19 of 19, the tools 2 of 2.

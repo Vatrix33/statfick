@@ -2,6 +2,7 @@ using Statventure.Core;
 using Statventure.Game.Data.Actors;
 using Statventure.Game.Data.Looks;
 using Statventure.Game.Data.Races;
+using Statventure.Game.Screens.Sheet;
 using Statventure.Game.Settings;
 using Statventure.Game.Sounds;
 using Statventure.Packs;
@@ -44,7 +45,7 @@ public sealed class RacesScreen : IGameScreen
                 <div class="races-portrait"><surface class="races-figure" id="races-figure"></surface></div>
                 <div class="races-details">
                   <header class="races-heading">
-                    <span class="races-emblem" id="races-emblem"><surface class="races-emblem-view" id="races-emblem-view"></surface><span class="races-emblem-mark" aria-hidden="true">✦</span></span>
+                    <span class="races-emblem" id="races-emblem"><img class="races-emblem-picture" id="races-emblem-picture" alt="" hidden><surface class="races-emblem-view" id="races-emblem-view"></surface><span class="races-emblem-mark" aria-hidden="true">✦</span></span>
                     <div class="races-title"><h3 id="races-name"></h3><p class="races-kind" id="races-kind"></p></div>
                   </header>
                   <div class="race-stat-changes races-modifiers" id="races-modifiers"></div>
@@ -64,7 +65,8 @@ public sealed class RacesScreen : IGameScreen
         """;
 
     GameParts? _parts;
-    UiElement? _screen, _race, _figure, _emblem, _emblemView, _name, _kind, _modifiers, _passive, _choose, _strip, _status, _stage, _empty, _leave;
+    UiElement? _screen, _race, _figure, _emblem, _emblemView, _emblemPicture, _emblemMark, _name, _kind, _modifiers, _passive, _choose, _strip, _status, _stage, _empty, _leave;
+    EmblemPictures? _pictures;
     HeroData _data = HeroData.Of(null);
     List<RaceEntry> _shown = [];
     int _at;
@@ -74,6 +76,9 @@ public sealed class RacesScreen : IGameScreen
 
     /// <summary>The 3D views (GM2 step 11's); none until then.</summary>
     internal IHeroViews Views { get; set; } = NoHeroViews.Instance;
+
+    /// <summary>Tests: the emblems' pictures the carousel shows (GM2 step 10).</summary>
+    internal EmblemPictures Pictures => _pictures!;
 
     public void Attach(GameParts parts)
     {
@@ -89,6 +94,9 @@ public sealed class RacesScreen : IGameScreen
         _figure = Q("#races-figure");
         _emblem = Q("#races-emblem");
         _emblemView = Q("#races-emblem-view");
+        _emblemPicture = Q("#races-emblem-picture");
+        _emblemMark = Q("#races-emblem .races-emblem-mark");
+        _pictures = new EmblemPictures(document);
         _name = Q("#races-name");
         _kind = Q("#races-kind");
         _modifiers = Q("#races-modifiers");
@@ -151,7 +159,9 @@ public sealed class RacesScreen : IGameScreen
         var dev = _parts!.Settings.DevMode;
         _shown = [.. _data.Races.Where(r => r.Race.Playable || dev)];
         _at = Math.Max(0, _shown.FindIndex(r => r.Id == race));
-        _strip!.TextContent = "";
+        foreach (var picture in _strip!.ElementChildren.SelectMany(item => item.ElementChildren).Where(e => e.HasClass("races-strip-picture")).ToList())
+            _pictures!.Forget(picture);
+        _strip.TextContent = "";
         var empty = _shown.Count == 0;
         _empty!.Hidden = !empty;
         _stage!.Hidden = empty;
@@ -174,9 +184,18 @@ public sealed class RacesScreen : IGameScreen
             item.SetAttribute("title", entry.Race.Name);
             item.SetAttribute("aria-label", entry.Race.Name);
             item.SetAttribute("style", $"--race-accent: {entry.Race.Accent}");
-            item.Append("span", "races-strip-mark", "✦").SetAttribute("aria-hidden", "true");
             if (entry.Race.Emblem is { } emblem)
                 item.SetAttribute("data-emblem", emblem);
+            // The race's emblem picture (Q36, GM2 step 10) where the ✦ stood; the ✦ for a race without one.
+            var picture = item.Append("img", "races-strip-picture");
+            picture.SetAttribute("alt", "");
+            if (_pictures!.Show(picture, entry.Race.Emblem))
+                item.AddClass("has-picture");
+            else
+            {
+                picture.Remove();
+                item.Append("span", "races-strip-mark", "✦").SetAttribute("aria-hidden", "true");
+            }
             var index = i;
             item.AddEventListener("click", _ => Show(index));
         }
@@ -201,6 +220,8 @@ public sealed class RacesScreen : IGameScreen
             _emblem!.SetAttribute("data-emblem", emblem);
         else
             _emblem!.RemoveAttribute("data-emblem");
+        // The emblem's picture in the medallion (Q36, GM2 step 10) until its live view shows (the sheet hides it then), else the ✦.
+        _emblemMark!.Hidden = _pictures!.Show(_emblemPicture!, race.Emblem);
         _modifiers!.TextContent = "";
         foreach (var (key, name) in HeroTexts.Attributes)
         {

@@ -35,6 +35,10 @@ SLOTS = [
     "eye.white", "leather", "buckle",
 ]
 GEAR_SLOTS = ["metal.base", "metal.trim", "metal.shade", "wood", "grip"]
+# The race emblems' six (GM2 step 10, the manager's GM2-P31): a medallion's rim and beads, its field, the motif's light
+# raised parts, its metal ones, its accent and its cut-in inlays; each filled from the race's accent colour by one rule
+# (emblems/palette.py; the game's Figures/Emblems.cs), not by a look or a hero's swatches.
+EMBLEM_SLOTS = ["emblem.rim", "emblem.field", "emblem.high", "emblem.metal", "emblem.accent", "emblem.cut"]
 
 # Materials of a fixed colour in every look (sRGB; no slot, so no look can recolour them): the pupils and the eyes'
 # glints (unlit).
@@ -144,8 +148,8 @@ def validate(look):
         if not isinstance(full[part], dict):
             raise ValueError(f"{part}: not an object")
         for slot, colour in full[part].items():
-            if slot not in SLOTS + GEAR_SLOTS:
-                raise ValueError(f"{part}: {slot!r} is not a palette slot (look.py SLOTS, GEAR_SLOTS)")
+            if slot not in SLOTS + GEAR_SLOTS + EMBLEM_SLOTS:
+                raise ValueError(f"{part}: {slot!r} is not a palette slot (look.py SLOTS, GEAR_SLOTS, EMBLEM_SLOTS)")
             _colour(colour, f"{part}.{slot}")
     return full
 

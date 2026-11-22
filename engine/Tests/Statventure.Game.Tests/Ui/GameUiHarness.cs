@@ -2,10 +2,12 @@ using System.Numerics;
 using Statventure.Audio;
 using Statventure.Game.Settings;
 using Statventure.Game.Ui;
+using Statventure.Imaging;
 using Statventure.Packs;
 using Statventure.Platform;
 using Statventure.Storage;
 using Statventure.Tests.Infrastructure;
+using Statventure.UI;
 using Statventure.UI.Dom;
 
 namespace Statventure.Game.Tests;
@@ -23,7 +25,28 @@ sealed class GameUiHarness : IDisposable
     readonly GameStorage _storage;
     readonly StatFickGame _game;
     readonly VirtualFileSystem _data;
+    readonly UiResources _resources;
+    readonly Dictionary<string, RgbaImage?> _pictures = [];
+    readonly Dictionary<string, Statventure.Canvas.CanvasImage> _drawn = [];
     double _time;
+
+    /// <summary>What loading the document's images reported (an image not in the data, not a PNG).</summary>
+    public List<string> Reported { get; } = [];
+
+    RgbaImage? Picture(string url)
+    {
+        if (!_pictures.TryGetValue(url, out var picture))
+            _pictures[url] = picture = _resources.Image(url) is { Width: > 0, Height: > 0 } loaded ? loaded : null;
+        return picture;
+    }
+
+    /// <summary>An image of the document by its url, as the painter draws it (the program's host's <c>ImageTexture</c>); null when there is none.</summary>
+    public Statventure.Canvas.CanvasImage? Image(string url)
+    {
+        if (_drawn.TryGetValue(url, out var drawn))
+            return drawn;
+        return Picture(url) is { } picture ? _drawn[url] = new Statventure.Canvas.CanvasImage(picture) : null;
+    }
 
     public GameUiHarness(float width = 800, float height = 600, float scale = 1, GameTheme? theme = null, bool packs = true, bool sound = false, Action<GameSettings>? before = null, string? extra = null)
     {
@@ -47,6 +70,10 @@ sealed class GameUiHarness : IDisposable
         };
         Ui.QuitGame = () => Done.Add("quit");
         Ui.SoundPlayed += Sounds.Add;
+        // The document's images (the race emblems' pictures, GM2 step 10) from its data, as the program's window host
+        // (UiHost) loads them: their sizes for the layout, their pixels for the painter (Image).
+        _resources = new UiResources(Document, Reported.Add);
+        Document.Layout.Context.ImageSize = url => Picture(url) is { } picture ? new Vector2(picture.Width, picture.Height) : null;
         Document.SetViewport(width, height);
         Document.SetZoom(scale, Document.PageZoom);
         Frame();
@@ -152,6 +179,8 @@ sealed class GameUiHarness : IDisposable
 
     public void Dispose()
     {
+        foreach (var image in _drawn.Values)
+            image.Dispose();
         Ui.Dispose();
         Audio?.Dispose();
         _data.Dispose();

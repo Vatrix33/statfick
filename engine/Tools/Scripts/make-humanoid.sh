@@ -5,7 +5,9 @@
 #   make-humanoid.sh build [name ...]    builds the models manifest.json names (all by default) into their places
 #   make-humanoid.sh check [name ...]    builds them into a scratch folder and proves each equals what is committed
 #                                        (byte for byte); and that every look in look.py is valid and looks/today.json
-#                                        is what look.py writes. Fails on any difference.
+#                                        is what look.py writes, the emblems' chosen.json is what emblems/chosen.py
+#                                        writes and their scenes (Reference/emblem-scenes.json) are coloured by
+#                                        emblems/palette.py's rule (GM2 step 10). Fails on any difference.
 #   make-humanoid.sh clips <folder> <library.glb>
 #                                        keys every clip file of <folder> (<name>.json, the form clips/library.py gives)
 #                                        on the human man's skeleton and exports them as a clip library (to try clips
@@ -46,6 +48,10 @@ case "$command" in
     ;;
   check)
     python3 -I "$HUMANOID/look.py" check
+    # The emblems' outlines as chosen.py writes them from the sketches, and their scenes coloured by palette.py's rule
+    # (GM2 step 10: the game's tests write the scenes with the game's rule).
+    python3 -I "$HUMANOID/emblems/chosen.py" check
+    python3 -I "$HUMANOID/emblems/palette.py" check
     source "$STATVENTURE_SCRIPTS/blender.sh"
     scratch="$(mktemp -d "${TMPDIR:-/tmp}/statventure-humanoid-check.XXXXXX")"
     trap 'rm -rf "$scratch"' EXIT

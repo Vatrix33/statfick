@@ -4,7 +4,8 @@
 # ($STATVENTURE_CACHE/ui-data, emptied first and kept for inspection) under names that follow the path rule, at
 # ui/fonts/, and the port's stylesheets (engine/Assets/UI/styles/*.css, GM1-P8) at ui/styles/, then packs that folder
 # into engine/Assets/Packs/ui.pak (unchanged entries keep their stored bytes). The packer's UI importer compiles
-# each .css into the record at its path without the ending (ui/styles/game).
+# each .css into the record at its path without the ending (ui/styles/game). Since GM2 step 10 also the race emblems'
+# pictures (engine/Assets/UI/emblems/*.png) at ui/emblems/.
 set -euo pipefail
 source "$(dirname "$0")/env.sh"
 fonts="$STATVENTURE_OLD_GAME/objects/fonts"
@@ -14,6 +15,12 @@ mkdir -p "$out/ui/fonts" "$out/ui/styles" "$STATVENTURE_SOURCE/Assets/Packs"
 for sheet in "$STATVENTURE_SOURCE"/Assets/UI/styles/*.css; do
   if [ -f "$sheet" ]; then cp "$sheet" "$out/ui/styles/"; fi
 done
+# The race emblems' pictures (GM2 step 10: engine/Assets/UI/emblems/<emblem>-<size>.png, made by the game's tests from
+# Blender's renders) at ui/emblems/, as they are.
+if compgen -G "$STATVENTURE_SOURCE/Assets/UI/emblems/*.png" >/dev/null; then
+  mkdir -p "$out/ui/emblems"
+  cp "$STATVENTURE_SOURCE"/Assets/UI/emblems/*.png "$out/ui/emblems/"
+fi
 while read -r from to; do
   cp "$fonts/$from" "$out/ui/fonts/$to"
 done <<'LIST'

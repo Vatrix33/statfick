@@ -723,6 +723,20 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   sparse Bézier clips bend between keys by them); Blender exports a list of strings as an action's custom property
   into the animation's extras as a JSON list; a test that builds its own game data with a development folder must not
   copy the packs twice (`GameData` copies them).
+- 2026-11-21 (the PC, GM2 step 10's worker on the branch `gm2-step10`): **the nine race emblems in the repo**
+  (`Docs/Game/Hero.md`, "How it works", step 10). Gotchas: a picture rendered at a small size in the game's look has its
+  3 px lines swallow it: make small pictures by scaling a large render down (GM2-P34); the old seal's image is 72 % of the
+  button's content box, its own padding (1 by 6 px) taken off first (113.75 px, not 124; measure a layout, don't
+  multiply); the engine has no `srcset`, `image-set()` or resolution media query: a picture per device scale is chosen in
+  code by a resize observer on the device-pixel content box; the test harness drew no `<img>` until given the document's
+  images (as `UiHost` does), so a fixture showing a PNG needs them; PaintReference's page is a scratch file, so a fixture's
+  `src="ui/…"` needs its committed file's url; Freestyle draws no line where a raised shape's side rises from another
+  surface of the same object with no mesh edge there, the engine does (Q70); don't try joining the shapes into the field by
+  an exact union in Blender (the manager did: no visible change, and the elf's killed Blender); a Python package whose
+  `__init__` imports `bpy` can't be imported by plain Python (keep the builder in a module of its own); a square picture
+  inside a round button takes the pointer at its corners, outside the button's circle (hit-testing follows the border's
+  curve, not a child's box): give it `pointer-events: none`, or the headless compositor's resting pointer lights a hover
+  and a tooltip in a fixture (`HeroScreenFixturesTests`) and makes Chromium's goldens differ run to run.
 
 ## Asking about design choices (user rule)
 

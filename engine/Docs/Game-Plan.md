@@ -2385,6 +2385,18 @@ and waits for the user's go, asked when its milestone reaches it:
     where two locks of one joined model cross; not proven). A task of its own finds the cause and brings both back under the
     user's limits before GM2 is ticked (`claude-work/gm2/step9a-repo/pending-samples/`, its README; `Docs/Game/Hero.md`,
     "Decisions", GM2-P35).
+- Found by GM2 step 10 (2026-11-21; `Docs/Game/Hero.md`, "How it works", step 10; the user's Q70, "Accept for now, fix the
+  engine later"):
+  - **A line where one surface rises from another, seen nearly edge-on** (`Docs/Renderer-3D.md`, "Ink comparison": the
+    engine "can't tell two surfaces crossing from a silhouette", known since M6; now with a user): the race emblems'
+    raised outlines stand on their field in one model with no mesh edge where they meet; from the pictures' 5° up the side
+    of each is a sliver under a pixel, and the engine draws a line along the top of every outline where Freestyle draws
+    none (extra lines 5.5–13.0 % of the engine's, total ink up to 17 % over Freestyle's, the coverage difference up to
+    0.140; every Freestyle line drawn). Meanwhile the emblems are held to `ReferenceLimits.Emblem` (the detailed figures'
+    with extra lines 14.3 %, total ink 18.6 %, coverage 0.154); when the engine stops that line, they are measured again
+    and tightened. It shows on the live emblem (GM2 step 11), not on the pictures (Blender's). Not a way: joining the
+    raised shapes into the field in the model (the manager's exact union in Blender, 2026-11-21: two emblems the same to
+    the eye, the elf's killed Blender).
 
 ### The three decision-id collisions
 
@@ -2785,3 +2797,8 @@ GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detai
   first) and the user's Q73 (a colour of one swatch shows no row). The user's Q61–Q65, Q73 and the approvals recorded
   ("GM2's detail round"; `Docs/Game/Hero.md`, "How it works", step 9a); one engine item ("Engine items the port will
   meet": the hair locks' seams up close, GM2-P35).
+- **2026-11-22, GM2 step 10 (the branch `gm2-step10`):** the nine race emblems in the repo: the builder and the chosen
+  outlines (Q66) in the humanoid family, the models in `models.pak`, their colours by one rule from the race's accent
+  (GM2-P31) in the game and the scripts, their pictures in `ui.pak` (GM2-P34) on the sheet's seal and the carousel (Q71,
+  Q72), held to Blender under the emblems' own limits (Q70; an engine item, "Engine items the port will meet"); Q67 (the
+  live emblem rocks) for step 11. 5285 + 1084 = 6369 tests. (`Docs/Game/Hero.md`, "How it works", step 10.)

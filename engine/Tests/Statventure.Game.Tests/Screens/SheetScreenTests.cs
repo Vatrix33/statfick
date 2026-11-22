@@ -158,7 +158,8 @@ public class SheetScreenTests
         // Q48: locked, but in full colour (not the old page's half opacity of a disabled button). The seal's picture is
         // masked in the comparisons (Q50), so its look is checked here.
         Assert.Equal(1f, seal.Style!.Opacity);
-        Assert.Equal((EmblemPictures.Placeholder, false, true), (s.Q("#race-icon").GetAttribute("src"), s.Q("#race-icon").Hidden, s.Q(".hero-sigil-fallback").Hidden));
+        // The race's emblem picture (GM2 step 10): the human's at the seal's size, 114 device pixels at 1440 px and scale 1.
+        Assert.Equal(("ui/emblems/human-114.png", false, true), (s.Q("#race-icon").GetAttribute("src"), s.Q("#race-icon").Hidden, s.Q(".hero-sigil-fallback").Hidden));
         // The EXP card.
         Assert.Equal(("1650", "/ 2790 EXP", "1140 EXP to reach Level 31"), (T("#exp-current"), T("#exp-threshold"), T("#exp-helper")));
         Assert.Equal(SheetTexts.Number(1650.0 / 2790 * 100) + "%", s.Q("#exp-bar").GetStyle("width"));
@@ -260,7 +261,7 @@ public class SheetScreenTests
     }
 
     [Fact]
-    public void ARaceWithNoEmblemShowsTheStarAndTheEmblemIsThePlaceholderUntilStepTen()
+    public void ARaceWithNoEmblemShowsTheStar()
     {
         using var s = new ScreensHarness(1440, 960);
         s.Parts.Settings.DevMode = true;
@@ -269,13 +270,9 @@ public class SheetScreenTests
         Assert.Null(s.Q("#race-icon").GetAttribute("src"));
         Assert.False(s.Q(".hero-sigil-fallback").Hidden);
         Assert.Equal("Goblin · Change race", s.Q("#race-select-button").GetAttribute("title"));
-        Assert.Null(EmblemPictures.For(null));
-        Assert.Null(EmblemPictures.For(Context(s).Races["goblin"]));
-        Assert.Equal(EmblemPictures.Placeholder, EmblemPictures.For(Context(s).Races["dark-elf"]));
-        Assert.StartsWith("data:image/svg+xml;base64,", EmblemPictures.Placeholder);
-        var svg = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(EmblemPictures.Placeholder["data:image/svg+xml;base64,".Length..]));
-        Assert.Equal(24, svg.Split("<path d=\"M64 9.5v4\"").Length - 1);
-        Assert.DoesNotContain("TICKS", svg);
+        Assert.Null(Context(s).Races["goblin"].Emblem);
+        Assert.False(EmblemPictures.Has(s.H.Document.Files, null));
+        Assert.True(EmblemPictures.Has(s.H.Document.Files, Context(s).Races["dark-elf"].Emblem));
     }
 
     // ---------- Every control through its rule, saved ----------

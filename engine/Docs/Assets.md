@@ -479,7 +479,8 @@ Every answer was the recommended option except Q15 and Q17. Also in `Docs/Engine
 - **Q1. What M9 commits as packs:** only what exists: `audio.pak` (55 themes, 34 instruments, 21
   percussion voices, 7 rooms) and `ui.pak` (the old game's five font faces); `models.pak`, `world.pak`
   and `data.pak` appear when the port makes their content, the port's stylesheet joins `ui.pak` when
-  it's written (it did: GM1 step 1a, 2026-11-13); every importer is tested on the test assets, packed inside the test run. Test data
+  it's written (it did: GM1 step 1a, 2026-11-13; and the race emblems' pictures, PNG files at `ui/emblems/`, joined it with
+  GM2 step 10, 2026-11-21); every importer is tested on the test assets, packed inside the test run. Test data
   never ships, and no empty pack has to be kept in step. (Not the old `styles.css` compiled in, not
   test assets as stand-ins, not five packs with empty ones.)
 - **Q2. Run-time locations:** `packs/` and `classes/` beside the executable, mods in `mods/` in the

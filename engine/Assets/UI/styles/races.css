@@ -50,6 +50,10 @@
 .races-emblem-view { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 .races-emblem-mark { font-size: 2.75rem; line-height: 1; }
 .races-emblem.is-live .races-emblem-mark { display: none; }
+/* The emblem's picture (GM2 step 10, Q36) where the ✦ stood: the medallion's inside, under its live view, gone when that
+   shows. */
+.races-emblem-picture { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.races-emblem.is-live .races-emblem-picture { display: none; }
 .races-title { display: flex; min-width: 0; flex-direction: column; gap: 6px; }
 .races-title h3 { margin: 0; color: var(--ink); font: 400 2.375rem/1.05 var(--font-title); overflow-wrap: anywhere; }
 .races-kind { margin: 0; color: var(--race-accent, var(--muted)); font: 700 .8125rem/1.3 var(--font-ui); letter-spacing: .1em; text-transform: uppercase; }
@@ -79,6 +83,10 @@ html.dark-mode .races-kind { color: color-mix(in srgb, var(--race-accent, var(--
   transition: border-color 140ms, box-shadow 140ms;
 }
 .races-strip-item:hover { border-color: var(--race-accent, var(--ember)); }
+/* A race's emblem picture (GM2 step 10, Q36) where the ✦ stood: the medallion's whole inside; the pointer goes through it to
+   the round medallion (the square picture's corners would take it outside the circle). */
+.races-strip-item.has-picture { position: relative; }
+.races-strip-picture { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; }
 .races-strip-item.is-enemy { width: 30px; height: 30px; font-size: .8125rem; opacity: .8; }
 .races-strip-item.is-current { border-color: var(--race-accent, var(--ember)); box-shadow: 0 0 0 2px var(--race-accent, var(--ember)), var(--well-shadow); opacity: 1; }
 .races-strip-divider { width: 1px; height: 28px; margin: 0 6px; background: var(--line-strong); }

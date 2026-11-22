@@ -90,7 +90,7 @@ public class GameScreenTests(GpuFixture gpu)
     /// </summary>
     internal static RgbaImage Render(GpuDevice device, GameUiHarness harness, int width, int height)
     {
-        using var painter = new UiPainter(harness.Document);
+        using var painter = new UiPainter(harness.Document) { ImageTexture = harness.Image };
         using var canvas = new CanvasRenderer(device);
         using var target = GpuImage.CreateRenderTarget(device, width, height, Swapchain.PreferredFormat);
         var frame = device.BeginFrame();

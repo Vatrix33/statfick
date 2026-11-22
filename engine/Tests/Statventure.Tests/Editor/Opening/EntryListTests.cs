@@ -4,6 +4,7 @@ using Statventure.Editor.Session;
 using Statventure.Editor.Shell;
 using Statventure.Platform;
 using Statventure.Records;
+using Statventure.Tests.Infrastructure;
 using Statventure.Tests.Storage;
 using Statventure.UI.Dom;
 using static Statventure.Tests.Editor.Opening.OpeningTesting;
@@ -62,7 +63,7 @@ public class EntryListTests
         Assert.True(editor.Q(".entries-notice").HasAttribute("hidden"));
         // Folders first, then entries, each by name; the top folders open, the rest closed.
         Assert.Equal(["audio", "audio/effects", "audio/instruments", "audio/percussion", "audio/rooms", "audio/themes", "audio/theme-order",
-            "data", "data/looks", "data/races", "models", "models/humanoid", "notes", "notes/todo.txt", "render", "render/styles", "ui", "ui/fonts", "ui/styles"], list.Visible());
+            "data", "data/looks", "data/races", "models", "models/humanoid", "notes", "notes/todo.txt", "render", "render/styles", "ui", "ui/emblems", "ui/fonts", "ui/styles"], list.Visible());
         Assert.True(list.IsOpen("audio"));
         Assert.False(list.IsOpen("audio/rooms"));
         var rooms = list.Folder("audio/rooms")!;
@@ -98,7 +99,7 @@ public class EntryListTests
         Assert.Equal("audio/rooms/hall", hall.GetAttribute("title"));
         // Closing a folder hides what it holds and keeps across rebuilds.
         list.Toggle("audio");
-        Assert.Equal(["audio", "data", "data/looks", "data/races", "models", "models/humanoid", "notes", "notes/todo.txt", "render", "render/styles", "ui", "ui/fonts", "ui/styles"], list.Visible());
+        Assert.Equal(["audio", "data", "data/looks", "data/races", "models", "models/humanoid", "notes", "notes/todo.txt", "render", "render/styles", "ui", "ui/emblems", "ui/fonts", "ui/styles"], list.Visible());
         editor.Session.Add("notes/more", RecordDraft.Blank(typeof(RoomSpec)));
         Assert.False(list.IsOpen("audio"));
         // An entry added in a closed folder opens it (and its folders).
@@ -107,7 +108,7 @@ public class EntryListTests
         Assert.True(list.IsOpen("audio/percussion"));
         Assert.Contains("audio/percussion/new", list.Visible());
         list.Toggle("audio");
-        Assert.Equal(["audio", "data", "data/looks", "data/races", "models", "models/humanoid", "notes", "notes/more", "notes/todo.txt", "render", "render/styles", "ui", "ui/fonts", "ui/styles"], list.Visible());
+        Assert.Equal(["audio", "data", "data/looks", "data/races", "models", "models/humanoid", "notes", "notes/more", "notes/todo.txt", "render", "render/styles", "ui", "ui/emblems", "ui/fonts", "ui/styles"], list.Visible());
     }
 
     [Fact]
@@ -370,7 +371,9 @@ public class EntryListTests
         // By the kind's name too.
         editor.Key("a", "KeyA", KeyModifiers.Control);
         editor.TypeKeys("file");
-        Assert.Equal(["notes", "notes/todo.txt", "ui", "ui/fonts", "ui/fonts/lato-bold.ttf", "ui/fonts/lato-ofl.txt",
+        // (The race emblems' pictures are files too, GM2 step 10: engine/Assets/UI/emblems, in ui.pak.)
+        var emblems = Directory.GetFiles(Path.Combine(TestPaths.Packs, "..", "UI", "emblems"), "*.png").Select(f => "ui/emblems/" + Path.GetFileName(f)).Order(StringComparer.Ordinal);
+        Assert.Equal(["notes", "notes/todo.txt", "ui", "ui/emblems", .. emblems, "ui/fonts", "ui/fonts/lato-bold.ttf", "ui/fonts/lato-ofl.txt",
             "ui/fonts/lato-regular.ttf", "ui/fonts/lato-semibold.ttf", "ui/fonts/stix-ofl.txt", "ui/fonts/stixtwotext-italic.otf",
             "ui/fonts/stixtwotext-regular.otf"], list.Visible());
         // Down goes into the tree, to its first item; while filtering, Left on a folder goes to its parent (all stay open).
@@ -395,7 +398,7 @@ public class EntryListTests
         editor.Key("Escape", "Escape");
         Assert.Equal("", list.Filter.Value);
         Assert.Equal(["audio", "audio/effects", "audio/instruments", "audio/percussion", "audio/rooms", "audio/themes", "audio/theme-order",
-            "data", "data/looks", "data/races", "models", "models/humanoid", "notes", "notes/todo.txt", "render", "render/styles", "ui", "ui/fonts", "ui/styles"], list.Visible());
+            "data", "data/looks", "data/races", "models", "models/humanoid", "notes", "notes/todo.txt", "render", "render/styles", "ui", "ui/emblems", "ui/fonts", "ui/styles"], list.Visible());
         Assert.Same(list.Filter, editor.Document.FocusedElement);
     }
 
@@ -416,7 +419,7 @@ public class EntryListTests
         list.Toggle("rooms/many");
         editor.Frame();
         var shown = list.Visible();
-        Assert.Equal(321, shown.Count);
+        Assert.Equal(322, shown.Count);
         // The rows made: those whose box meets the pane's view, and ten more on either side, between two spacers.
         void Check()
         {

@@ -34,11 +34,21 @@ for f in fixtures:
         continue
     sheets = [open(os.path.join(styles, s.removeprefix("ui/styles/") + ".css"), encoding="utf-8").read() for s in f.pop("sheets")]
     f["css"] = "\n".join([f["css"]] + [re.sub(r"@font-face\s*\{[^}]*\}", "", sheet) for sheet in sheets])
-    # The markup at each scale: the scale's own where the engine placed the top layer's pieces otherwise (htmlByScale).
+    # The markup at each scale: the scale's own where the engine placed the top layer's pieces otherwise (htmlByScale), or
+    # chose another picture (the race emblems' pictures, GM2 step 10).
     by_scale = f.pop("htmlByScale", {})
+    # An image the document reads from ui.pak (src="ui/emblems/human-124.png") is its committed file
+    # (engine/Assets/UI/emblems/human-124.png), which ui.pak holds as it is, by its absolute file url.
+    def files(html):
+        def resolve(m):
+            path = os.path.join(os.path.dirname(styles), m.group(1)[len("ui/"):])
+            if not os.path.isfile(path):
+                sys.exit(f"{f['name']}: the image {m.group(1)} has no file {path}")
+            return 'src="file://' + os.path.abspath(path) + '"'
+        return re.sub(r'src="(ui/[^"]+\.png)"', resolve, html)
     for scale in ("1", "1.65"):
         os.makedirs(os.path.join(sys.argv[2], scale), exist_ok=True)
-        json.dump([dict(f, html=by_scale.get(scale, f["html"]))], open(os.path.join(sys.argv[2], scale, f["name"] + ".json"), "w"))
+        json.dump([dict(f, html=files(by_scale.get(scale, f["html"])))], open(os.path.join(sys.argv[2], scale, f["name"] + ".json"), "w"))
 PY
 for scale in 1 1.65; do
   for list in "$OUT/$scale"/*.json; do

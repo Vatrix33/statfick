@@ -17,8 +17,12 @@
 # 6. The looks the game builds into figures (Reference/assembly-looks.json, GM2 step 5: looks against the game's data and
 #    the tests' own beside it, written by the game's tests, AssemblyTests) are assembled by the humanoid scripts'
 #    assemble.py from the data on its own (Reference/assembly-scenes.json) and rendered so, into Golden/r3d-assembly-*.png.
+# 7. The race emblems (Reference/emblem-scenes.json, GM2 step 10: the game's committed emblems, engine/Assets/Models, in
+#    their races' colours and the game's look from the pictures' camera, over black and over white; written by the game's
+#    tests, EmblemReferenceTests) into Golden/r3d-emblem-*.png, from which the game's tests make the emblems' pictures.
 # Run the tests once first: they write Tests/Statventure.Tests/Reference/r3d-scenes.json,
-# anim-scenes.json, figure-scenes.json and humanoid-scenes.json (and the game's tests assembly-looks.json). Extra arguments
+# anim-scenes.json, figure-scenes.json and humanoid-scenes.json (and the game's tests assembly-looks.json and
+# emblem-scenes.json). Extra arguments
 # name the scenes to render or evaluate (all by default).
 #
 # --out <folder> (GM2 step 3a): everything is made into <folder> instead, laid out as the test project
@@ -38,22 +42,23 @@ if [ "${1:-}" = "--out" ]; then
   OUT="$(cd "$2" && pwd)"
   shift 2
   mkdir -p "$OUT/Reference" "$OUT/Data/Models/humanoid" "$OUT/Data/Terrain" "$OUT/Golden"
-  for scenes in r3d-scenes anim-scenes node-scenes stage-scenes curve-scenes figure-scenes humanoid-scenes assembly-looks; do
+  for scenes in r3d-scenes anim-scenes node-scenes stage-scenes curve-scenes figure-scenes humanoid-scenes assembly-looks emblem-scenes; do
     [ -f "$TESTS/Reference/$scenes.json" ] && cp "$TESTS/Reference/$scenes.json" "$OUT/Reference/"
   done
   # The figure scenes' model is the humanoid frame's sample (Tools/Models/humanoid, make-humanoid.sh), not made here.
   cp "$TESTS/Data/Models/humanoid/"*.glb "$OUT/Data/Models/humanoid/" 2>/dev/null || true
-  # The humanoid scenes' models are the committed ones (made by make-humanoid.sh, not here): the copied file names them
-  # by their folder, engine/Assets/Models.
-  if [ -f "$OUT/Reference/humanoid-scenes.json" ]; then
-    python3 - "$OUT/Reference/humanoid-scenes.json" "$STATVENTURE_SOURCE/Assets/Models" <<'PY'
+  # The humanoid scenes' and the emblems' models are the committed ones (made by make-humanoid.sh, not here): the copied
+  # files name them by their folder, engine/Assets/Models.
+  for scenes in humanoid-scenes emblem-scenes; do
+    [ -f "$OUT/Reference/$scenes.json" ] || continue
+    python3 - "$OUT/Reference/$scenes.json" "$STATVENTURE_SOURCE/Assets/Models" <<'PY'
 import json, sys
 path, models = sys.argv[1], sys.argv[2]
 data = json.load(open(path))
 data["modelFolder"] = models
 json.dump(data, open(path, "w"), indent=2)
 PY
-  fi
+  done
   # The assembly list's data and models are the committed ones (and the tests' own data beside the list): by their folders.
   if [ -f "$OUT/Reference/assembly-looks.json" ]; then
     python3 - "$OUT/Reference/assembly-looks.json" "$TESTS/Reference" <<'PY'
@@ -83,6 +88,10 @@ fi
 if [ -f "$OUT/Reference/humanoid-scenes.json" ]; then
   blender_run "$STATVENTURE_SOURCE/Tools/BlenderReference/render_scenes.py" -- "$OUT/Reference/humanoid-scenes.json" "$OUT/Golden" "$OUT/Actual/blender-glow" "$@"
   python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/compose_glow.py" "$OUT/Reference/humanoid-scenes.json" "$OUT/Golden" "$OUT/Actual/blender-glow"
+fi
+if [ -f "$OUT/Reference/emblem-scenes.json" ]; then
+  blender_run "$STATVENTURE_SOURCE/Tools/BlenderReference/render_scenes.py" -- "$OUT/Reference/emblem-scenes.json" "$OUT/Golden" "$OUT/Actual/blender-glow" "$@"
+  python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/compose_glow.py" "$OUT/Reference/emblem-scenes.json" "$OUT/Golden" "$OUT/Actual/blender-glow"
 fi
 if [ -f "$OUT/Reference/assembly-looks.json" ]; then
   blender_run "$STATVENTURE_SOURCE/Tools/Models/humanoid/assemble.py" -- --list "$OUT/Reference/assembly-looks.json" --scenes "$OUT/Reference/assembly-scenes.json"

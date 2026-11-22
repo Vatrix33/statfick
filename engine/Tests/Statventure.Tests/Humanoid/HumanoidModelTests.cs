@@ -60,8 +60,11 @@ static class HumanoidFiles
     public static IReadOnlyList<string> Names() =>
         Manifest().Where(m => m.Value.StartsWith("Assets/Models/humanoid/", StringComparison.Ordinal)).Select(m => m.Key).ToList();
 
-    /// <summary>Every figure model the manifest makes (the clip library left out): the game's and the battle's (the tests' data).</summary>
-    public static IReadOnlyList<string> Figures() => [.. Names().Where(n => n != "clips"), .. BattleMan];
+    /// <summary>Every figure model the manifest makes (the clip library and the race emblems left out): the game's and the battle's (the tests' data).</summary>
+    public static IReadOnlyList<string> Figures() => [.. Names().Where(n => n != "clips" && !n.StartsWith("emblems/", StringComparison.Ordinal)), .. BattleMan];
+
+    /// <summary>The race emblems the manifest makes (GM2 step 10): emblems/&lt;name&gt;, the name a race's emblem.</summary>
+    public static IReadOnlyList<string> Emblems() => [.. Names().Where(n => n.StartsWith("emblems/", StringComparison.Ordinal))];
 
     /// <summary>
     /// The family's state machines' JSON forms (GM2 step 4b), Assets/Models/humanoid/machines/&lt;name&gt;.json, so models.pak's

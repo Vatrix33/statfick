@@ -175,12 +175,18 @@ public class UiResourcesTests
 
     static string StylesheetSource(string name) => Path.Combine(TestPaths.Packs, "..", "UI", "styles", name + ".css");
 
+    /// <summary>The race emblems' pictures (GM2 step 10): engine/Assets/UI/emblems/*.png, at ui/emblems/ as they are (the game's tests hold what they show).</summary>
+    static IReadOnlyList<string> Emblems => [.. Directory.GetFiles(Path.Combine(TestPaths.Packs, "..", "UI", "emblems"), "*.png").Select(f => Path.GetFileName(f)).Order(StringComparer.Ordinal)];
+
     [Fact]
     public void TheCommittedPackHoldsTheOldGamesFiveFontsTheirLicencesAndThePortsStylesheets()
     {
         using var pack = PackFile.Open(CommittedPack);
-        Assert.Equal(Contents.Select(c => (c.Path, false)).Concat(Stylesheets.Select(s => ($"ui/styles/{s}", true))).Order(),
+        Assert.Equal(90, Emblems.Count);
+        Assert.Equal(Contents.Select(c => (c.Path, false)).Concat(Stylesheets.Select(s => ($"ui/styles/{s}", true))).Concat(Emblems.Select(e => ($"ui/emblems/{e}", false))).Order(),
             pack.Entries.Select(e => (e.Path, e.IsRecord)).Order());
+        foreach (var emblem in Emblems)
+            Assert.Equal(File.ReadAllBytes(Path.Combine(TestPaths.Packs, "..", "UI", "emblems", emblem)), pack.Read(pack.Find($"ui/emblems/{emblem}")!));
         foreach (var (path, file) in Contents)
         {
             var content = pack.Read(pack.Find(path)!);

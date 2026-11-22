@@ -55,6 +55,7 @@ public sealed class SheetScreen : IGameScreen
     UiDocument? _document;
     UiElement? _page, _settingsButton, _toggle, _dot, _status;
     FieldTools? _tools;
+    EmblemPictures? _pictures;
     int _dotTimer;
     bool _showing;
 
@@ -72,6 +73,7 @@ public sealed class SheetScreen : IGameScreen
         _dot = Q("main.game-page .status-dot");
         _status = Q("#backup-status");
         _tools = new FieldTools(document, ui.Windows);
+        _pictures = new EmblemPictures(document);
         _context = Context(document.Files);
         _settingsButton.AddEventListener("click", _ => ui.Commands.Run("open-settings"));
         Q("#menu-button").AddEventListener("click", _ => ui.Commands.Run(GameUi.MenuCommand));
@@ -208,11 +210,8 @@ public sealed class SheetScreen : IGameScreen
         seal.SetAttribute("aria-label", title);
         seal.ToggleAttribute("disabled", !dev);
         seal.SetStyle("--race-accent", race?.Accent ?? "var(--ember)");
-        var picture = EmblemPictures.For(race);
-        var image = Q("#race-icon");
-        image.Hidden = picture is null;
-        image.SetAttribute("src", picture);
-        Q(".hero-sigil-fallback").Hidden = picture is not null;
+        // The race's emblem picture (Q36, GM2 step 10), else the ✦.
+        Q(".hero-sigil-fallback").Hidden = _pictures!.Show(Q("#race-icon"), race?.Emblem);
         Text("#hero-race-name", SheetTexts.RaceName(race));
 
         // The EXP card.
