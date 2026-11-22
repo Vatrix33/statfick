@@ -295,6 +295,11 @@ public class HeroFigureTests(GpuFixture gpu)
         var sample = AssemblyTests.Samples.Single(s => s.Name == "assembly-human-male-geared");
         using var geared = HeroFigure.Build(gpu.Device, data, sample.Look, sample.Gear);
         Assert.Equal(-0.023997f, geared.Actor.Ground, 6);
+        // Its skeleton wears what the figure wears on its bones, in the plan's order, its rigid items not (GM2-P37: with its
+        // skin they meet the ground a clip's contacts keep; a new look or gear is a new figure, so its clips bind again).
+        Assert.Equal(geared.Actor.Garments.Select(g => g.Model.Data), geared.Skeleton.Worn);
+        Assert.NotEmpty(geared.Skeleton.Worn);
+        Assert.DoesNotContain(geared.Actor.Items[0].Model.Data, geared.Skeleton.Worn);
 
         // A garment reaching under the soles (a made-up one: the chain shirt sunk a metre, as a mod's long robe or boots
         // made apart might) is what the figure stands on; its rigid items never are.

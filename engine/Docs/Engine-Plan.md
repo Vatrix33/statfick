@@ -1300,6 +1300,9 @@ the design and the tests):
   mask in GM5), GM2-P22 (the hips' place scaled by the legs' length, and a figure placed by its soles: "the figure's
   ground", an engine task before step 11), GM2-P23 (the keying scripts into the repo later) and the clips' ease; in
   `Docs/Game-Plan.md` ("GM2's detail round") and `Docs/Game/Hero.md` ("Questions from the steps", "Decisions").
+  **Q59's showing (2026-11-22, the question tool):** "Yes, both bodies move right" (eight clips on the hobbit's slender and
+  the Goliath's strong body, played by GM2-P37's rule; weapons' size per race left to GM3's questions); step 9's approval
+  stop for Q59 passed (`Docs/Game/Hero.md`, Q59).
   **Q61–Q65 (2026-11-18 to 20, asked by the manager with step 9a's art; recorded by step 9a):** the shared sets' lists
   (Q61: men's and women's hair 20 each, beards 12, head pieces 8, marks 6, each with "None"), the Side braid before the
   right shoulder (Q62), the human's 69 swatches (Q63), a tie's colour chosen on its own (Q64), a mark made for each face
@@ -4767,6 +4770,18 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     place and filtering, a text area's and text field's width from `cols` and `size`. Breaks 77, 71 killed and the 4 gaps
     closed and killed, 2 unable to differ. 5347 + 1084 = 6431 tests on the GPU and lavapipe (`main` `e92a634`: 5289 + 1084 =
     6373; 58 new, the engine's).
+  - **GM2's engine task "contacts kept" (GM2-P37; 2026-11-21/22, a worker on the branch `gm2-contact`;
+    `Docs/Game/Hero.md`, "How it works", "Contacts kept"; `Docs/Animation.md`, "A clip keeps its contacts"):** a clip keeps
+    its contacts with the ground on a body other than the one it was keyed on: the clip library names them
+    (`model.animation` version 3's `contacts`: the man as the keyed body, the hips, the legs and the arms), and when a clip
+    is bound to a skeleton (its body and what it wears, `Skeleton(body, worn)`) its root's place and its chains' turns are
+    made again at its key times (`ClipBinding.Contacts`: the hips by the rest of the body, each end by a two-bone solve, then
+    rounds where what no end can lift raises the hips and a straight leg that can't reach brings them down; up wins),
+    nothing on the man (his 35 evaluations the same files). Blender's side the same (`Tools/BlenderReference/
+    clip_contacts.py`: the evaluation, `render.py --clip`, `assemble.py`). Every human body, three made-up ones and the races'
+    five scratch bodies within the man's ground bounds (at most 2.23 mm under; were up to 56.29). The worker's stop on the
+    rule as written and the manager's answer (the legs' shortfall, the reach pass, the hands): `Docs/Game/Hero.md`,
+    "Decisions", GM2-P37. 5347 + 1084 → 5389 + 1086 = 6475 tests, on the GPU and lavapipe.
 
 ## Milestones
 

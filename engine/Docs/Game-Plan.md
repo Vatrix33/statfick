@@ -2370,6 +2370,11 @@ and waits for the user's go, asked when its milestone reaches it:
     man, his references the same), Blender's side alike; an actor drawn standing by its soles (`Actor.Ground`, the lowest
     point at rest of its body and garments), set by the game's figure builder and the figure mode, Blender's renders and
     assemblies alike. The woman's lowest point now at most 2.43 mm under her ground in any clip (was 24.11).
+    **Contacts kept (GM2-P37), done** on 2026-11-22 (a worker, the branch `gm2-contact`; `Docs/Game/Hero.md`, "How it
+    works", "Contacts kept"): what touches the ground on the man touches it on every body (a long foot toe-down, a kneeling
+    knee, a heavy thigh lying), worked out when a clip is bound to a body and what it wears; every human body and the
+    races' scratch bodies within the man's bounds. For GM3: boots are worn on a new skeleton (a new figure), whose clips bind
+    again.
   - **A bone mask for the stance loops (GM2-P21):** the five `hold-*` loops key the arms alone, and the battle lays its
     weapon kind's over the arms of whatever else plays (idle, moving, reactions, guard, evade), its own time running, and
     not over the weapon's own attack: laying one over another clip by a bone mask is the battle's, GM5. What exists: the
@@ -2474,6 +2479,9 @@ The sound questions are asked with their milestones (GM1-6).
 - GM3-4 The Transformer: kite shield / round copper shield. Answered: round copper shield.
 - GM3-5 Masterworks and Exotics without a hint: designed by the port and approved / described by the user. Answered:
   designed by the port and approved.
+- GM3 (open, raised by GM2's Q59 showing, 2026-11-22): weapons and shields sized per race (the hobbit's and the Goliath's
+  clips were approved with the sword and shield at the race's size) or one size for every race; to be asked with GM3's
+  detail round (`Docs/Game/Hero.md`, Q59).
 - GM4-1 The map's finish: with parchment frame, compass, scale, inked labels / labels only. Answered: with the frame.
 - GM4-2 Settlements on the map: each its own from a kit / two shared models. Answered: two shared models (the three
   sites each their own, GM4-2b).
@@ -2819,3 +2827,7 @@ GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detai
   (`models.pak` and a `models-<race>.pak` per race, mounted right after it), the build's determinism (GM2-P44), before
   steps 9b–9e bring the races' models; the manager's GM2-P45 (a model races share stored once) and GM2-P46 (smaller model
   records later: "Engine items the port will meet") recorded (`Docs/Game/Hero.md`, "How it works", "The race packs").
+- **2026-11-22, GM2's engine task "contacts kept" (GM2-P37, the branch `gm2-contact`):** the engine item "The figure's
+  ground" widened by the manager and done ("Engine items the port will meet"; `Docs/Game/Hero.md`, "How it works",
+  "Contacts kept"): a clip keeps its contacts with the ground on every body (the hobbit's toe-down feet, the Goliath's
+  lying thighs, the strong builds' kneeling knees), the human's four builds now held to the man's ground bounds. 5389 + 1086 = 6475 tests.

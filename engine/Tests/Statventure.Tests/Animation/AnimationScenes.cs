@@ -155,6 +155,11 @@ public static class AnimationScenes
         // bone names on the man's body (whose skeleton they are keyed on) and on the woman's, as the frame's test clip is.
         .. HumanoidClipList.All.SelectMany(clip => new[] { "male", "female" }.Select(sex =>
             new AnimationScene($"humanoid-{clip.Name}-{sex}", "humanoid/clips", clip.Name, ClipTimes(clip), Target: $"humanoid/bodies/human-{sex}-average"))),
+        // Contacts kept (GM2-P37): the clips where a body's own thickness meets the ground most (the fall, the kneel, the
+        // run's push-off, the lunge) on the strong man, whose legs are the man's (the measure's ratio 1) and whose girth
+        // isn't, so his corrections are the contacts' alone and the largest of the repo's bodies (death's hips 23 mm).
+        .. new[] { "death", "meditate", "advance", "flee" }.Select(name =>
+            new AnimationScene($"humanoid-{name}-male-strong", "humanoid/clips", name, ClipTimes(HumanoidClipList.Of(name)), Target: "humanoid/bodies/human-male-strong")),
     ];
 
     /// <summary>

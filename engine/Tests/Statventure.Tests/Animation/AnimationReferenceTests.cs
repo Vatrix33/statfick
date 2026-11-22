@@ -89,7 +89,8 @@ public class AnimationReferenceTests(ITestOutputHelper output)
     {
         var reference = Load(scene.Name);
         var source = ModelData.Load(AnimationScenes.ModelPath(scene.Model));
-        var clips = AnimationClip.AllOf(source);
+        // A clip's keyed body (its contacts', GM2-P37) found beside the library (Assets/Models).
+        var clips = AnimationClip.AllOf(AnimationScenes.ModelPath(scene.Model));
         var model = scene.Target == null ? source : ModelData.Load(AnimationScenes.ModelPath(scene.Target));
         var skeleton = new Skeleton(model);
         if (scene.Layers != null)
@@ -280,7 +281,7 @@ public class AnimationReferenceTests(ITestOutputHelper output)
             return;
         var reference = Load(name);
         var source = ModelData.Load(AnimationScenes.ModelPath(scene.Model));
-        var clip = AnimationClip.AllOf(source).Single(c => c.Name == scene.Clip);
+        var clip = AnimationClip.AllOf(AnimationScenes.ModelPath(scene.Model)).Single(c => c.Name == scene.Clip);
         Assert.NotNull(reference.Markers);
         Assert.Equal(reference.Markers!.Select(m => (m.Name, Math.Round(m.Frame / AnimationScenes.Fps, 9))), clip.Events.Select(e => (e.Name, Math.Round(e.Time, 9))));
     }

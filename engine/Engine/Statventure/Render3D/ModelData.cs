@@ -214,7 +214,7 @@ public sealed record ModelAnimationEvent([property: Field(1)] string Name, [prop
 /// body's size") its <see cref="Measure"/>, also from its extras: the joints whose rest lengths
 /// measure a body for its translations.
 /// </summary>
-[Record("model.animation", 2)]
+[Record("model.animation", 3)]
 public sealed record ModelAnimation([property: Field(1)] string Name, [property: Field(2), Bulk("{0} channels")] IReadOnlyList<ModelAnimationChannel> Channels)
 {
     [Field(3)] public IReadOnlyList<ModelAnimationEvent> Events { get; init; } = [];
@@ -227,15 +227,48 @@ public sealed record ModelAnimation([property: Field(1)] string Name, [property:
     /// </summary>
     [Field(4), Bulk("{0} joints")] public IReadOnlyList<string> Measure { get; init; } = [];
 
+    /// <summary>
+    /// What the clip keeps touching the ground on a body other than the one it was keyed on (GM2-P37, "contacts kept";
+    /// Docs/Animation.md, "A clip keeps its contacts"): the body it was keyed on, the joint whose place carries the body,
+    /// and the chains (legs, arms) whose ends reach the ground; since version 3, from the animation's extras. Null: the
+    /// clip plays as keyed (and measured) on every body.
+    /// </summary>
+    [Field(5)] public ModelContacts? Contacts { get; init; }
+
+    /// <summary>Version 2 (GM2-P22): no contacts.</summary>
+    [Record("model.animation", 2)]
+    public sealed record V2([property: Field(1)] string Name, [property: Field(2)] IReadOnlyList<ModelAnimationChannel> Channels)
+    {
+        [Field(3)] public IReadOnlyList<ModelAnimationEvent> Events { get; init; } = [];
+        [Field(4)] public IReadOnlyList<string> Measure { get; init; } = [];
+
+        public ModelAnimation Upgrade() => new(Name, Channels) { Events = Events, Measure = Measure };
+    }
+
     /// <summary>Version 1 (M9): no measure.</summary>
     [Record("model.animation", 1)]
     public sealed record V1([property: Field(1)] string Name, [property: Field(2)] IReadOnlyList<ModelAnimationChannel> Channels)
     {
         [Field(3)] public IReadOnlyList<ModelAnimationEvent> Events { get; init; } = [];
 
-        public ModelAnimation Upgrade() => new(Name, Channels) { Events = Events };
+        public V2 Upgrade() => new(Name, Channels) { Events = Events };
     }
 }
+
+/// <summary>
+/// A clip's ground contacts (GM2-P37; Docs/Animation.md, "A clip keeps its contacts"): <see cref="KeyedOn"/> the model of
+/// the body the clip was keyed on (a data path, <c>models/humanoid/bodies/human-male-average</c>: its skin and the outfit it
+/// is built with, whose lowest points touch the ground where the clip says), <see cref="Root"/> the joint whose place
+/// carries the whole body (the hips), and <see cref="Chains"/> the limbs whose ends reach the ground, each three joints:
+/// the top (stays), the middle (bends about its own X) and the end (keeps its turn in the world).
+/// </summary>
+[Record("model.contacts", 1)]
+public sealed record ModelContacts([property: Field(1)] string KeyedOn, [property: Field(2)] string Root,
+    [property: Field(3)] IReadOnlyList<ModelContactChain> Chains);
+
+/// <summary>A limb of a clip's contacts: its joints by name, top, middle, end (a leg's thigh, shin and foot).</summary>
+[Record("model.chain", 1)]
+public sealed record ModelContactChain([property: Field(1)] IReadOnlyList<string> Joints);
 
 /// <summary>
 /// A model as read from a .glb (<see cref="GltfImport"/>): in glTF's coordinates, right-handed, Y up,
@@ -309,7 +342,9 @@ public sealed class ModelData
     /// times that increase; nodes' cameras and lights that exist, one light at most and on one node at
     /// most (one sun per view), and cameras and lights whose values make a projection and a sun
     /// (<see cref="ModelCamera.Problem"/>, <see cref="ModelLight.Problem"/>; Docs/Scene.md, step 3); an animation's
-    /// measure two joints or more, each a node of the model (GM2-P22). A model
+    /// measure two joints or more, each a node of the model (GM2-P22); an animation's contacts naming the body they were
+    /// keyed on, their root and each chain's three joints nodes of the model whose place or turn the animation keys
+    /// (GM2-P37). A model
     /// from a pack or a loose folder breaks them only if it was edited. Also the limits its fields declare
     /// (G4). The first of <see cref="RecordChecks.Check"/>'s problems.
     /// </summary>
@@ -468,6 +503,41 @@ public sealed class ModelData
             for (var k = 0; k < measure.Count; k++)
                 if (!names.Contains(measure[k]))
                     check.Report(at.Index(k), $"{where} is measured by the joint {measure[k]}, which isn't a node of the model");
+        }
+        // A clip's contacts (GM2-P37): the body it was keyed on named; the root and each chain's three joints nodes of the
+        // model; and the clip keys what the correction changes (the root's place, each chain joint's turn), so it never
+        // adds a channel the clip doesn't drive (a stance laid over another clip stays the arms alone).
+        for (var a = 0; a < model.Animations.Count; a++)
+        {
+            if (model.Animations[a].Contacts is not { } contacts)
+                continue;
+            var animation = model.Animations[a];
+            var at = F("animations").Index(a).Field("contacts");
+            var where = $"animation {a} ({animation.Name})";
+            bool Keys(string joint, AnimationPath path) => animation.Channels.Any(c => c.Path == path && c.Node >= 0 && c.Node < count && nodes[c.Node].Name == joint);
+            if (string.IsNullOrWhiteSpace(contacts.KeyedOn))
+                check.Report(at.Field("keyedOn"), $"{where} keeps contacts but names no body it was keyed on");
+            if (!names.Contains(contacts.Root))
+                check.Report(at.Field("root"), $"{where} keeps contacts carried by the joint {contacts.Root}, which isn't a node of the model");
+            else if (!Keys(contacts.Root, AnimationPath.Translation))
+                check.Report(at.Field("root"), $"{where} keeps contacts carried by {contacts.Root}, whose place it doesn't key");
+            if (contacts.Chains.Count == 0)
+                check.Report(at.Field("chains"), $"{where} keeps contacts with no chain");
+            for (var c = 0; c < contacts.Chains.Count; c++)
+            {
+                var joints = contacts.Chains[c].Joints;
+                var chainAt = at.Field("chains").Index(c).Field("joints");
+                if (joints.Count != 3)
+                {
+                    check.Report(chainAt, $"{where}'s contact chain {c} has {joints.Count} joints: a chain is three, top, middle and end");
+                    continue;
+                }
+                for (var k = 0; k < 3; k++)
+                    if (!names.Contains(joints[k]))
+                        check.Report(chainAt.Index(k), $"{where}'s contact chain {c} names the joint {joints[k]}, which isn't a node of the model");
+                    else if (!Keys(joints[k], AnimationPath.Rotation))
+                        check.Report(chainAt.Index(k), $"{where}'s contact chain {c} names {joints[k]}, whose turn it doesn't key");
+            }
         }
     }
 

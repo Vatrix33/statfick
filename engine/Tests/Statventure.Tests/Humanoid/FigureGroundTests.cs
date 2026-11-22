@@ -123,7 +123,7 @@ public class FigureGroundTests(ITestOutputHelper output)
         var worst = 0.0;
         foreach (var entry in HumanoidClipList.All.Where(e => !e.Stance))
         {
-            var clip = HumanoidClipList.Clip(entry.Name);
+            var clip = HumanoidClipList.Measured(entry.Name);
             var (keyed, played) = (new ClipBinding(clip, mine), new ClipBinding(clip, theirs));
             Assert.Equal(k, played.Scale, 5);
             for (var frame = 0; frame <= entry.Frames; frame++)
@@ -222,7 +222,7 @@ public class FigureGroundTests(ITestOutputHelper output)
         var body = Body("female");
         var skeleton = new Skeleton(body);
         var hips = skeleton.Find("hips");
-        var ratio = new ClipBinding(HumanoidClipList.Clip("idle"), skeleton).Scale;
+        var ratio = new ClipBinding(HumanoidClipList.Measured("idle"), skeleton).Scale;
         Assert.InRange(ratio, 0.96, 0.97);
         double[] Raw(string clip, double t)
         {
@@ -238,14 +238,14 @@ public class FigureGroundTests(ITestOutputHelper output)
         }
         // A stance laid over the idle: the hips are the idle's, scaled.
         var layered = new AnimationStack(skeleton);
-        layered.Add(new ClipBinding(HumanoidClipList.Clip("idle"), skeleton), 0, s => s.Repeat = 10);
-        layered.Add(new ClipBinding(HumanoidClipList.Clip("hold-bow"), skeleton), 0, s => s.Repeat = 10);
+        layered.Add(new ClipBinding(HumanoidClipList.Measured("idle"), skeleton), 0, s => s.Repeat = 10);
+        layered.Add(new ClipBinding(HumanoidClipList.Measured("hold-bow"), skeleton), 0, s => s.Repeat = 10);
         layered.Evaluate(0.7, buffer);
         Near([.. Raw("idle", 0.7).Take(3).Select(v => v * ratio)], "idle+hold-bow");
         // A cross-fade from the idle into the swing, halfway: the mix of the two scaled places.
         var fade = new AnimationStack(skeleton);
-        fade.Add(new ClipBinding(HumanoidClipList.Clip("idle"), skeleton), 0, s => s.Repeat = 10);
-        fade.Add(new ClipBinding(HumanoidClipList.Clip("swing"), skeleton), 1, s => s.BlendIn = 0.2);
+        fade.Add(new ClipBinding(HumanoidClipList.Measured("idle"), skeleton), 0, s => s.Repeat = 10);
+        fade.Add(new ClipBinding(HumanoidClipList.Measured("swing"), skeleton), 1, s => s.BlendIn = 0.2);
         fade.Evaluate(1.1, buffer);
         var (idle, swing) = (Raw("idle", 1.1), Raw("swing", 0.1));
         Near([.. Enumerable.Range(0, 3).Select(c => ratio * (0.5 * idle[c] + 0.5 * swing[c]))], "the fade");
@@ -253,14 +253,14 @@ public class FigureGroundTests(ITestOutputHelper output)
         var machine = StateMachineDefinition.Load(new Statventure.Packs.VirtualFileSystem([Statventure.Packs.Mount.Pack(Path.Combine(HumanoidFiles.Engine, "Assets", "Packs", "models.pak"))]),
             "models/humanoid/machines/figure");
         var stack = new AnimationStack(skeleton);
-        var animator = new Animator(stack, new StateMachine(machine, stack, name => new ClipBinding(HumanoidClipList.Clip(name), skeleton)));
+        var animator = new Animator(stack, new StateMachine(machine, stack, name => new ClipBinding(HumanoidClipList.Measured(name), skeleton)));
         animator.Advance(1.25);
         stack.Evaluate(animator.Time, buffer);
         Near([.. Raw("stand", 1.25).Take(3).Select(v => v * ratio)], "the machine's stand");
 
         // The gear: the woman's chain shirt and a sword on her right hand at death's end, from the scaled clip, are where
         // an unscaled clip's pose with the hips' place scaled by hand puts them.
-        var death = HumanoidClipList.Clip("death");
+        var death = HumanoidClipList.Measured("death");
         var plain = new AnimationClip(death.Name, death.Tracks, death.Events);
         Assert.Null(plain.Measure);
         var by = new PoseBuffer(skeleton);

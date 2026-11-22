@@ -257,6 +257,34 @@ look's 3 px lines swallow the medallion (at 72 px its 40 beads become a black ri
 `claude-work/gm2/step10-repo/try1/compare.png`). The filter step 10 chose: Lanczos of three lobes stretched to the scale,
 in sRGB with the cover multiplied in, the scaling part of the regenerable script ("How it works", step 10).
 
+**GM2-P37, a clip keeps its contacts on another body (the manager, 2026-11-21; it extends GM2-P22):** GM2-P22 keeps a
+clip's joints in proportion, enough for the woman but not for bodies whose feet or girth aren't in proportion to their legs
+(the manager measured the races' scratch bodies by GM2-P22's rule alone: the slender hobbit 56 mm under the ground in
+meditate, 38 in flee; the strong Goliath's thigh 42 mm under at death's end; step 9a's strong man 14.77 mm in death). The
+rule, "contacts kept": what touches the ground on the keyed body touches it on the playing body, and what is in the air
+stays in proportion. Its parts as the manager set them: contact groups are data, as the measure is (the clip library names
+them and the body it was keyed on, the man with his outfit: his boots are his soles; a clip without them plays as before);
+a group's clearance is its lowest skin point (the body's and its worn garments', items left out) over the body's ground;
+the target is the keyed clearance times the measure's ratio, counting fully where the keyed group is at the ground and
+fading out as it leaves it; the hips by the rest of the body, then each foot's ankle by a two-bone solve of its leg (the
+hip stays, the knee bends in its plane, the foot keeps its turn in the world), a target out of reach clamped and counted;
+worked out when a clip is bound to a body (once per body, worn set and clip; at the clip's key times, straight between),
+so a frame costs no more; nothing changes on the keyed body, bit for bit; no pops; Blender's side the same. The worker
+stopped on it as written (a kneeling knee and a lying thigh, which an ankle can't lift: the Goliath 17.5 and 16.4 mm under,
+and the woman's death from 2.48 over to 5.27 under) with three options; **the manager's answer (2026-11-21): the worker's
+option 1**, the rule plus the legs' shortfall (what a leg still lacks after its ankle's solve, a knee or a thigh, raises
+the hips, the ankles solved again), **with these additions:** (1) a reach pass the other way: a planted foot a straight leg
+can't reach brings the hips down by what is missing, weighted as the rest; when one part asks the hips up and another down,
+up wins (nothing goes under the ground), counted; a foot planted on the man within 2 mm of the ground on every body,
+`stand` and `idle` included; (2) the hands as contact groups with their arm chains (upper arm, forearm, hand), by the same
+mechanism and data, if that brings a lying heavy body's fist to the ground and changes nothing where the man's hands are
+far from it (measured on every clip; else left out, the data able to name them later); (3) the races' scratch bodies are
+the next bodies in the repo: the man's own bounds on all five, the Goliath's last residuals found and closed, no bound
+widened; (4) agreed as the worker's: the weight (1 at a keyed clearance of 0 or less, smooth to 0 at 150 mm), the knee
+turning about its own hinge and always flexing, the pop bounds (one tied to the motion, one absolute and measured);
+(5) a lying body's trunk held up by thick thighs stays as it is (no trunk turned), reported per body. **Done 2026-11-22**
+(a worker, the branch `gm2-contact`; "How it works", "Contacts kept"): every number, choice and measurement there.
+
 **The manager's decisions on the races' packs and builds (GM2-P44–GM2-P46, 2026-11-21 and 22; GM2-P44 from his hand-over of
 9b–9e, `claude-work/gm2/step9a/handover-races/HANDOVER.md`, the others on the races' worker's report of the pack's size;
 recorded by the race packs' task, "How it works", "The race packs"):**
@@ -409,6 +437,13 @@ hand-over, `claude-work/gm2/step4/handover-clips/HANDOVER.md`; numbers fixed by 
   chose **"In step 9, on the real bodies"** (not now on rough blockouts): when step 9 has made the two bodies and the engine
   scales the hips' place, the manager shows the user the clips on them and fixes what looks wrong then (an approval stop
   of step 9's, "Steps").
+  **Q59's showing (the user, the question tool, 2026-11-22): "Yes, both bodies move right"**: eight clips (idle,
+  advance, flee, swing, hurt, evade, meditate, death) on the hobbit's slender and the Goliath's strong body, played by
+  GM2-P37's rule ("How it works", "Contacts kept") and rendered by the manager from the branch `gm2-contact`'s tools at
+  `1190d86` (side and three-quarter, the camera level, a ground line; `claude-work/gm2/step9clips/approval/q59/`), every
+  frame's lowest pixel within the ink's width of the line; the sword and shield shown at the race's size, whether
+  weapons are sized per race left to GM3's questions (`Docs/Game-Plan.md`, "What this plan leaves open"). With it the
+  approval stop Q59 added to step 9 is passed.
 
 Q58 and Q60 raised by GM2's engine task on the ink ("How it works", "The ink's cover") and asked by the manager with the
 question tool on 2026-11-18 (the numbers the manager's, so as not to collide with the steps' own).
@@ -2019,6 +2054,8 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
      place scaled by its left leg's length over the man's, and stands by its soles; a body built so needs nothing more
      (its skeleton's `thigh.L`, `shin.L`, `foot.L` are its measure). Made-up legs of 0.6 and 1.2 of the man's keep every
      leg joint at that ratio of his place to 0.3 µm; whether the clips *look* right on those proportions is the user's, here.
+     **Passed 2026-11-22** (Q59's showing, the user with the question tool: "Yes, both bodies move right"): the eight
+     clips on the two bodies played by GM2-P37's rule ("How it works", "Contacts kept"; Q59, "Questions from the steps").
 10. **The nine emblems** (3D, the manager; the PC). Its sketches any time; its models after 3's look.
     - Owns: the nine motifs' sketches (Q37), the emblems' scripts and models (medallions in relief, Q35), their pictures in
       `ui.pak` at each size and scale (Q36), their Blender references, the live emblem's scene for the carousel.
@@ -4175,6 +4212,252 @@ library keyed again by `library.py` carries the measure by itself; every figure 
 (`humanoid-scenes.json`, `figure-scenes.json`) or `assemble.py` assembles (`assembly-looks.json` → `assembly-scenes.json`)
 written again and its Blender references made again (the figures now stand by their soles, their cameras with them);
 a scene posing the woman (or any other body) by a clip made again too (her clips' hips scaled).
+
+### Contacts kept: what touches the ground on the man touches it on every body (2026-11-21/22, the branch `gm2-contact`)
+
+The engine task of GM2-P37 (the manager's, with the additions of the answer to the worker's stop; "Decisions"). GM2-P22
+keeps a clip's joints in proportion; this keeps its contacts: what touches the ground on the body the clip was keyed on
+touches it on the playing body, what is in the air stays where the measure puts it. The code: `Animation/Contacts.cs`
+(`ContactRule`, `ClipContacts`, `ContactShape`, `ContactCorrection`, `KeySolve`), `ClipBinding.Contacts`; Blender's side
+`Tools/BlenderReference/clip_contacts.py`, the same arithmetic; `Docs/Animation.md`, "A clip keeps its contacts".
+
+**The data** (`model.animation` version 3's `contacts`, a `model.contacts` record; version 2 kept and upgraded): from the
+animation's extras, the action's custom property `contacts`, which `clips/library.py` writes:
+`{"keyedOn": "models/humanoid/bodies/human-male-average", "root": "hips", "chains": [["thigh.L", "shin.L", "foot.L"],
+["thigh.R", "shin.R", "foot.R"], ["upper_arm.L", "forearm.L", "hand.L"], ["upper_arm.R", "forearm.R", "hand.R"]]}`, on
+every clip that keys the root's place, each chain only where the clip turns all three of its joints (`flee` and `stand`
+leave the hands alone: legs only; a clip never gains a channel), none on the stance loops and on the frame's test clip
+`rest-sway` (it turns no leg). The model's check refuses contacts naming no keyed body, a root or a chain joint that isn't a
+node, a root whose place or a joint whose turn the clip doesn't key, no chain, a chain not of three. The keyed body is a
+model of the game's data, given by whoever loads the clips: `AnimationClip.AllOf(files, path)` (from the same data),
+`AllOf(glbFile)` (the `.glb` under the nearest folder above the library that has it: `Assets/Models`), or
+`AllOf(model, models)`; a clip with contacts loaded without it plays on a skeleton without a mesh (the library's own, the
+editor's preview) and is refused when bound to a body (naming the clip and the body), never silently left uncorrected.
+
+**The groups.** A body (its skeleton's model) and what it wears on its bones (`Skeleton(body, worn)`: its parts and
+garments; its rigid items never, as its ground leaves them out) are skinned from their meshes as the renderer skins them
+(a garment's joint the body's bone of its name, its rest world times that bone's deformation; a joint the body hasn't, its
+rest); each vertex is in the group of the bone it follows most (the first of equal weights, the file's order): per chain c
+its **end** (the end joint and every bone under it: a foot; a hand with its fingers and thumb) and its **upper part** (the
+top and middle joints: thigh and shin, upper arm and forearm); everything else is **the rest** (hips, spine, chest, neck,
+head, collars). A group's **clearance** is its lowest vertex's height (glTF's Y) over the body's ground (`Actor.GroundOf`,
+the micrometre's rounding), +∞ for a group without a vertex (it takes no part).
+
+**The rule at one key time** (`KeySolve`; c a group's clearance on the playing body with the clip as GM2-P22 plays it, c*
+the keyed body's at the same time, r the measure's ratio):
+1. **Weight** w(c*) = 1 for c* ≤ 0, 1 − s(c*/F) for 0 < c* < F with s(x) = 3x² − 2x³, 0 from F on; **F = 150 mm** of the
+   keyed body's. Why 150: the slender hobbit's long foot, toe down in flee's push-off, clears the ground only once the man's
+   toe is about 145 mm up (at 87.6 mm the uncorrected toe is 21.9 mm under; 80 mm left it 22 mm under, 150 keeps it out); and
+   outside a fall nothing of the man but his legs comes within 344 mm of the ground (meditate's right fingers; his trunk
+   368 mm, his arms 428 mm: the groups' lowest at every key of every clip but `death`), so standing and kneeling trunks
+   and arms are never moved.
+2. **Target** T(c*) = c* + (r − 1)·max(0, c* − B), **B = 2 mm** (the contact band): in the band, under the ground included,
+   the man's clearance as it is (it is the keying's tolerance about the ground, his soles and knee resting from 2.2 mm under
+   to 2 mm over; scaled, a body 1.21 times his sank 2.7 mm and a planted foot floated 2.4); above it the band plus the ratio
+   times the height over it (a foot 300 mm up on the man is 2 + 0.48 × 298 mm up on the hobbit). Written so that r = 1
+   gives c* to the bit.
+3. **Goal** g = c + w·(T − c) per group.
+4. **The hips first** (the root's place moved straight up or down in model space): the rest of the body over its goal comes
+   down to it (a slender body doesn't float); under its goal it is only lifted out of the ground, by max(0, min(g − c, −c))
+   (a trunk in mail lies on its mail, not as high as the man's bare back).
+5. **Each chain's end** to where it should be once the hips have moved by H: D(H) = g_end + (1 − w_end)·H (at its goal as far
+   as it is a contact, moving with the hips as far as it is in the air), by **the two-bone solve**: the middle joint turns
+   about its own X (the rig's hinge: a limb bends about its own X) to the bend that puts the end at the target's distance
+   from the top, keeping the side of straight it is on (the knees flex forward, the elbows the other way: the man's knees
+   are at least 5.3° flexed and his elbows at least 1.3° bent in every frame of every clip, so the side never flips); then
+   the whole chain turns about its top by the smallest turn that takes the end onto the target; the end keeps its turn in
+   the world (the foot stays as pitched). A distance out of reach clamps the bend (straight or folded) and is counted. An
+   end within a micrometre of where it should be isn't solved.
+6. **Rounds (four):** measure every group again; **up** = the largest of each upper part's min(g, 0) − c (a kneeling knee
+   or a lying thigh or arm under the ground and its goal, which no end's solve can lift); **down** = the most negative lack
+   D(H) − c of a clamped end (a straight leg that can't reach down: the hobbits' and the dwarf's `stand`), granted only as
+   far as nothing goes under the ground or its goal (the **room**: the least of the rest's and each upper part's
+   c − min(g, 0)); the hips move by up if up > 0, else by the down granted (**up wins, in every round**: nothing goes under
+   the ground; a key where a down isn't granted in full is a counted conflict); a move under a micrometre is none; then
+   every end is solved again to D at the new H. A round with nothing left to do ends them.
+The four rounds converge to 0.02 mm on the bodies measured (two left the Goliath's kneeling knee 0.6 mm deeper than the
+man's). Up first won only within a round, and the next round's down undid it (a straight leg asking down again once the
+hips had lifted): the mutation run found it (2026-11-22; "down wins" survived), and the room closed it. Two asks of the
+first rounds went with it, as no pose can make them: the rest's own lift (after the first pass only a down moves it, and
+the room now bounds that) and a clamped end's lift (an end under where it should be and clamped needs its target within
+the top's reach of a folded limb, a few centimetres from the hip or shoulder). On the repo's bodies nothing changed (none
+clamps or conflicts), and the made-up bodies' measures stayed as they were (the heavy body's 14 conflicts, the hobbit's
+248 lowered keys); `UpWinsInEveryRound` holds the order at one key, the man lying with a foot asked out of reach.
+
+**Where it is worked out.** When a clip is bound to a skeleton (`ClipBinding`), once per skeleton (its body and worn set)
+and clip (cached on the skeleton's shape; the keyed body's clearances once per clip, shared by every body): at each of the
+clip's key times (every frame of the library's clips) the clip is sampled as GM2-P22 plays it, the rule run, and the
+root's place and the chains' joints' turns read back; the nodes the rule moved at some key get curves of those values
+(linear: straight between keys, the turns slerped), which the binding plays instead of the clip's own (the root's place
+already in the body's measure). A frame then costs what it did. Nothing moves on the body the clip was keyed on (the same
+numbers: every goal is the clearance itself), so its binding has no correction and its poses are the clip's to the bit
+(`OnTheManNothingChanges`). **A change of what is worn binds again:** the worn set is the skeleton's (`Skeleton(body,
+worn)`), so new boots (GM3) mean a new skeleton and new bindings, as a new look or gear already means a new `HeroFigure`;
+the game's figure builder and the figure mode give their skeleton the garments they draw.
+
+**What it costs** (`HumanoidCostTests.TheCostOfKeepingTheContactsIsMeasured`, a measurement, and a Release build of the same
+code; one thread; the CPU's work, the same on the GPU and on lavapipe; 2026-11-22, the PC under other workers' load):
+
+| | the GPU's run (Debug) | lavapipe's run (Debug) | Release (a scratch driver) | memory |
+|---|---|---|---|---|
+| the man's clearances, the library's 29 clips with contacts (once per library, every body shares them) | 440 ms | 531 ms | within the man's own first binding, 351 ms | 117 KiB |
+| the woman: her 34 clips bound (29 corrected) | 685 ms | 763 ms | 198 ms | 182 KiB of curves, a shape of 11 764 vertices 518 KiB |
+| the strong man: the same | 841 ms | 1115 ms | 256 ms | 182 KiB of curves, a shape of 16 491 vertices 726 KiB |
+
+Once per body, worn set and clip (a figure's first binding of a clip; the game binds a figure's clips when it is made); a
+frame costs what it did (the binding plays curves of the same form as the clip's own, straight between keys).
+
+**The hands** (the manager's addition 2): measured on every clip of every body, the arms act only in `death` (the fallen
+right fist put where the man's is, 0.79 mm over the ground, on every body; it lay up to 35 mm over it on the Goliath
+without them) and nowhere else (no arm moves by a micrometre outside the fall); so they stay.
+
+**What it measured.** The repo's six human bodies and three made-up ones (`ContactsKeptTests`; the ground test
+`HumanoidClipTests.BothBodiesStayOnTheGround` now binds all six human bodies to the man's bounds):
+
+| Body | Lowest point, any clip (mm under) | death's end (over) | the trunk at death's end (the man's 27.8) | Keys changed / clamped / conflicts |
+|---|---|---|---|---|
+| man | 2.21 (meditate's knee, as keyed) | −1.92 | 27.8 | 0 / 0 / 0 |
+| woman | 2.21 | −1.92 | 32.1 | 1793 / 0 / 0 |
+| slender man | 2.01 | −1.92 | 28.5 | 1793 / 0 / 0 |
+| strong man | 2.21 (was 14.77 in death) | −1.92 | 19.5 | 1793 / 0 / 0 |
+| slender woman | 2.01 | −1.92 | 29.5 | 1793 / 0 / 0 |
+| strong woman | 2.21 (was 9.04 in death) | −1.92 | 36.7 | 1793 / 0 / 0 |
+| made up: hobbit (legs 0.48, feet 0.90, the man's hip width) | 2.01 | −1.92 | 16.1 | 1793 / 264 / 0 (248 keys lowered: `stand`, `flee`) |
+| made up: heavy (skin half again as thick) | 2.01 | −1.92 | 40.1 | 1793 / 14 / 14 (death: thighs up, a heel down; up won) |
+| made up: tall (legs, hips and feet 1.2) | 2.21 | −1.92 | 53.8 | 1793 / 0 / 0 |
+
+On every one: a foot planted on the man (its end at most 2 mm over the ground) within 0.025 mm of his and at most 2.01 mm
+from the ground (`stand` and `idle` included: on the made-up hobbit, whose trunk is the man's on short legs, the straight
+legs can't reach the ground in `stand` and the reach pass brings the hips down by up to 7.78 mm); **over the ground** a
+planted foot is left at most 2.0012 mm (the slender woman; held at 2 mm and 5 µm, `PlantedOverHeight`): everywhere the
+highest is cast's frame 46, where the man himself keys his right foot at the band's top, 1.9995 mm over the ground, and
+the rounds leave the others within 1.7 µm of him; in clips with clamped keys (the reach pass's short straight legs) at most
+1.65 mm (the made-up hobbit's flee; its `stand` lower), the heavy body's 1.88 mm (death); on the races' five scratch bodies
+(Blender's side) at most 1.9998 mm (the elf, cast), at clamped keys at most 1.65 mm (the hobbits' and the dwarf's `stand`);
+a limb in the air turns as the measure has it (to 1e-9); the fallen fist within 0.004 mm of his. Made to meet each part of the rule: the hobbit
+the reach pass (the man's hip width on short legs, as the races' hobbits have it: an unproportioned pelvis rolls a hip
+joint up by more than a short leg can reach), the heavy body up winning over down (its thighs lying under the ground while a
+clamped heel asks the hips down). **The hips on the feet** (every clip but `death` and `meditate`): no repo body's move
+at all, the tall body's neither; only the made-up hobbit's, down by up to 7.78 mm (`stand`, the reach pass); none goes up.
+**What up winning costs:** where a clamped end's down isn't granted, it stays off where it should be: on the heavy body's
+14 conflicts at most 0.005 mm (`ContactCorrection.LeftOver`); on the Goliath's 13 (Blender's side) at most 0.01 mm.
+**No pops** (`Report.Hold`): between neighbouring frames the correction (the hips' and each end's move off the measured
+pose) changes by no more than its inputs can drive it (each group's clearance's change twice, its target's change, and its
+weight's change times how far its target is from it: the rule's own Lipschitz bound) plus 0.1 mm, measured at most 0.48 of
+it and never past it; and by at most 32 mm a frame (the largest measured 29.04 mm, the made-up heavy body's foot in flee's
+push-off, while the man's toe rises 53 mm in that frame; the bound the worst plus about a tenth).
+
+**The races' scratch bodies** (the manager's, `claude-work/gm2/step9a/out/race/`, not yet the repo's; measured by
+Blender's side, `claude-work/gm2/contact/contact_ground.py`: the clip played as GM2-P22 plays it and kept by
+`clip_contacts.py`, the lowest point of the depsgraph's evaluated meshes; mm under the ground, GM2-P22 alone → kept):
+
+| Body | advance | flee | swing | meditate | evade | death | death's end (over) | worst of all | the trunk at death's end |
+|---|---|---|---|---|---|---|---|---|---|
+| hobbit, man, slender | 29.86 → 2.00 | 38.47 → 2.00 | 26.19 → 2.00 | 56.29 → 2.01 | 19.83 → 2.00 | 11.45 → 1.98 | −11.43 → −1.92 | 56.29 → 2.01 | 12.8 |
+| hobbit, woman, slender | 25.90 → 2.00 | 34.47 → 2.00 | 23.22 → 2.00 | 49.61 → 2.01 | 17.27 → 2.00 | 2.62 → 1.98 | −2.60 → −1.92 | 49.61 → 2.01 | 14.8 |
+| dwarf, man, average | 28.09 → 2.00 | 32.62 → 2.01 | 20.89 → 2.00 | 35.39 → 2.01 | 18.29 → 2.00 | 9.62 → 1.98 | −9.62 → −1.92 | 35.39 → 2.01 | 32.5 |
+| Goliath, man, strong | 9.58 → 2.00 | 6.89 → 2.00 | 4.77 → 2.00 | 21.19 → 2.23 | 7.55 → 2.00 | 42.10 → 1.98 | −42.10 → −1.94 | 42.10 → 2.23 | 36.1 |
+| elf, man, average | 2.54 → 2.00 | 3.07 → 2.00 | 3.02 → 2.00 | 5.95 → 2.21 | 2.13 → 2.00 | 18.04 → 1.98 | −18.04 → −1.93 | 18.04 → 2.21 | 31.3 |
+
+Every one within the man's own bounds (his worst 2.21 mm, meditate's knee as keyed). The Goliath's last residuals of the
+first answer (3.28 mm at death's frame 37, 3.26 in meditate) had two causes, both closed: the target scaled the man's
+keyed depth under the ground by 1.21 (his 1.9 mm under became 2.3, his kneeling knee's 2.21 became 2.68: the contact band
+now keeps it as his), and the ankle was solved back to a place instead of the foot to its clearance (the boot's vertices
+near the ankle follow the shin too, so a turned shin moved the foot's lowest point by a millimetre: the rounds now solve
+each end to its measured clearance). What the rule did to each (frames of every clip; the hips' largest move, mm):
+
+| Body | Clamped frames | Conflicts (up won) | The hips on the feet (every clip but `death` and `meditate`) | `death` | `meditate` |
+|---|---|---|---|---|---|
+| hobbit, man, slender | 204 (`stand` 200, `flee` 4) | 0 | down 2.32 (`stand`) | down 10.13 | 0 |
+| hobbit, woman, slender | 231 (`stand` 226, `flee` 5) | 0 | down 4.17 (`flee`; `stand` 2.50) | down 12.85 | 0 |
+| dwarf, man, average | 256 (`stand` 241, `death` 15) | 0 | down 3.87 (`stand`) | up 17.65, down 1.73 | 0 |
+| Goliath, man, strong | 14 (`death`) | 13 (`death`: a thigh up, a heel down; the heel left 0.01 mm over its goal) | 0 | up 55.66 | up 19.59 |
+| elf, man, average | 0 | 0 | 0 | down 3.86 | up 6.35 |
+
+On the feet the hips only ever come down, and only where a straight leg can't reach the ground (the reach pass: the
+hobbits' and the dwarf's short legs under the man's trunk); no body's hips go up on its feet. Measured again after the
+rounds' fix (up winning in every round, "The rule at one key time", 6): the same numbers to the hundredth of a millimetre. A lying trunk held up by
+its thighs (the manager's 5: no trunk turned) lies from 12.8 mm (the hobbits) to 36.1 mm (the Goliath) over the ground
+where the man's lies 27.8 mm over it.
+
+**The user's word on it.** **Q59's showing (the user, the question tool, 2026-11-22): "Yes, both bodies move right"**:
+eight clips (idle, advance, flee, swing, hurt, evade, meditate, death) on the hobbit's slender and the Goliath's strong
+body, played by GM2-P37's rule ("How it works", "Contacts kept") and rendered by the manager from the branch
+`gm2-contact`'s tools at `1190d86` (side and three-quarter, the camera level, a ground line;
+`claude-work/gm2/step9clips/approval/q59/`), every frame's lowest pixel within the ink's width of the line; the sword
+and shield shown at the race's size, whether weapons are sized per race left to GM3's questions (`Docs/Game-Plan.md`,
+"What this plan leaves open"). With it the approval stop Q59 added to step 9 is passed.
+
+**Blender's side** (`clip_contacts.py`): the same groups from the bodies' `.glb` files (their accessors read by numpy), the
+pose channels from the action's F-curves at every frame, posed through the `.glb`'s hierarchy as the engine's
+`PoseBuffer.ToPose` and `WorldMatrices` pose them, the same rule (double precision), the corrected root location and chain
+turns keyed into the action at every frame (linear, each quaternion's sign the one nearer the frame before), so Blender then
+evaluates the corrected clip; nothing touched on the man. The keyed body's clearances are taken before GM2-P22's scaling.
+Used by `evaluate_animations.py` (a target body's `.glb` from the manifest) and `render.py`'s `pose_at` (the body and its
+`--garment`s; so `assemble.py`'s).
+
+**Held** (`Tests/Statventure.Tests/Humanoid/ContactsKeptTests.cs` unless named): every whole-body clip keeps its contacts
+keyed on the man (`EveryWholeBodyClipKeepsItsContactsKeyedOnTheMan`); the rule's numbers (`TheWeightAndTheTargetAreTheRulesNumbers`);
+the man's poses the measured clip's to the bit on and between frames (`OnTheManNothingChanges`); the six human bodies and the
+three made-up ones (planted feet, the fist, limbs in the air, no pops; the made-up ones also the ground's bounds); the
+chain shirt lying in death lifted out of the ground on the dressed skeleton and nothing on the bare one
+(`WhatIsWornMeetsTheGround`); a clip loaded without its keyed body refused on a body (`AClipWithoutItsKeyedBodyIsRefusedOnABody`);
+the knees' and elbows' sides (`TheLibrarysKneesAndElbowsKeepTheirSides`); all six human bodies within the man's ground
+bounds (`HumanoidClipTests.BothBodiesStayOnTheGround`); the woman's 29 whole-body clips and four on the strong man (`death`,
+`meditate`, `advance`, `flee`: his corrections are the contacts' alone, his legs the man's) against Blender's evaluation
+(`AnimationReferenceTests`, the existing limits); the extras read and refused (`ModelPackTests.AClipsContactsAreReadFromItsExtras`),
+the record's version 3 in both forms (`model/contacts`), the check's seven rules (`ModelValidationTests`); a new assembled
+sample, the geared man lying at death's end (`assembly-human-male-geared-death`: his chain shirt meets the ground on both
+sides, the game's figure wearing it and `render.py`'s `pose_at` keeping the contacts with it); the game's figure
+and the figure mode wearing their garments (`HeroFigureTests.AGameFigureStandsByItsSoles`, `FigureModeTests.TheFigureStandsByItsSoles`);
+GM2-P22's own tests held to the measure alone (`HumanoidClipList.Measured`: the clip without its contacts). The cost
+(`HumanoidCostTests.TheCostOfKeepingTheContactsIsMeasured`, a measurement): see Status.
+
+**What moved in the references.** The man's: his 34 evaluations and `rest-sway`'s **the same files**, and all his pictures
+but one: **`humanoid-male-death-down`** (the man in his chain shirt at death's end): the clip was keyed on his outfit alone
+and the shirt's rings lay 12.0 mm in the ground; worn, the shirt meets the ground and he is lifted 12.7 mm out of it (the
+rule as written: a worn garment's vertices count; the man without the shirt changes nothing). The woman's: her 29
+whole-body evaluations (her stance loops and `rest-sway` the same files), her geared `stand` sample and her kneeling
+assembled sample (`assembly-human-female-meditate`) made again by their scripts; four new evaluations on the strong man
+and the new assembled sample of the geared man lying (`assembly-human-male-geared-death`, `assembly-looks.json`).
+`clips.glb` (the contacts in the extras; its keys the same bytes), `models.pak` (every model record at `model.animation`
+version 3), `anim-scenes.json`, `humanoid-scenes.json` (two scenes), `assembly-scenes.json` (one scene), the editor's
+`preview-model` fixture (a new row "Contacts: none" below the view: its Chromium goldens captured again, the same bytes).
+
+**Choices made (internal, recorded here):** the groups split each chain into its end and its upper part (the ankle moves
+the end; only the hips can lift a knee or a thigh, and only out of the ground, so the calves of a standing body never move
+the hips); the rest of the body only lifted out of the ground and lowered to its goal (the mail); the contact band unscaled;
+four rounds; the hinge about the middle joint's own X keeping its side; the end's target moving with the hips by 1 − w; a
+micrometre as "done"; the keyed body given by the loader and refused when missing; the worn set on the skeleton; the hands
+kept (they act only in the fall); the strong man's four scenes against Blender.
+
+**For later steps.** *Step 11:* bind the clips to the `HeroFigure`'s skeleton (it wears the figure's garments already); load
+the library with `AnimationClip.AllOf(files, "models/humanoid/clips")` so its keyed body comes from the same data. *GM3:*
+boots or any garment that changes a sole are worn on a new skeleton (a new figure), whose bindings work the contacts out
+again. *GM5:* a figure binds a clip once per body and worn set (about 0.25 s for a body's 29 whole-body clips in a Release
+build, on one thread); bind them when the figure is made. *Any later family:* its library names its own contacts (or none).
+*A branch rebased onto this one:* `models.pak` made again with `make-models-pack.sh` (`model.animation` version 3); a
+scene posing a body other than the man by a library clip made again (its contacts kept).
+
+**What a step that poses a body other than the man must do after this one** (step 11's live views first): the man's poses
+are the same to the bit, so his scenes and pictures stand; every other body's are moved by the rule (wherever a group is
+within 150 mm of the ground on the man), so:
+- *In the engine and the game:* load the library with its keyed body (`AnimationClip.AllOf(files, "models/humanoid/clips")`
+  or `AllOf(glbFile)`; a library loaded without it is refused on a body with a mesh, naming the clip) and give the
+  skeleton what the figure wears (`new Skeleton(body, garments)`: the garments loaded first, as `HeroFigure` does);
+- *its scene lists written again by the tests that own them*, and then *their Blender references made by
+  `Tools/Scripts/make-blender-references.sh <scene names>`*, which evaluates and renders them with Blender's side of the
+  rule (`clip_contacts.py`, called by `evaluate_animations.py`, by `render.py`'s `pose_at` for a `--clip`, and through it by
+  `assemble.py`): the animation scenes (`Reference/anim-scenes.json`, written by `AnimationReferenceTests`; the woman's and
+  the builds' `humanoid-<clip>-female|male-<build>` evaluations), the figure mode's (`figure-scenes.json`,
+  `STATVENTURE_FIGURE_SCENES=write`, `FigureModeTests`), the humanoid samples (`humanoid-scenes.json`,
+  `STATVENTURE_HUMANOID_SCENES=write`, `HumanoidReferenceTests`), the assembled looks (`assembly-looks.json`,
+  `STATVENTURE_ASSEMBLY_LOOKS=write`, the game's `AssemblyTests`) and any new list of posed figures the step adds (its
+  Blender side posing through `render.py`'s `pose_at` or `assemble.py`, never its own copy of the measure or the
+  contacts); a scene on the man needs nothing made again;
+- *the ground held* by `HumanoidClipTests.BothBodiesStayOnTheGround` and `ContactsKeptTests` for a new body of the repo
+  (add it to their lists: the man's bounds, a planted foot within 2 mm of the ground).
+
 ### Step 9a: the shared sets and the human in the repo (2026-11-20/21, the branch `gm2-step9a`)
 
 The manager's art of step 9a (made in a scratch mirror of the family's scripts, every stop approved by the user; the
@@ -4948,4 +5231,23 @@ extrusions.
   packing over a copy of the committed pack: 14 s to 0.6 s); the manager's GM2-P44 (the hair caps' and beards' extruded
   rims in one order: the build gives the same bytes every time, the committed models unchanged; the flake 4 and 5 in 100
   before, none in 100 after). Recorded: the user's Q77, the manager's GM2-P44–GM2-P46. 5289 + 1084 = 6373 tests on the GPU and lavapipe (`main` `b8b2e28`: 5285 + 1084 = 6369; 4 new, the engine's).
-
+- **2026-11-22, GM2-P37's engine task "contacts kept" done** (a worker, the branch `gm2-contact`; "How it works", "Contacts
+  kept"): what touches the ground on the man touches it on every body: the clips' contacts as data (`model.animation`
+  version 3), worked out when a clip is bound to a body and what it wears (the hips by the rest of the body, each leg's and
+  arm's end by a two-bone solve, then rounds in which what no end can lift raises the hips and a straight leg that can't
+  reach brings them down, up winning), in the engine and Blender's side alike; nothing of the man changed but his picture in
+  the chain shirt lying (the shirt lay 12.0 mm in the ground). The worker stopped once on the rule as written (a kneeling
+  knee and a lying thigh no ankle lifts); the manager's answer (GM2-P37's additions: the legs' shortfall, the reach pass, the
+  hands, the scratch bodies to the man's bounds) built. Every human body, three made-up ones and the races' five scratch
+  bodies within the man's own bounds (at most 2.23 mm under; before, up to 56.29 on the hobbit, 42.10 on the Goliath,
+  14.77 on the strong man); the ground test now binds the four builds too. 5347 + 1084 → 5389 + 1086 = 6475 tests on
+  the GPU and on lavapipe (`main` `f0b91e1`; 44 new), the real folders untouched. Mutations: 60 of the engine's
+  first (`claude-work/gm2/contact/mutations/`), 53 killed; of the seven left, three were code the rounds' fix removed (up
+  had won only within a round), three were killed by new tests (the hips' rest turn, a vertex's heaviest bone, the
+  version 2 fixture), one can't differ (the target's other form: in double, 2 mm + (c − 2 mm) is c, and Blender's side
+  gave the man's 35 evaluations the same bytes with it); the rewritten rounds 8 of 8, the cost of up winning 2 of 3 (where
+  a clamped end should be at a conflict can't depend on the hips: every such end is a full contact), the planted feet's
+  height over the ground 1 of 1 (the reach pass broken leaves the made-up hobbit's foot 7.65 mm over it); Blender's side 15
+  breaks of 15 (the evaluation, `clip_contacts.py`, `render.py`'s `pose_at`, the library's contacts). The user saw the
+  clips played by the rule on the hobbit's slender and the Goliath's strong body and approved them (Q59's showing,
+  2026-11-22: step 9's approval stop for Q59 passed).

@@ -76,9 +76,13 @@ public static class HumanoidClipList
     static AnimationClip[]? _clips;
 
     /// <summary>The library's clips.</summary>
-    public static AnimationClip[] Clips() => _clips ??= AnimationClip.AllOf(HumanoidFiles.Load("clips"));
+    /// <summary>The library's clips, with the body they were keyed on (their contacts', GM2-P37) found beside the library.</summary>
+    public static AnimationClip[] Clips() => _clips ??= AnimationClip.AllOf(Library);
 
     public static AnimationClip Clip(string name) => Clips().Single(c => c.Name == name);
+
+    /// <summary>A clip as GM2-P22 plays it: its measure kept, its contacts (GM2-P37) left out (for the measure's own rule).</summary>
+    public static AnimationClip Measured(string name) => Clip(name) is var c ? new AnimationClip(c.Name, c.Tracks, c.Events, c.Measure) : null!;
 
     /// <summary>The bones of the arms a stance loop turns (GM2-P21): shoulder, upper arm, forearm, hand, fingers and thumb, each side.</summary>
     public static readonly string[] Arms =
@@ -344,19 +348,18 @@ public class HumanoidClipTests(ITestOutputHelper output)
     /// <see cref="GroundDepth"/> under it to <see cref="LyingHeight"/> over it). The woman's are the man's bounds: scaled,
     /// she measured within them (Docs/Game/Hero.md, "How it works", "The figure's ground", her table). Since GM2 step 9a the
     /// four builds too, the slender and strong man and woman (their average body's skeleton and legs: the same ratios), on
-    /// the same bounds.
+    /// the same bounds since the clips keep their contacts (GM2-P37, <see cref="ClipBinding.Contacts"/>; Docs/Game/Hero.md,
+    /// "How it works", "Contacts kept": before, the strong man's thighs lay 14.77 mm under in death and his knee 7.43 in
+    /// meditate).
     /// </summary>
     [Fact]
     public void BothBodiesStayOnTheGround()
     {
         var (lines, problems) = (new List<string>(), new List<string>());
-        // Every human body: each sex's average one, bounded, and its slender and strong builds (GM2 step 9a: the average's
-        // skeleton and legs, other girths), their soles' rest held and their depths measured with no bound: the thicker
-        // builds' thighs and shins reach under the man's bounds lying in death and kneeling in meditate (Docs/Game/Hero.md,
-        // "How it works", step 9a), the manager's to judge with Q59's check of the clips on the builds.
+        // Every human body: each sex's average one and its slender and strong builds (GM2 step 9a: the average's skeleton and
+        // legs, other girths), all bounded since the contacts are kept (GM2-P37).
         foreach (var sex in from s in new[] { "male", "female" } from build in new[] { "average", "slender", "strong" } select $"{s}-{build}")
         {
-            var bounded = sex.EndsWith("-average", StringComparison.Ordinal);
             var body = HumanoidFiles.Load($"bodies/human-{sex}");
             var skin = new Skinner(body);
             var ground = (double)Statventure.Scene.Actor.GroundOf(body, []);
@@ -379,9 +382,9 @@ public class HumanoidClipTests(ITestOutputHelper output)
                 }
                 var (depth, end) = (ground - lowest, last - ground);
                 lines.Add($"{sex} {entry.Name}: at most {depth * 1000:F2} mm under the ground (frame {at}, {where}), at its end {end * 1000:F2} mm over it");
-                if (bounded && depth > GroundDepth)
+                if (depth > GroundDepth)
                     problems.Add($"{entry.Name}: the {sex} body's lowest point {depth * 1000:F2} mm under the ground at frame {at} ({where})");
-                if (bounded && entry.Name == "death" && !(end >= -GroundDepth && end <= LyingHeight))
+                if (entry.Name == "death" && !(end >= -GroundDepth && end <= LyingHeight))
                     problems.Add($"death: the fallen {sex} body's lowest point {end * 1000:F2} mm over the ground");
             }
         }

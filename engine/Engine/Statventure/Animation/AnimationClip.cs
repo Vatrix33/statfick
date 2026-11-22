@@ -184,8 +184,51 @@ public sealed class AnimationClip
     /// </summary>
     public ClipMeasure? Measure { get; }
 
-    /// <summary>Every animation of a model as a clip.</summary>
-    public static AnimationClip[] AllOf(ModelData model) => model.Animations.Select(a => From(model, a)).ToArray();
+    /// <summary>
+    /// What the clip keeps touching the ground on another body (GM2-P37, <see cref="ModelAnimation.Contacts"/>), with the
+    /// body it was keyed on when the clip was loaded with it; null for a clip whose animation names none (it plays as keyed,
+    /// and measured, on every body). A binding on a body with a mesh needs the keyed body (else it is refused).
+    /// </summary>
+    public ClipContacts? Contacts { get; private set; }
+
+    /// <summary>
+    /// Every animation of a model as a clip; <paramref name="models"/> gives a model by its data path (models/…), for the
+    /// body a clip's contacts were keyed on (GM2-P37): without it such a clip can only be bound to a body without a mesh.
+    /// </summary>
+    public static AnimationClip[] AllOf(ModelData model, Func<string, ModelData?>? models = null)
+    {
+        var cache = new Dictionary<string, ModelData?>(StringComparer.Ordinal);
+        ModelData? Keyed(string path) => cache.TryGetValue(path, out var known) ? known : cache[path] = models?.Invoke(path);
+        return model.Animations.Select(a => From(model, a, models == null ? null : Keyed)).ToArray();
+    }
+
+    /// <summary>
+    /// The clips of the model at <paramref name="path"/> in the game's data (a models.pak entry such as
+    /// <c>models/humanoid/clips</c>), each clip's keyed body (its contacts', GM2-P37) read from the same data.
+    /// </summary>
+    public static AnimationClip[] AllOf(Statventure.Packs.VirtualFileSystem files, string path) =>
+        AllOf(ModelData.Load(files, path), keyed => ModelData.Load(files, keyed));
+
+    /// <summary>
+    /// The clips of a .glb file (a clip library in a models folder laid out as models.pak's entries, Assets/Models), each
+    /// clip's keyed body (its contacts', GM2-P37: <c>models/&lt;path&gt;</c>) the .glb at &lt;path&gt; under the nearest folder
+    /// above the file that has it (none found: the clip is loaded without it).
+    /// </summary>
+    public static AnimationClip[] AllOf(string glb) => AllOf(ModelData.Load(glb), keyed => ModelBeside(glb, keyed));
+
+    /// <summary>A model's data path (models/&lt;path&gt;) as a .glb under a folder above <paramref name="file"/>, loaded, or null.</summary>
+    static ModelData? ModelBeside(string file, string path)
+    {
+        if (!path.StartsWith("models/", StringComparison.Ordinal))
+            return null;
+        for (var folder = Path.GetDirectoryName(Path.GetFullPath(file)); folder != null; folder = Path.GetDirectoryName(folder))
+        {
+            var candidate = Path.Combine(folder, path["models/".Length..] + ".glb");
+            if (File.Exists(candidate))
+                return ModelData.Load(candidate);
+        }
+        return null;
+    }
 
     /// <summary>
     /// A model's animation as a clip. A channel on one of the model's skin joints (a Blender bone)
@@ -195,7 +238,7 @@ public sealed class AnimationClip
     /// part only). Sampling commutes with this, as the rest is fixed. Its measure (GM2-P22) is the
     /// animation's chain with its length on this model, the body the clip was keyed on.
     /// </summary>
-    public static AnimationClip From(ModelData model, ModelAnimation animation)
+    public static AnimationClip From(ModelData model, ModelAnimation animation, Func<string, ModelData?>? models = null)
     {
         var joints = model.Skins.SelectMany(s => s.Joints).ToHashSet();
         var tracks = new List<AnimationTrack>();
@@ -219,7 +262,10 @@ public sealed class AnimationClip
         }
         var measure = animation.Measure.Count > 0 && Skeleton.ChainLength(model, animation.Measure) is { } length and > 0
             ? new ClipMeasure(animation.Measure, length) : null;
-        return new AnimationClip(animation.Name, tracks, animation.Events, measure);
+        var clip = new AnimationClip(animation.Name, tracks, animation.Events, measure);
+        if (animation.Contacts is { } contacts)
+            clip.Contacts = new ClipContacts(clip, contacts, models?.Invoke(contacts.KeyedOn));
+        return clip;
     }
 
     /// <summary>A bone channel's keys relative to the node's rest: t_b = S⁻¹·R⁻¹·(t − t_rest), q_b = q_rest⁻¹·q, s_b = s / s_rest.</summary>

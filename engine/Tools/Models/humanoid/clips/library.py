@@ -8,8 +8,11 @@
 # exporter's animation extras, MEASURE below, the left leg's thigh, shin and foot. On a body whose leg is another length
 # (the distances hip joint to knee and knee to ankle at rest, added) a location is scaled by that length over the man's,
 # on the engine's side (Animation/Skeleton.cs, ClipBinding.Scale) and on Blender's wherever a clip is evaluated or
-# rendered (BlenderReference/evaluate_animations.py, render.py's pose_at, so assemble.py's). The family's clips go in
-# this folder (clips/; the first come with the manager's hand-over) and their library into
+# rendered (BlenderReference/evaluate_animations.py, render.py's pose_at, so assemble.py's). A whole-body clip also keeps
+# its contacts with the ground (GM2-P37, "contacts kept"; Docs/Animation.md, "A clip keeps its contacts"): the action's
+# custom property "contacts" (KEYED_ON, ROOT, CHAINS below), by which the engine (Animation/Contacts.cs) and Blender's side
+# (BlenderReference/clip_contacts.py) put what touches the ground on the man where it touches on every other body. The
+# family's clips go in this folder (clips/; the first come with the manager's hand-over) and their library into
 # Assets/Models/humanoid/clips.glb, so into models.pak.
 #
 # A clip's file (JSON), its keys exactly these:
@@ -52,6 +55,16 @@ SKELETON = "human-male-average"
 # hip joint to the knee and the knee to the ankle, is the legs' that fold under the hips (the bodies are symmetric: the
 # right leg's is the same).
 MEASURE = ["thigh.L", "shin.L", "foot.L"]
+# What a clip keeps touching the ground on another body (GM2-P37, "contacts kept"; Docs/Animation.md, "A clip keeps its
+# contacts"): the action's custom property "contacts", the exporter's animation extras: the body it was keyed on (the man
+# with his outfit: his boots are his soles), the joint whose place carries the body, and the limbs whose ends reach the
+# ground, each top, middle, end (the legs; the arms, whose fists a fall puts down). Written on a clip that keys a place
+# (the whole-body clips; a stance loop of the arms moves no hips and keeps none), each chain only where the clip turns
+# all three of its joints (a clip doesn't gain channels: flee leaves the hands alone).
+KEYED_ON = "models/humanoid/bodies/" + SKELETON
+ROOT = "hips"
+CHAINS = [["thigh.L", "shin.L", "foot.L"], ["thigh.R", "shin.R", "foot.R"],
+          ["upper_arm.L", "forearm.L", "hand.L"], ["upper_arm.R", "forearm.R", "hand.R"]]
 KEYS = {"name", "frames", "loop", "markers", "keys", "ease"}
 
 
@@ -143,7 +156,21 @@ def key(rig, clip):
     action.use_frame_range = True
     action.frame_start, action.frame_end = 1, clip["frames"] + 1
     action["measure"] = MEASURE
+    contacts = contacts_of(clip)
+    if contacts is not None:
+        action["contacts"] = contacts
     return action
+
+
+def contacts_of(clip):
+    """The clip's contacts (GM2-P37): for a clip that keys the root's place, the man it was keyed on, the root and each chain
+    whose three joints it turns; None for one that keys no place or turns no whole chain (the frame's test clip rest-sway
+    leaves the legs alone)."""
+    turned = {bone for k in clip["keys"] for bone in k.get("rotations", {})}
+    chains = [chain for chain in CHAINS if all(bone in turned for bone in chain)]
+    if not any(ROOT in k.get("locations", {}) for k in clip["keys"]) or not chains:
+        return None
+    return {"keyedOn": KEYED_ON, "root": ROOT, "chains": chains}
 
 
 def files(folder):

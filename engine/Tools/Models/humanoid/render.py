@@ -18,7 +18,8 @@
 # view; the camera looks --elevation degrees down (5 by default: a face exactly edge-on is where Freestyle and the
 # engine part, Docs/Renderer-3D.md, "Freestyle's limits seen"). A clip poses the figure at --time (its own or the clip
 # library's, played by bone names), evaluated by Blender, its locations scaled by the body's measure (GM2-P22: the
-# engine's ClipBinding.Scale, clip_measure.py). The figure stands by its soles (GM2-P22: raised by its lowest point at
+# engine's ClipBinding.Scale, clip_measure.py) and its contacts kept on the body and its garments (GM2-P37: the engine's
+# ClipBinding.Contacts, clip_contacts.py). The figure stands by its soles (GM2-P22: raised by its lowest point at
 # rest, its body's and garments', to the micrometre, the hatching anchored at its raised origin: the engine's
 # Actor.Ground), framed as it stands. With --scene, every scene of the file is rendered, the look (if given)
 # replacing its background, sun, style and palette. Writes <work>/<stem>-scenes.json (the scenes as render_scenes.py
@@ -39,9 +40,13 @@ sys.dont_write_bytecode = True  # no __pycache__ in the repo
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.normpath(os.path.join(HERE, "..", "..", "BlenderReference")))
 
+import clip_contacts  # noqa: E402
 import clip_measure  # noqa: E402
 import look as looks  # noqa: E402
 import render_scenes  # noqa: E402
+
+# The models folder a data path (models/<path>) names a model in: a clip's keyed body (GM2-P37).
+MODELS = os.path.normpath(os.path.join(HERE, "..", "..", "..", "Assets", "Models"))
 
 # glTF (x, y, z) → Blender (x, −z, y), and back.
 TO_BLENDER = render_scenes.GLTF_TO_BLENDER.to_4x4()
@@ -155,6 +160,12 @@ def clip_scale(keyed, body, clip):
     return clip_measure.ratio(clip_measure.glb_chain(glb_rest_worlds(keyed), chain), clip_measure.glb_chain(glb_rest_worlds(body), chain))
 
 
+def clip_contacts_of(library, clip):
+    """A clip's contacts (GM2-P37) from the animation's extras in the .glb it was keyed in, or None."""
+    animation = next((a for a in glb_json(library).get("animations", []) if a.get("name") == clip), None)
+    return (animation or {}).get("extras", {}).get("contacts")
+
+
 def pose_at(body, options):
     """The joints' deformations (glTF model space; the scene file's "pose") at the clip's time, as Blender evaluates
     the clip on the body's armature (a clip library's played by bone names), or every joint at rest."""
@@ -177,8 +188,16 @@ def pose_at(body, options):
         or next((a for a in actions if a.name.startswith(options["clip"] + "_")), None)
     if action is None:
         raise SystemExit(f"no clip {options['clip']} (clips: {', '.join(sorted(a.name for a in actions))})")
-    # A clip's locations follow the body's size (GM2-P22): scaled by its measure on this body over the keyed one's.
-    clip_measure.scale_locations(action, clip_scale(options.get("clips") or body, body, options["clip"]))
+    # A clip's locations follow the body's size (GM2-P22): scaled by its measure on this body over the keyed one's. A clip
+    # that keeps its contacts (GM2-P37, clip_contacts.py; its .glb's extras) keeps them on this body and its garments, from
+    # the keyed body's clearances taken before the scaling.
+    library = options.get("clips") or body
+    factor = clip_scale(library, body, options["clip"])
+    kept = clip_contacts_of(library, options["clip"])
+    clearances = clip_contacts.keyed_clearances(action, clip_contacts.model_file(MODELS, kept["keyedOn"]), kept) if kept else None
+    clip_measure.scale_locations(action, factor)
+    if kept:
+        clip_contacts.keep(action, clearances, body, [os.path.abspath(g) for g in options["garments"]], factor, kept)
     if rig.animation_data is None:
         rig.animation_data_create()
     for track in list(rig.animation_data.nla_tracks):

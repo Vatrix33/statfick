@@ -2,7 +2,8 @@
 # pose (Docs/Animation.md, "Method"): Tests/Statventure.Tests/Golden/anim-<scene>.json. A scene with
 # a "target" plays the model's action on the target model's armature instead (clips shared by bone
 # names) and writes the target's bones; an action with a measure (GM2-P22, clip_measure.py) has its
-# locations scaled there by the target's measure over the model's own, as the engine's ClipBinding.
+# locations scaled there by the target's measure over the model's own, as the engine's ClipBinding, and an action that
+# keeps its contacts (GM2-P37, clip_contacts.py) keeps them on the target's body.
 # Run by Tools/Scripts/make-blender-references.sh:
 #   blender -b --factory-startup --python evaluate_animations.py -- <anim-scenes.json> <golden folder> [scene ...]
 #
@@ -31,10 +32,13 @@ from mathutils import Matrix, Quaternion, Vector
 
 sys.dont_write_bytecode = True  # no __pycache__ in the repo
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import clip_contacts  # noqa: E402
 import clip_measure  # noqa: E402
 import make_models  # noqa: E402
 
 HUMANOID = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Models", "humanoid")
+ENGINE = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+MODELS = os.path.join(ENGINE, "Assets", "Models")
 
 
 def build(name):
@@ -60,6 +64,16 @@ def numbers(values):
     return [float("%.9g" % v) for v in values]
 
 
+def model_glb(name):
+    """A humanoid model's .glb (its manifest's "out", the file the engine reads), or None for a test model of make_models.py."""
+    if not name.startswith("humanoid/"):
+        return None
+    sys.path.insert(0, os.path.normpath(HUMANOID))
+    import build as humanoid  # noqa: E402
+    spec = next(m for m in humanoid.manifest() if m["name"] == name[len("humanoid/"):])
+    return os.path.normpath(os.path.join(ENGINE, spec["out"]))
+
+
 def evaluate(scene, folder):
     make_models.reset()
     build(scene["model"])
@@ -72,9 +86,18 @@ def evaluate(scene, folder):
 
     def follow_the_body(action):
         # A clip's locations follow the body's size (GM2-P22; clip_measure.py): scaled on a body whose measure differs
-        # from the one the clip was keyed on (the model's own armature), as the engine's ClipBinding scales them.
+        # from the one the clip was keyed on (the model's own armature), as the engine's ClipBinding scales them. A clip
+        # that keeps its contacts (GM2-P37; clip_contacts.py) keeps them on the target's body (its .glb, as the engine
+        # reads it), from the keyed body's clearances taken before the scaling.
         chain = clip_measure.measure_of(action)
-        clip_measure.scale_locations(action, clip_measure.ratio(clip_measure.armature_chain(keyed, chain), clip_measure.armature_chain(rig, chain)))
+        factor = clip_measure.ratio(clip_measure.armature_chain(keyed, chain), clip_measure.armature_chain(rig, chain))
+        kept = clip_contacts.contacts_of(action) if scene.get("target") else None
+        target_glb = model_glb(scene["target"]) if kept else None
+        clearances = clip_contacts.keyed_clearances(action, clip_contacts.model_file(MODELS, kept["keyedOn"]), kept) if target_glb else None
+        clip_measure.scale_locations(action, factor)
+        if target_glb:
+            stats = clip_contacts.keep(action, clearances, target_glb, [], factor, kept)
+            print("contacts", scene["name"], stats)
     if rig.animation_data is None:
         rig.animation_data_create()
     blender_scene = bpy.context.scene

@@ -71,7 +71,7 @@ public class HumanoidMachineTests
         using var data = GameData(folder);
         var machine = StateMachineDefinition.Load(data, Path_);
         var body = ModelData.Load(data, $"models/humanoid/bodies/human-{sex}-average");
-        var library = AnimationClip.AllOf(ModelData.Load(data, "models/humanoid/clips"));
+        var library = AnimationClip.AllOf(data, "models/humanoid/clips");
         var skeleton = new Skeleton(body);
         var stack = new AnimationStack(skeleton);
         var animator = new Animator(stack, new StateMachine(machine, stack, name => new ClipBinding(library.Single(c => c.Name == name), skeleton)));

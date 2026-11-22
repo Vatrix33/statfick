@@ -61,6 +61,24 @@ public class ModelPackTests(TestModelPack pack) : IClassFixture<TestModelPack>
     [Fact]
     public void TheMeasuredClipsFixtureIsRecorded() => RecordFixtures.Ensure("clips", ModelRecordSamples.Measured());
 
+    /// <summary>The fixture of <c>model.animation</c> version 3 (GM2-P37): a clip keeping its contacts (<c>model.contacts</c>, <c>model.chain</c>).</summary>
+    [Fact]
+    public void TheKeptClipsFixtureIsRecorded() => RecordFixtures.Ensure("contacts", ModelRecordSamples.Kept());
+
+    /// <summary>The clips fixture, written at <c>model.animation</c> version 2 (GM2-P22), reads upgraded to version 3 as the measured clips, their measures kept and no contacts.</summary>
+    [Theory]
+    [InlineData(".rec")]
+    [InlineData(".json")]
+    public void TheVersion2ClipsFixtureReadsAsTheMeasuredClipsWithoutContacts(string form)
+    {
+        var (value, table) = RecordFixtures.Load("model", "clips", form);
+        Assert.Equal(2, table.First(e => e.Name == "model.animation").Version);
+        var model = Assert.IsType<ModelData>(value);
+        RecordAssert.Equal(ModelRecordSamples.Measured(), model);
+        Assert.Contains(model.Animations, a => a.Measure != null);
+        Assert.All(model.Animations, a => Assert.Null(a.Contacts));
+    }
+
     [Fact]
     public void EachGlbBecomesOneModelRecordAtItsPathWithoutTheEnding()
     {
@@ -140,12 +158,53 @@ public class ModelPackTests(TestModelPack pack) : IClassFixture<TestModelPack>
     [Fact]
     public void TheSmallModelComesBackFromBothForms()
     {
-        foreach (var model in new[] { ModelRecordSamples.Small(), ModelRecordSamples.Measured() })
+        foreach (var model in new[] { ModelRecordSamples.Small(), ModelRecordSamples.Measured(), ModelRecordSamples.Kept() })
         {
             RecordAssert.Equal(model, Statventure.Records.RecordSerializer.FromBinary<ModelData>(Statventure.Records.RecordSerializer.ToBinary(model)));
             RecordAssert.Equal(model, Statventure.Records.RecordSerializer.FromJson<ModelData>(Statventure.Records.RecordSerializer.ToJson(model)));
         }
         Assert.Equal(["Rig", "Bone"], Statventure.Records.RecordSerializer.FromJson<ModelData>(Statventure.Records.RecordSerializer.ToJson(ModelRecordSamples.Measured())).Animations[0].Measure);
+        var kept = Statventure.Records.RecordSerializer.FromBinary<ModelData>(Statventure.Records.RecordSerializer.ToBinary(ModelRecordSamples.Kept())).Animations[0].Contacts!;
+        Assert.Equal(("models/body", "Bone", "Rig Bone Body"), (kept.KeyedOn, kept.Root, string.Join(" ", kept.Chains[0].Joints)));
+    }
+
+    /// <summary>
+    /// A clip's contacts (GM2-P37) come from its animation's extras ("contacts": the body it was keyed on, the root and the
+    /// chains, as the family's clip library writes them): the library's whole-body clips keep them, its stance loops and
+    /// the test library's clip don't, a test model's clips don't; anything but that object there is refused, naming the file.
+    /// </summary>
+    [Fact]
+    public void AClipsContactsAreReadFromItsExtras()
+    {
+        var library = GltfImport.Load(Humanoid.HumanoidFiles.Glb("clips"));
+        foreach (var animation in library.Animations)
+        {
+            var stance = animation.Name.StartsWith("hold-", StringComparison.Ordinal);
+            Assert.True(stance == (animation.Contacts == null), $"{animation.Name}: contacts {animation.Contacts}");
+            if (animation.Contacts is { } contacts)
+                Assert.Equal(("models/humanoid/bodies/human-male-average", "hips", "thigh.L shin.L foot.L"), (contacts.KeyedOn, contacts.Root, string.Join(" ", contacts.Chains[0].Joints)));
+        }
+        Assert.All(GltfImport.Load(Humanoid.HumanoidFiles.TestClips).Animations, a => Assert.Null(a.Contacts));
+        Assert.All(GltfImport.Load(TestModelPack.SourceOf("figure")).Animations, a => Assert.Null(a.Contacts));
+        using var folder = new TempFolder();
+        var source = File.ReadAllBytes(Humanoid.HumanoidFiles.TestClips);
+        foreach (var (what, contacts) in new[]
+        {
+            ("a list", "[\"hips\"]"),
+            ("a key too many", "{\"keyedOn\": \"models/a\", \"root\": \"hips\", \"chains\": [], \"hands\": []}"),
+            ("no root", "{\"keyedOn\": \"models/a\", \"chains\": []}"),
+            ("a root that isn't a name", "{\"keyedOn\": \"models/a\", \"root\": 3, \"chains\": []}"),
+            ("a chain that isn't a list", "{\"keyedOn\": \"models/a\", \"root\": \"hips\", \"chains\": [\"thigh.L\"]}"),
+            ("a number among a chain's names", "{\"keyedOn\": \"models/a\", \"root\": \"hips\", \"chains\": [[\"thigh.L\", 2, \"foot.L\"]]}"),
+        })
+        {
+            var path = folder.Write($"broken-{what.Replace(' ', '-').Replace("'", "")}.glb", WithExtra(source, "contacts", contacts));
+            var problem = Assert.Throws<InvalidDataException>(() => GltfImport.Load(path));
+            Assert.Equal($"{path}: animation 0's contacts aren't {{\"keyedOn\": a model, \"root\": a joint, \"chains\": lists of joints' names}}", problem.Message);
+        }
+        var fine = folder.Write("kept.glb", WithExtra(source, "contacts", "{\"root\": \"hips\", \"chains\": [[\"thigh.R\", \"shin.R\", \"foot.R\"]], \"keyedOn\": \"models/b\"}"));
+        var read = GltfImport.Load(fine).Animations[0].Contacts!;
+        Assert.Equal(("models/b", "hips", "thigh.R shin.R foot.R"), (read.KeyedOn, read.Root, string.Join(" ", read.Chains.Single().Joints)));
     }
 
     /// <summary>
@@ -176,11 +235,14 @@ public class ModelPackTests(TestModelPack pack) : IClassFixture<TestModelPack>
     }
 
     /// <summary>A .glb with its first animation's measure in its extras replaced by <paramref name="json"/> (the JSON chunk rewritten, padded).</summary>
-    static byte[] WithMeasure(byte[] glb, string json)
+    static byte[] WithMeasure(byte[] glb, string json) => WithExtra(glb, "measure", json);
+
+    /// <summary>A .glb with its first animation's extra <paramref name="key"/> set to <paramref name="json"/> (the JSON chunk rewritten, padded).</summary>
+    static byte[] WithExtra(byte[] glb, string key, string json)
     {
         var length = (int)BitConverter.ToUInt32(glb, 12);
         var root = System.Text.Json.Nodes.JsonNode.Parse(glb.AsSpan(20, length))!;
-        root["animations"]![0]!["extras"]!["measure"] = System.Text.Json.Nodes.JsonNode.Parse(json);
+        root["animations"]![0]!["extras"]![key] = System.Text.Json.Nodes.JsonNode.Parse(json);
         var text = System.Text.Encoding.UTF8.GetBytes(root.ToJsonString());
         var padded = (text.Length + 3) / 4 * 4;
         var chunk = new byte[padded];
@@ -328,6 +390,31 @@ public static class ModelRecordSamples
                 new ModelAnimation("rest", []),
             ],
             Roots = [0],
+        };
+    }
+
+    /// <summary>
+    /// The small model with its swing measured and keeping its contacts (<c>model.animation</c> version 3, GM2-P37): keyed on
+    /// a body by its path, carried by the bone, one chain from the rig to the body's node, whose turns the swing keys too.
+    /// </summary>
+    public static ModelData Kept()
+    {
+        var measured = Measured();
+        var swing = measured.Animations[0];
+        return new ModelData
+        {
+            Nodes = measured.Nodes, Meshes = measured.Meshes, Materials = measured.Materials, Skins = measured.Skins, Roots = measured.Roots,
+            Animations =
+            [
+                swing with
+                {
+                    Channels = [.. swing.Channels,
+                        new ModelAnimationChannel(0, AnimationPath.Rotation, AnimationInterpolation.Linear, [0, 0.5f], [0, 0, 0, 1, 0, 0.1f, 0, 0.995f]),
+                        new ModelAnimationChannel(2, AnimationPath.Rotation, AnimationInterpolation.Step, [0], [0, 0, 0, 1])],
+                    Contacts = new ModelContacts("models/body", "Bone", [new(["Rig", "Bone", "Body"])]),
+                },
+                measured.Animations[1],
+            ],
         };
     }
 

@@ -274,19 +274,19 @@ public sealed class FigureView : IDisposable
     {
         Spec = spec;
         Body = Load(device, spec.Body);
-        var skeleton = new Skeleton(Body.Data);
-        var clips = spec.Clips is { } library ? AnimationClip.AllOf(ModelData.Load(library)) : AnimationClip.AllOf(Body.Data);
+        var garments = spec.Garments.Select(path => Load(device, path)).ToList();
+        // The body wears its garments: with its skin they meet the ground a clip's contacts keep (GM2-P37).
+        var skeleton = new Skeleton(Body.Data, garments.Select(g => g.Data));
+        // A library's clips with their keyed body found beside it (GM2-P37: models/… under the folder above the file).
+        var clips = spec.Clips is { } library ? AnimationClip.AllOf(library) : AnimationClip.AllOf(Body.Data);
         Clips = new FigureClips(clips, spec.Play, Path.GetFileName(spec.Clips ?? spec.Body));
         var stack = new AnimationStack(skeleton);
         stack.Layers.Add(Clips.Layer(skeleton));
         if (Clips.OverLayer(skeleton) is { } over)
             stack.Layers.Add(over);
         Actor = new Actor(Body, new Animator(stack)) { Palette = spec.Look.Palette };
-        foreach (var path in spec.Garments)
-        {
-            var garment = Load(device, path);
+        foreach (var garment in garments)
             Actor.Garments.Add(new ActorGarment(garment, new Garment(garment.Data, skeleton)));
-        }
         foreach (var (path, socketName) in spec.Items)
             Actor.Items.Add(new ActorItem(Load(device, path), new Socket(skeleton, socketName)));
         // The figure stands by its soles on its node (GM2-P22), as the game's figures do; the view frames it as it stands.

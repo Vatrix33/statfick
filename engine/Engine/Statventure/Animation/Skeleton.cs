@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Numerics;
 using Statventure.Render3D;
 
@@ -10,10 +11,18 @@ namespace Statventure.Animation;
 public sealed class Skeleton
 {
     readonly Dictionary<string, int> _byName = [];
+    readonly ConcurrentDictionary<string, Lazy<ContactShape?>> _shapes = new();
 
-    public Skeleton(ModelData model)
+    /// <summary>
+    /// The skeleton of <paramref name="model"/>, the body, wearing <paramref name="worn"/>: the garments bound to its bones
+    /// by name (its parts, its clothing; its rigid items not), which with its skin are what a clip's contacts meet the
+    /// ground with (GM2-P37; <see cref="ClipContacts"/>). A change of what is worn is a new skeleton, whose bindings work
+    /// the contacts out again.
+    /// </summary>
+    public Skeleton(ModelData model, IEnumerable<ModelData>? worn = null)
     {
         Model = model;
+        Worn = worn?.ToArray() ?? [];
         var joints = model.Skins.SelectMany(s => s.Joints).ToHashSet();
         // A name used twice (two armatures' bones, an object named like a bone) finds a joint first.
         foreach (var pass in new[] { true, false })
@@ -23,7 +32,13 @@ public sealed class Skeleton
     }
 
     public ModelData Model { get; }
+    /// <summary>The garments the body wears on its bones (GM2-P37: they meet the ground with its skin).</summary>
+    public IReadOnlyList<ModelData> Worn { get; }
     public int Count => Model.Nodes.Count;
+
+    /// <summary>The body and its worn set as a clip's contacts meet the ground (once per set of chains), or null when it can't (no mesh, a joint missing).</summary>
+    internal ContactShape? ShapeFor(ClipContacts contacts) =>
+        _shapes.GetOrAdd(contacts.Signature, _ => new Lazy<ContactShape?>(() => ContactShape.Of(this, contacts), LazyThreadSafetyMode.ExecutionAndPublication)).Value;
 
     /// <summary>The node of this name (a joint before any other node), or −1.</summary>
     public int Find(string name) => _byName.TryGetValue(name, out var node) ? node : -1;
@@ -194,22 +209,46 @@ public enum ChannelSet : byte { None = 0, Translation = 1, Rotation = 2, Scale =
 /// A clip's translations follow the body's size (GM2-P22, "the figure's ground"; Docs/Animation.md): a bone's place is
 /// metres keyed on one body, and on a body whose measure (<see cref="AnimationClip.Measure"/>: its legs, for the
 /// humanoids) is another length it is scaled by <see cref="Scale"/>, so the legs fold by that body's lengths under hips
-/// that move by that body's too.
+/// that move by that body's too. A clip that keeps its contacts (GM2-P37, <see cref="AnimationClip.Contacts"/>) plays on a
+/// body other than the one it was keyed on with its root's place and its chains' turns made again so that what touches the
+/// ground on the keyed body touches it on this one (<see cref="Contacts"/>), worked out once per skeleton (its body and
+/// worn set) and clip.
 /// </summary>
 public sealed class ClipBinding
 {
-    readonly (AnimationTrack Track, int Node)[] _tracks;
+    readonly (AnimationTrack Track, int Node, bool Measured)[] _tracks;
 
-    public ClipBinding(AnimationClip clip, Skeleton skeleton)
+    public ClipBinding(AnimationClip clip, Skeleton skeleton) : this(clip, skeleton, contacts: true)
+    {
+    }
+
+    /// <summary>A binding; with <paramref name="contacts"/> false the clip's own channels, as GM2-P22 scales them (what the contacts are worked out from).</summary>
+    internal ClipBinding(AnimationClip clip, Skeleton skeleton, bool contacts)
     {
         Clip = clip;
         Skeleton = skeleton;
-        _tracks = clip.Tracks.Select(t => (t, skeleton.Find(t.Node))).Where(t => t.Item2 >= 0).ToArray();
+        _tracks = clip.Tracks.Select(t => (t, skeleton.Find(t.Node), true)).Where(t => t.Item2 >= 0).ToArray();
         Scale = clip.Measure is { } measure && skeleton.ChainLength(measure.Chain) is { } length and > 0 ? length / measure.Length : 1;
+        if (contacts && clip.Contacts is { } kept && skeleton.ShapeFor(kept) is { } shape && shape.CorrectionOf(clip, kept) is { } correction)
+        {
+            Contacts = correction;
+            // The corrected nodes play the correction's tracks: the root's place already in this body's measure.
+            for (var i = 0; i < _tracks.Length; i++)
+                if (correction.Tracks.TryGetValue(_tracks[i].Node, out var track))
+                    _tracks[i] = (track, _tracks[i].Node, track.Translation == _tracks[i].Track.Translation);
+            _tracks = [.. _tracks, .. correction.Tracks.Where(t => _tracks.All(x => x.Node != t.Key)).Select(t => (t.Value, t.Key, false))];
+        }
     }
 
     public AnimationClip Clip { get; }
     public Skeleton Skeleton { get; }
+
+    /// <summary>
+    /// What keeping the clip's contacts changes on this body (GM2-P37), or null when it changes nothing: a clip without
+    /// contacts, a body without a mesh or a joint they name, or the body the clip was keyed on (the same numbers: nothing
+    /// moves, so its poses are the clip's to the bit).
+    /// </summary>
+    public ContactCorrection? Contacts { get; }
 
     /// <summary>
     /// What a bone's place keyed in the clip is multiplied by on this skeleton: the clip's measure's chain length here over
@@ -232,13 +271,13 @@ public sealed class ClipBinding
     public void Sample(double time, PoseBuffer into)
     {
         Span<double> value = stackalloc double[4];
-        foreach (var (track, node) in _tracks)
+        foreach (var (track, node, measured) in _tracks)
         {
             into.Relative[node] = track.Relative;
             if (track.Translation is { } translation)
             {
                 translation.Evaluate(time, value);
-                if (track.Relative && Scale != 1)
+                if (track.Relative && Scale != 1 && measured)
                     for (var c = 0; c < 3; c++)
                         value[c] *= Scale;
                 value[..3].CopyTo(into.Translation.AsSpan(3 * node, 3));

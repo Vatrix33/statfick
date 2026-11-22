@@ -99,9 +99,20 @@ public class ModelValidationTests
         // A clip's measure (GM2-P22): a chain of two joints or more, each a node of the model it was keyed on.
         ["a measure of one joint"] = (() => Measure(["Bone"]), "animation 0 (swing) is measured by 1 joint: a measure is a chain of two joints or more", "$.animations[0].measure"),
         ["a measure by a joint the model hasn't"] = (() => Measure(["Rig", "Bone", "Tail"]), "animation 0 (swing) is measured by the joint Tail, which isn't a node of the model", "$.animations[0].measure[2]"),
+        // A clip's contacts (GM2-P37): the body it was keyed on named, the root and each chain's three joints nodes of the
+        // model whose place or turn the clip keys (the swing keys the bone's place and turn, the rig's scale alone).
+        ["contacts keyed on no body"] = (() => Contacts(new(" ", "Bone", [new(["Bone", "Bone", "Bone"])])), "animation 0 (swing) keeps contacts but names no body it was keyed on", "$.animations[0].contacts.keyedOn"),
+        ["contacts carried by a joint the model hasn't"] = (() => Contacts(new("models/body", "Pelvis", [new(["Bone", "Bone", "Bone"])])), "animation 0 (swing) keeps contacts carried by the joint Pelvis, which isn't a node of the model", "$.animations[0].contacts.root"),
+        ["contacts carried by a joint whose place isn't keyed"] = (() => Contacts(new("models/body", "Rig", [new(["Bone", "Bone", "Bone"])])), "animation 0 (swing) keeps contacts carried by Rig, whose place it doesn't key", "$.animations[0].contacts.root"),
+        ["contacts with no chain"] = (() => Contacts(new("models/body", "Bone", [])), "animation 0 (swing) keeps contacts with no chain", "$.animations[0].contacts.chains"),
+        ["a contact chain of two joints"] = (() => Contacts(new("models/body", "Bone", [new(["Bone", "Bone", "Bone"]), new(["Bone", "Bone"])])), "animation 0 (swing)'s contact chain 1 has 2 joints: a chain is three, top, middle and end", "$.animations[0].contacts.chains[1].joints"),
+        ["a contact chain naming a joint the model hasn't"] = (() => Contacts(new("models/body", "Bone", [new(["Bone", "Bone", "Hand"])])), "animation 0 (swing)'s contact chain 0 names the joint Hand, which isn't a node of the model", "$.animations[0].contacts.chains[0].joints[2]"),
+        ["a contact chain naming a joint whose turn isn't keyed"] = (() => Contacts(new("models/body", "Bone", [new(["Rig", "Bone", "Bone"])])), "animation 0 (swing)'s contact chain 0 names Rig, whose turn it doesn't key", "$.animations[0].contacts.chains[0].joints[0]"),
     };
 
     static ModelData Measure(IReadOnlyList<string> chain) => With(animations: [Small.Animations[0] with { Measure = chain }, Small.Animations[1]]);
+
+    static ModelData Contacts(ModelContacts contacts) => With(animations: [Small.Animations[0] with { Contacts = contacts }, Small.Animations[1]]);
 
     public static TheoryData<string> BrokenNames => [.. Broken.Keys];
 
@@ -110,6 +121,7 @@ public class ModelValidationTests
     {
         Small.Validate();
         ModelRecordSamples.Measured().Validate();
+        ModelRecordSamples.Kept().Validate();
         foreach (var name in TestModelPack.Names)
             GltfImport.Load(TestModelPack.SourceOf(name)).Validate();
     }

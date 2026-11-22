@@ -201,13 +201,13 @@ public sealed class HeroFigure : IDisposable
                 return model;
             }
             var body = Load(plan.Body);
-            var skeleton = new Skeleton(body.Data);
+            var garments = plan.GarmentModels.Select(Load).ToList();
+            // The body wears its parts and garments: with its skin they meet the ground a clip's contacts keep (GM2-P37), so
+            // a clip bound to this skeleton keeps them on this figure as it is dressed; a new look or gear is a new figure.
+            var skeleton = new Skeleton(body.Data, garments.Select(g => g.Data));
             var actor = new Actor(body, new Animator(new AnimationStack(skeleton))) { Palette = new Palette(plan.Colours) };
-            foreach (var path in plan.GarmentModels)
-            {
-                var garment = Load(path);
+            foreach (var garment in garments)
                 actor.Garments.Add(new ActorGarment(garment, new Garment(garment.Data, skeleton)));
-            }
             foreach (var item in plan.Items)
             {
                 var model = Load(item.Model);

@@ -135,6 +135,13 @@ public class AssemblyTests(GpuFixture gpu)
         // The woman kneeling in meditate (the family's library, its marker "restore"): the clip's hips' place scaled by her
         // legs on both sides (GM2-P22; render.py's pose_at in Blender), her knee on the ground, standing by her soles.
         new("assembly-human-female-meditate", Woman([.. Ember, ("lips", "Ember")]), new(), "three-quarter", 360, 480, "meditate", 42 / 60.0, GameLibrary),
+        // The geared man lying at death's end (GM2-P37, contacts kept): the clip was keyed on his outfit alone, so the
+        // chain shirt he wears would lie 12 mm in the ground; worn, it meets the ground and lifts him out of it, on both
+        // sides (the figure's skeleton wearing its garments; render.py's pose_at keeping the contacts with them).
+        new("assembly-human-male-geared-death",
+            Man(("skin", "Deep"), ("hair", "Ash"), ("eyes", "Blue"), ("brows", "Ember"), ("eye.white", "Ember"), ("cloth", "Green"), ("cloth.trim", "Ember"),
+                ("trousers", "Tan"), ("leather", "Black"), ("buckle", "Ember")),
+            Geared, "side", 720, 400, "death", 60 / 60.0, GameLibrary),
         // GM2 step 9a (GM2-P30), in the game's own data and swatches: the human's eight presets in the sheet's three-quarter
         // view; the four new bodies plain (the first face and hair, the approved look's own colours) from the front; and six
         // looks chosen for their demanding parts. (The twin braids' look at three-quarter: its close-up, and step 5's red
@@ -317,7 +324,7 @@ public class AssemblyTests(GpuFixture gpu)
             Figure = HeroFigure.Build(device, data, sample.Look, sample.Gear);
             if (sample.Clip is { } clip)
             {
-                var library = AnimationClip.AllOf(ModelData.Load(Path.GetFullPath(Path.Combine(Reference, sample.Library)))).Single(c => c.Name == clip);
+                var library = AnimationClip.AllOf(Path.GetFullPath(Path.Combine(Reference, sample.Library))).Single(c => c.Name == clip);
                 Figure.Actor.Animator.Stack.Layers.Add(new FigureClips([library]).Layer(Figure.Skeleton));
             }
             Style = GameStyle.Load(data);

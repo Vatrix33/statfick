@@ -697,6 +697,23 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   key must return a number. To find which pack a committed model is in, the file's name decides
   (`<race>-<sex>-<build>.glb`, `Docs/Assets.md`); a test that packs the committed models packs over a copy of the
   committed pack (the writer's reuse), not afresh, or it costs a minute and more each run once the races are in.
+- 2026-11-22 (the PC, GM2-P37's engine task "contacts kept" on the branch `gm2-contact`): **a clip keeps its contacts on
+  every body** (`Animation/Contacts.cs`; `Docs/Game/Hero.md`, "How it works", "Contacts kept"). Gotchas: a clip with contacts
+  needs its keyed body when loaded (`AnimationClip.AllOf(files, path)` or `AllOf(glbFile)`), else binding it to a body is
+  refused; a skeleton's worn set is fixed at construction (`Skeleton(body, worn)`): load the garments first, then the
+  skeleton, then bind; nothing moves on the man because every goal is his clearance itself and moves under a micrometre are
+  none (his references the same bytes); a rule of rounds must hold over all of them, not one (up won only within a round
+  until a mutation, "down wins", survived); GM2-P22's own tests hold the clips without their contacts
+  (`HumanoidClipList.Measured`); a new record field changes the kind's marks file too
+  (`Data/Records/Marks/model.txt`: delete it and run `EngineKindMarksTests` with `STATVENTURE_RECORD_FIXTURES=1`).
+  5389 + 1086 = 6475 tests on the GPU and lavapipe.
+- 2026-11-22 (GM2-P37, for whoever adds a body or a clip): **a clip keeps its contacts only if its library names them**:
+  the animation's extras `"contacts"` (`{"keyedOn": the keyed body's data path, "root": the joint that carries the body,
+  "chains": [[top, middle, end], ...]}`; the humanoid family's `clips/library.py` writes them for every clip keying the
+  root's place, legs and the arms it turns, keyed on `models/humanoid/bodies/human-male-average`), and the keyed body must be
+  in the same data (or beside the library file) when the library is loaded. A library without them plays as before (GM2-P22's
+  measure alone); a new clip keyed on another body names that body; a new body needs no data of its own (its groups come
+  from its skin and the chains' joints' names), only a place in the ground tests' lists.
 - 2026-11-21 (the PC, GM2 step 9a's worker on the branch `gm2-step9a`, 5266 + 1000 = 6266 tests on the GPU and lavapipe): **the shared
   sets and the human in the repo** (`Docs/Game/Hero.md`, "How it works", step 9a). Gotchas: a material's name may hold a
   dot (`eye.white`, `hair.tie`, `cloth.trim`): strip only Blender's `.001` suffix, never at the first dot; a part with no

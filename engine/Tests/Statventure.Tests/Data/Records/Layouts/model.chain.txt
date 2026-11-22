@@ -1,0 +1,2 @@
+model.chain 1
+  1 joints: list<string> (required)

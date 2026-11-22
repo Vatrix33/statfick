@@ -48,8 +48,8 @@ Asked before the milestone started; the answers are also in `Docs/Engine-Plan.md
 - **Clips are shared by bone names**, as Blender applies an action to another armature: one clip set
   per rig family (humanoid, quadruped, griffon, dragon, wisp, core); models of a family share bone
   names and differ in proportions (races, sexes, builds); a clip plays on any of them with each
-  channel taken relative to that bone's rest pose (since GM2-P22 a bone's place scaled by the body's measure, "How it's
-  done"). Bosses and odd enemies can add clips of their own.
+  channel taken relative to that bone's rest pose (since GM2-P22 a bone's place scaled by the body's measure, and since
+  GM2-P37 its contacts with the ground kept, "How it's done"). Bosses and odd enemies can add clips of their own.
 - **Gear:** rigid items (weapons, shields, helmets, quivers) are their own models attached to socket
   bones in the rig (hand.R, hand.L, back, head …); armour and clothing that bends are meshes skinned
   to the wearer's skeleton by bone names.
@@ -201,6 +201,30 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   it; Blender's side (`render.py`'s `figure_ground`, so `assemble.py`'s) raises its figure by the same rounded number and
   anchors the hatching at the raised origin. A view that frames its figure (every GM2 view) frames it as it stands: the
   same picture.
+
+- **A clip keeps its contacts** (GM2-P37, "contacts kept"; 2026-11-21/22, the branch `gm2-contact`; `Docs/Game/Hero.md`,
+  "How it works", "Contacts kept", where the rule is written out in full with its numbers and reasons). GM2-P22 keeps a
+  clip's joints in proportion, not a body's own feet and thickness: a long foot toe-down or a heavy thigh lying down went
+  into the ground. A clip may carry its **contacts** (`ModelAnimation.Contacts`, version 3 of `model.animation`: the
+  `model.contacts` record from the animation's extras `"contacts"`: the body it was keyed on by its data path, the root
+  joint whose place carries the body, and chains of three joints, top, middle, end; the model's check wants them nodes the
+  clip keys). The keyed body is given when the clips are loaded (`AnimationClip.AllOf(files, path)`, `AllOf(glbFile)`,
+  `AllOf(model, models)`: `ClipContacts.KeyedBody`); a clip with contacts bound to a body with a mesh without it is refused.
+  A `Skeleton` is a body and what it wears on its bones (`Skeleton(body, worn)`); its vertices and its garments' are grouped
+  by the bone each follows most (each chain's end with the bones under it, each chain's top and middle, the rest), a
+  group's clearance its lowest point over the body's ground. When a clip is bound (`ClipBinding`, once per skeleton and
+  clip, `ContactShape.CorrectionOf`), at each key time the rule (`KeySolve`) moves the root's place up or down and solves
+  each chain's end by a two-bone solve (the middle joint about its own X, keeping its side of straight; the chain about its
+  top; the end's turn in the world kept), aiming each group at the keyed body's clearance (in a 2 mm band as keyed, above it
+  scaled by the measure's ratio) as fully as the keyed group is near the ground (smoothstep to nothing at 150 mm), the
+  hips lifting what no end can (a kneeling knee, a lying thigh) and coming down for a straight leg that can't reach, only
+  as far as nothing goes under the ground or its goal (up wins, in every round); the root's place and the chains' turns it changed become curves at the key times (straight between) that the
+  binding plays instead of the clip's (`ClipBinding.Contacts`: what it changed, clamped and found in conflict). A frame
+  costs what it did. On the body the clip was keyed on every goal is the clearance itself: nothing moves, its poses the
+  clip's to the bit. Blender's side is `Tools/BlenderReference/clip_contacts.py`: the same groups from the bodies' `.glb`
+  files, the same rule on the action's F-curves at every frame, the corrected channels keyed back into the action (linear),
+  wherever Blender evaluates or renders a clip on another body (`evaluate_animations.py`, `render.py`'s `pose_at`, so
+  `assemble.py`'s).
 
 - **Layers** (`Animation/AnimationStack.cs`): an `AnimationStack` holds `AnimationLayer`s (NLA
   tracks, bottom first), each a time-ordered list of `AnimationStrip`s (Blender's strip settings in
@@ -373,7 +397,9 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   skeleton and on the two bodies. A location is applied from each body's own rest, scaled by its legs since GM2-P22's
   task (every clip's action carries `measure`, library.py's `MEASURE`; "A clip's translations follow the body's size"
   above): the evaluation (`evaluate_animations.py`) scales the action's locations on a target whose chain differs from
-  the model's own armature's, as the engine does.
+  the model's own armature's, as the engine does, and since GM2-P37 keeps a clip's contacts on the target's body (its
+  `.glb`, the manifest's `out`; `clip_contacts.py`): the woman's scenes and four on the strong man (`humanoid-death|meditate|
+  advance|flee-male-strong`) hold the engine's correction to Blender's within the limits below.
 - **The family's clips** (GM2 step 4b; `Docs/Game/Hero.md`, "How it works", step 4b): the 34 approved clips
   (`Tools/Models/humanoid/clips/`, their library `Assets/Models/humanoid/clips.glb`, models.pak's `models/humanoid/clips`)
   each played on the man's and the woman's bodies, 68 scenes (`humanoid-<clip>-male|female`) at lighter times than
@@ -541,3 +567,8 @@ Started 2026-10-31 (decisions asked and recorded); done 2026-10-31.
   Blender's side `clip_measure.py`), exactly 1 on the keyed body; an actor drawn standing by its soles (`Actor.Ground`,
   `Actor.GroundOf`, `Actor.Placement`). "How it's done", the two bullets after "Skeletons and poses"; `Docs/Game/Hero.md`,
   "How it works", "The figure's ground".
+- **2026-11-22, GM2's engine task "contacts kept" (GM2-P37; the branch `gm2-contact`):** a clip keeps its contacts with the
+  ground on a body other than the one it was keyed on (`model.animation` version 3's `contacts`, `ClipContacts`,
+  `ContactShape`, `ContactCorrection`, `ClipBinding.Contacts`, `Skeleton(body, worn)`; Blender's side `clip_contacts.py`),
+  nothing changed on the keyed body. "How it's done", "A clip keeps its contacts"; `Docs/Game/Hero.md`, "How it works",
+  "Contacts kept".

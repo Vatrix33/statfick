@@ -49,7 +49,7 @@ static class FigureFiles
     /// <summary>A playing time: <paramref name="at"/> seconds into the named clip.</summary>
     public static double Into(string body, string clip, double at)
     {
-        var clips = new FigureClips(AnimationClip.AllOf(ModelData.Load(body)));
+        var clips = new FigureClips(AnimationClip.AllOf(body));
         var index = clips.Clips.Select(c => c.Name).ToList().IndexOf(clip);
         Assert.True(index >= 0, $"{body} has no clip {clip}");
         return clips.Starts[index] + at;
@@ -551,6 +551,9 @@ public class FigureReferenceTests(GpuFixture gpu)
         };
         using var figure = new FigureView(gpu.Device, spec);
         Assert.Equal(-0.023997f, figure.Actor.Ground, 6);
+        // Its skeleton wears its garments (GM2-P37: they meet the ground with its skin), its items not.
+        Assert.Equal(figure.Actor.Garments.Select(g => g.Model.Data), figure.Actor.Animator.Stack.Skeleton.Worn);
+        Assert.Single(figure.Actor.Animator.Stack.Skeleton.Worn);
         var lift = new Vector3(0, 0.023997f, 0);
         Assert.Equal(Matrix4x4.CreateTranslation(lift), figure.Lift);
         Assert.True(Vector3.Distance(lift, figure.Actor.Placement.Translation) < 1e-7f);

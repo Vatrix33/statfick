@@ -33,7 +33,7 @@ public static class GltfImport
             if (!SupportedRequired.Contains(extension))
                 throw new NotSupportedException($"{path} requires the glTF extension {extension}");
         var reader = new AccessorReader(loader, path);
-        var (inkless, unhatched, events, angles, measures) = ExtrasOf(path);
+        var (inkless, unhatched, events, angles, measures, contacts) = ExtrasOf(path);
         var cameras = (gltf.Cameras ?? []).Select((c, i) => ReadCamera(c, i, path)).ToArray();
         var lights = ReadLights(gltf, angles, path);
         var nodes = ReadNodes(gltf, path, cameras.Length, lights.Length);
@@ -54,6 +54,7 @@ public static class GltfImport
             {
                 Events = events.TryGetValue(i, out var list) ? list : [],
                 Measure = measures.TryGetValue(i, out var measure) ? measure : [],
+                Contacts = contacts.GetValueOrDefault(i),
             }).ToArray(),
             Roots = gltf.Scenes is { Length: > 0 } scenes
                 ? scenes[gltf.Scene ?? 0].Nodes ?? []
@@ -135,10 +136,12 @@ public static class GltfImport
     /// (a number: the sun's size in degrees, Blender's sun angle copied by the stage export into the
     /// light's custom property); and each animation's <c>"measure"</c>, a list of joint names (the action's custom
     /// property, which a family's clip library sets: GM2-P22, <see cref="ModelAnimation.Measure"/>), anything else there
-    /// refused.
+    /// refused; and each animation's <c>"contacts"</c> (GM2-P37, <see cref="ModelAnimation.Contacts"/>), an object
+    /// <c>{"keyedOn": "&lt;model&gt;", "root": "&lt;joint&gt;", "chains": [["top", "middle", "end"], ...]}</c>, the action's
+    /// custom property the clip library sets, anything else there refused.
     /// </summary>
     static (HashSet<int> Inkless, HashSet<int> Unhatched, Dictionary<int, ModelAnimationEvent[]> Events, Dictionary<int, double> Angles,
-        Dictionary<int, string[]> Measures) ExtrasOf(string path)
+        Dictionary<int, string[]> Measures, Dictionary<int, ModelContacts> Contacts) ExtrasOf(string path)
     {
         var bytes = File.ReadAllBytes(path);
         ReadOnlySpan<byte> json = bytes;
@@ -149,6 +152,7 @@ public static class GltfImport
         var root = document.RootElement;
         var events = new Dictionary<int, ModelAnimationEvent[]>();
         var measures = new Dictionary<int, string[]>();
+        var contacts = new Dictionary<int, ModelContacts>();
         if (root.TryGetProperty("animations"u8, out var animations))
         {
             var index = 0;
@@ -168,6 +172,9 @@ public static class GltfImport
                             throw new InvalidDataException($"{path}: animation {index}'s measure isn't a list of joints' names");
                         measures[index] = measure.EnumerateArray().Select(j => j.GetString()!).ToArray();
                     }
+                    if (extras.TryGetProperty("contacts"u8, out var kept))
+                        contacts[index] = ContactsOf(kept) ?? throw new InvalidDataException(
+                            $"{path}: animation {index}'s contacts aren't {{\"keyedOn\": a model, \"root\": a joint, \"chains\": lists of joints' names}}");
                 }
                 index++;
             }
@@ -186,7 +193,20 @@ public static class GltfImport
                 index++;
             }
         }
-        return (Off(root, "nodes"u8, "ink"u8), Off(root, "materials"u8, "hatch"u8), events, angles, measures);
+        return (Off(root, "nodes"u8, "ink"u8), Off(root, "materials"u8, "hatch"u8), events, angles, measures, contacts);
+
+        // The contacts' object, exactly its three keys of their kinds, or null.
+        static ModelContacts? ContactsOf(JsonElement kept)
+        {
+            if (kept.ValueKind != JsonValueKind.Object || kept.EnumerateObject().Select(p => p.Name).Order(StringComparer.Ordinal).ToArray() is not ["chains", "keyedOn", "root"]
+                || kept.GetProperty("keyedOn"u8) is not { ValueKind: JsonValueKind.String } keyedOn
+                || kept.GetProperty("root"u8) is not { ValueKind: JsonValueKind.String } joint
+                || kept.GetProperty("chains"u8) is not { ValueKind: JsonValueKind.Array } chains
+                || chains.EnumerateArray().Any(c => c.ValueKind != JsonValueKind.Array || c.EnumerateArray().Any(j => j.ValueKind != JsonValueKind.String)))
+                return null;
+            return new ModelContacts(keyedOn.GetString()!, joint.GetString()!,
+                [.. chains.EnumerateArray().Select(c => new ModelContactChain([.. c.EnumerateArray().Select(j => j.GetString()!)]))]);
+        }
 
         static HashSet<int> Off(JsonElement root, ReadOnlySpan<byte> list, ReadOnlySpan<byte> property)
         {

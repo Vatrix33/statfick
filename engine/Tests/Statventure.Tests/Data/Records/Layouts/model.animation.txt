@@ -8,3 +8,10 @@ model.animation 2
   2 channels: list<model.channel> (required)
   3 events: list<model.event> = []
   4 measure: list<string> = []
+
+model.animation 3
+  1 name: string (required)
+  2 channels: list<model.channel> (required)
+  3 events: list<model.event> = []
+  4 measure: list<string> = []
+  5 contacts: model.contacts? = null

@@ -1,0 +1,4 @@
+model.contacts 1
+  1 keyedOn: string (required)
+  2 root: string (required)
+  3 chains: list<model.chain> (required)

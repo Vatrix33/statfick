@@ -313,6 +313,64 @@
       "clips": "../../../Assets/Models/humanoid/clips.glb"
     },
     {
+      "name": "assembly-human-male-geared-death",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-average",
+        "parts": {
+          "face": "face-human-male-1",
+          "hair": "hair-crop",
+          "beard": "beard-stubble",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Deep",
+          "hair": "Ash",
+          "eyes": "Blue",
+          "brows": "Ember",
+          "eye.white": "Ember",
+          "cloth": "Green",
+          "cloth.trim": "Ember",
+          "trousers": "Tan",
+          "leather": "Black",
+          "buckle": "Ember"
+        }
+      },
+      "gear": {
+        "garments": [
+          "models/humanoid/gear/chain-shirt/human-male-average"
+        ],
+        "items": [
+          {
+            "model": "models/humanoid/gear/sword",
+            "socket": "socket.hand.R"
+          },
+          {
+            "model": "models/humanoid/gear/shield",
+            "socket": "socket.shield.L"
+          }
+        ],
+        "colours": {
+          "grip": "#3a261b",
+          "metal.base": "#80848c",
+          "metal.shade": "#3a3c42",
+          "metal.trim": "#bb8d3c",
+          "wood": "#5a2a1e"
+        }
+      },
+      "view": "side",
+      "width": 720,
+      "height": 400,
+      "clip": "death",
+      "time": 1,
+      "clips": "../../../Assets/Models/humanoid/clips.glb"
+    },
+    {
       "name": "assembly-preset-human-male-1",
       "look": {
         "$types": {

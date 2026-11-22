@@ -23,6 +23,33 @@ public class HumanoidCostTests(GpuFixture gpu, ITestOutputHelper output)
     static (int Vertices, int Triangles) Counts(ModelData model) =>
         (model.Meshes.SelectMany(m => m.Primitives).Sum(p => p.Positions.Length), model.Meshes.SelectMany(m => m.Primitives).Sum(p => p.Indices.Length / 3));
 
+    /// <summary>
+    /// What keeping the clips' contacts costs (GM2-P37; a measurement, no bound): the keyed body's clearances for the whole
+    /// library (once per clip, shared by every body), then binding all 34 clips to one body (its 29 whole-body clips' contacts
+    /// worked out once per body, worn set and clip) and what the bindings keep; a frame then costs what it did (the
+    /// corrected channels are curves the binding plays instead of the clip's).
+    /// </summary>
+    [Fact]
+    public void TheCostOfKeepingTheContactsIsMeasured()
+    {
+        var fresh = AnimationClip.AllOf(HumanoidClipList.Library);
+        var watch = Stopwatch.StartNew();
+        foreach (var clip in fresh.Where(c => c.Contacts != null))
+            _ = clip.Contacts!.Keyed;
+        output.WriteLine($"the man's clearances for the {fresh.Count(c => c.Contacts != null)} clips keeping contacts: {watch.Elapsed.TotalMilliseconds:F0} ms, {fresh.Where(c => c.Contacts != null).Sum(c => 8L * c.Contacts!.Keyed.Sum(k => k.Length)) / 1024} KiB");
+        foreach (var body in new[] { "female-average", "male-strong" })
+        {
+            var skeleton = new Skeleton(HumanoidFiles.Load($"bodies/human-{body}"));
+            watch.Restart();
+            var bindings = fresh.Select(c => new ClipBinding(c, skeleton)).ToList();
+            var elapsed = watch.Elapsed;
+            var shape = ContactShape.Of(skeleton, fresh.First(c => c.Contacts != null).Contacts!)!;
+            output.WriteLine($"human-{body}: {bindings.Count} clips bound in {elapsed.TotalMilliseconds:F0} ms on one thread, {bindings.Count(b => b.Contacts != null)} corrected, " +
+                $"keeping {bindings.Sum(b => b.Contacts?.Bytes ?? 0) / 1024} KiB of curves and a shape of {shape.Count} vertices, {shape.Bytes / 1024} KiB");
+            Assert.Equal(34, bindings.Count);
+        }
+    }
+
     [Fact]
     public void TheCostOfTheFamilysFiguresIsMeasured()
     {
