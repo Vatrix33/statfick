@@ -230,7 +230,11 @@ What each program loads, from the engine's `obj/project.assets.json` and the pac
 - **The editor's own UI takes its fonts from the game's `ui.pak`** (Lato 400 and 700; `Shell/Fonts.css`,
   `EditorApplication.Load`: a file system of `Mount.Pack(_game.UiPack)`). So an editor downloaded apart can't
   draw anything until it knows where the game is.
-- It mounts the game's area packs only (`GamePacksOnly`, P6) and saves mods into the per-user `mods/`.
+- It mounts the game's area packs only (`GamePacksOnly`, P6) and saves mods into the per-user `mods/`. *Since GM2's Q77
+  (2026-11-22, a pack per race; `Docs/Assets.md`, S3-4):* the game's packs are the area packs with every
+  `models-<race>.pak` right after `models.pak` (`Application.GamePackFiles`); the build and the publish copy every
+  committed `.pak` already, `licenses.txt` covers `packs/models-*.pak`, and each listing names a race's pack once it is
+  committed.
 - Record kinds: `RecordTypes.Of(assemblies)` and `Importers.Find(assemblies)` take any assemblies; the editor uses
   the engine's today. Nothing loads an assembly from a path yet.
 - Its file browser (M11 step 8) and dialogs exist; a screen asking for the game's folder would reuse them.

@@ -421,7 +421,7 @@ def open_cap(p, shape, material, style):
     rim = [e for e in bm.edges if e.is_boundary]
     for elements in (bm.verts, bm.edges, bm.faces):
         elements.index_update()
-    made = bmesh.ops.extrude_edge_only(bm, edges=sorted(rim, key=lambda e: e.index))
+    made = k.extrude_edges(bm, sorted(rim, key=lambda e: e.index))
     for v in made["geom"]:
         if isinstance(v, bmesh.types.BMVert):
             v.co = centre + (v.co - centre) * (0.95 / 1.012)
@@ -527,7 +527,7 @@ def build_beard(p, m, style):
     rim = [e for e in bm.edges if e.is_boundary]
     for elements in (bm.verts, bm.edges, bm.faces):
         elements.index_update()
-    made = bmesh.ops.extrude_edge_only(bm, edges=sorted(rim, key=lambda e: e.index))
+    made = k.extrude_edges(bm, sorted(rim, key=lambda e: e.index))
     for v in made["geom"]:
         if isinstance(v, bmesh.types.BMVert):
             v.co = centre + (v.co - centre) * 0.93   # the edge turns in under the skin

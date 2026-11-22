@@ -175,31 +175,65 @@ public abstract class Application : IDisposable
     /// <summary>Starts the file manager for the crash window's "Open logs folder" in place of the system's (tests).</summary>
     internal Func<ProcessStartInfo, bool>? Launcher { get; init; }
 
-    /// <summary>The area packs in <c>packs/</c>, in the order they mount (S3-4); each mounts only if it is there.</summary>
+    /// <summary>
+    /// The area packs in <c>packs/</c>, in the order they mount (S3-4); each mounts only if it is there. After
+    /// <c>models</c> come the models packs of its own (<see cref="ModelsPackPrefix"/>, Q77).
+    /// </summary>
     public static IReadOnlyList<string> AreaPacks { get; } = ["models", "audio", "ui", "world", "data"];
+
+    /// <summary>
+    /// How a models pack beside <c>models.pak</c> is named (the user's Q77 of GM2, 2026-11-22: a pack per race):
+    /// <c>models-&lt;name&gt;.pak</c>, the name not empty, matched exactly (lower case, ordinally, on every system).
+    /// </summary>
+    public const string ModelsPackPrefix = "models-";
+
+    /// <summary>Whether <paramref name="fileName"/> (a name, no folder) is a models pack's beside <c>models.pak</c> (<see cref="ModelsPackPrefix"/>).</summary>
+    public static bool IsModelsPackName(string fileName) =>
+        fileName.Length > ModelsPackPrefix.Length + ".pak".Length && fileName.StartsWith(ModelsPackPrefix, StringComparison.Ordinal) &&
+        fileName.EndsWith(".pak", StringComparison.Ordinal);
+
+    /// <summary>
+    /// The game's packs in <paramref name="packsFolder"/>, in the order they mount (S3-4, Q77): each area pack that is
+    /// there, by name, and right after <c>models.pak</c> every models pack there (<see cref="IsModelsPackName"/>) in the
+    /// ordinal order of their names; other files there aren't the game's, and no folder means no packs. The paths are
+    /// <paramref name="packsFolder"/>'s with the file's name.
+    /// </summary>
+    public static IReadOnlyList<string> GamePackFiles(string packsFolder)
+    {
+        var files = new List<string>();
+        foreach (var area in AreaPacks)
+        {
+            var file = Path.Combine(packsFolder, area + ".pak");
+            if (File.Exists(file))
+                files.Add(file);
+            if (area == "models" && Directory.Exists(packsFolder))
+                files.AddRange(Directory.EnumerateFiles(packsFolder).Where(f => IsModelsPackName(Path.GetFileName(f)))
+                    .Select(Path.GetFileName).Order(StringComparer.Ordinal).Select(name => Path.Combine(packsFolder, name!)));
+        }
+        return files;
+    }
 
     /// <summary>The environment variable naming the development folder when the options don't (S3-5).</summary>
     public const string DevelopmentFolderVariable = "STATVENTURE_DEV_FOLDER";
 
     /// <summary>
-    /// What <see cref="Data"/> mounts, bottom to top (Q2, Q8, Q27, S3-4, S3-5): the area packs of
-    /// <c>packs/</c> in <paramref name="executableFolder"/> (each if it is there, other files ignored, no
+    /// What <see cref="Data"/> mounts, bottom to top (Q2, Q8, Q27, S3-4, S3-5): the game's packs of
+    /// <c>packs/</c> in <paramref name="executableFolder"/> (<see cref="GamePackFiles"/>: the area packs, each if it is
+    /// there, the models packs after <c>models.pak</c>, other files ignored, no
     /// folder meaning no packs), then its <c>classes/</c> folder at <c>classes</c> if there is one (so a mod
     /// or the development folder can override a class), then the mods in <paramref name="modsFolder"/>
     /// (the player's game folder's <c>mods/</c>; mounted even when missing, so a mod put there later
     /// appears on Reload; only those <see cref="ApplicationOptions.ModFilter"/> accepts when it is set),
     /// then the development folder (<see cref="ApplicationOptions.DevelopmentFolder"/>,
     /// else the folder <paramref name="environment"/> gives for <see cref="DevelopmentFolderVariable"/>).
-    /// With <see cref="ApplicationOptions.GamePacksOnly"/> the area packs only. Which packs and folders mount
+    /// With <see cref="ApplicationOptions.GamePacksOnly"/> the game's packs only. Which packs and folders mount
     /// is decided here, once: Reload re-reads these.
     /// </summary>
     internal static List<Mount> DataMounts(ApplicationOptions options, string executableFolder, Func<string, string?> environment, string? modsFolder = null)
     {
         var mounts = new List<Mount>();
-        var packs = Path.Combine(executableFolder, "packs");
-        foreach (var area in AreaPacks)
-            if (File.Exists(Path.Combine(packs, area + ".pak")))
-                mounts.Add(Mount.Pack(Path.Combine(packs, area + ".pak")));
+        foreach (var pack in GamePackFiles(Path.Combine(executableFolder, "packs")))
+            mounts.Add(Mount.Pack(pack));
         if (options.GamePacksOnly)
             return mounts;
         var classes = Path.Combine(executableFolder, "classes");

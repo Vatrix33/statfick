@@ -244,7 +244,8 @@ the names inside it.
   mount for data held in memory** (the editor's unsaved entries), so the engine's loaders and cross-entry
   checks (`Sequence.Load` with its stages, `MusicLibrary.Load`) can't run on unsaved work.
 - **`Application.Data`** (`Core/Application.cs`, `DataMounts`, internal): the area packs `packs/<area>.pak`
-  beside the executable, `classes/`, the player's `mods/`, the development folder (`ApplicationOptions`
+  beside the executable (since GM2's Q77, 2026-11-22: with every `models-<race>.pak` right after `models.pak`,
+  `Application.GamePackFiles`; `Docs/Assets.md`, S3-4), `classes/`, the player's `mods/`, the development folder (`ApplicationOptions`
   or `$STATVENTURE_DEV_FOLDER`). No option leaves the mods out, so the editor can't use it as the game's
   data as it is (it would mount the player's other mods).
 - **Folders:** the player's game folder (`GameStorage.Folder`, `ModsFolder`; Linux `$XDG_DATA_HOME/stat-fick/`
@@ -1225,7 +1226,8 @@ and `Storage/FileBrowserTests.cs` (with `FileBrowserDocumentsTests`). What the e
   changes" dialog; when the player then chooses to close, it calls `Quit()` (or sets `Window.CloseRequested` and
   answers true).
 - **The editor's own data (P6; added on the manager's word, 2026-11-06):** `ApplicationOptions.GamePacksOnly =
-  true` starts the application with `Application.Data` holding the game's area packs only: no `classes/`, no mods
+  true` starts the application with `Application.Data` holding the game's area packs only (since GM2's Q77, 2026-11-22: the
+  game's packs, the races' `models-<race>.pak` among them): no `classes/`, no mods
   folder, no development folder (neither `DevelopmentFolder` nor `$STATVENTURE_DEV_FOLDER`), so a damaged mod in
   the player's mods folder (or a missing development folder) can't stop the editor's start; `ReloadData` re-reads
   the same mounts. The default (false) is the game's data as before; the game and the sandbox don't set it.
@@ -1817,7 +1819,9 @@ fixtures `list-marks`, `list-unreadable`, `browser`); goldens `Golden/editor-lis
 - `Session.PlayerFolder` (the application's `Storage.Folder`, which follows `--player-folder`; by default this machine's
   game folder, in tests the run's redirected one), `ModsFolder`, `SettingsFolder` (`<player folder>/editor`, G6).
 - `Session.GamePacks`: the area packs in `Game.PacksFolder` that are there, in the game's order (`Application.AreaPacks`);
-  another `.pak` there isn't the game's. `IsGamePack(file)`.
+  another `.pak` there isn't the game's. `IsGamePack(file)`. *Since GM2's Q77 (2026-11-22, a pack per race;
+  `Docs/Assets.md`, S3-4):* `Application.GamePackFiles(Game.PacksFolder)`, the races' `models-<race>.pak` right after
+  `models.pak`, so a race's pack is a game pack too (read-only outside the dev setup, the base under another open pack).
 - `Session.Open(file)` (`PackFile.Open`, which throws for a pack it refuses: nothing changes) and `Session.Open(PackFile)`
   (the session owns it): every entry of the pack and of the game's other packs read and classified by
   `EditorSession.ReadEntry` (public, for step 10's lookup and step 11): a record of a kind `Session.Types` knows

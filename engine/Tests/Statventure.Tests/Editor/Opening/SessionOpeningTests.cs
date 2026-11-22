@@ -75,11 +75,14 @@ public class SessionOpeningTests
         Assert.Equal(Path.GetFullPath(game.Player + "/"), session.PlayerFolder);
         Assert.Equal(Path.Combine(session.PlayerFolder, "mods"), session.ModsFolder);
         Assert.Equal(Path.Combine(session.PlayerFolder, "editor"), session.SettingsFolder);
-        // The area packs there, in the game's order; other packs there aren't the game's.
+        // The area packs there, in the game's order, a race's models pack right after models.pak (Q77); other packs
+        // there aren't the game's.
         game.Pack("packs/models.pak", w => w.Add("models/readme.txt", "models"u8));
+        game.Pack("packs/models-elf.pak", w => w.Add("models/elf.txt", "elf"u8));
         game.Pack("packs/extra.pak", w => w.Add("extra/readme.txt", "extra"u8));
-        Assert.Equal([game.Folder["packs/models.pak"], game.Folder["packs/audio.pak"], game.Folder["packs/ui.pak"]], session.GamePacks);
+        Assert.Equal([game.Folder["packs/models.pak"], game.Folder["packs/models-elf.pak"], game.Folder["packs/audio.pak"], game.Folder["packs/ui.pak"]], session.GamePacks);
         Assert.True(session.IsGamePack(game.Folder["packs/audio.pak"]));
+        Assert.True(session.IsGamePack(game.Folder["packs/models-elf.pak"]));
         Assert.True(session.IsGamePack(game.Folder["packs/../packs/ui.pak"]));
         Assert.False(session.IsGamePack(game.Folder["packs/extra.pak"]));
         Assert.Null(session.Pack);

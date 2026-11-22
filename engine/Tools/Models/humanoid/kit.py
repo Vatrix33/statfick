@@ -40,6 +40,22 @@ def frames(points, side):
     return out
 
 
+def extrude_edges(bm, edges):
+    """bmesh.ops.extrude_edge_only of `edges` (a list), its new faces put after the mesh's other faces in the reverse
+    order of the edges they are made from (GM2-P44). The operator makes its faces in the order of a map keyed by the
+    edges' addresses, which change from run to run (as lighten.geometry says of sets); Blender sums a vertex's faces
+    into its normal in the faces' order, and the glTF exporter rounds normals to four places, so another order now and
+    then moved a normal on the rim by 5e-5 (the twin braids' and the crown braid's caps). The reverse order is the one
+    the committed hair and beards were built with where it shows (measured: all 53 the same bytes)."""
+    made = bmesh.ops.extrude_edge_only(bm, edges=edges)
+    place = {e: i for i, e in enumerate(edges)}
+    new = {f for f in made["geom"] if isinstance(f, bmesh.types.BMFace)}
+    bm.faces.index_update()
+    after = len(bm.faces) + len(edges)   # each new face holds one of `edges`: its key is past every old face's index
+    bm.faces.sort(key=lambda f: after - min(place[e] for e in f.edges if e in place) if f in new else f.index)
+    return made
+
+
 def new_object(name, bm, material=None, smooth=True):
     """The bmesh as an object in the scene, with its one material."""
     mesh = bpy.data.meshes.new(name)

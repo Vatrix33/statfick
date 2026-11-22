@@ -1110,7 +1110,7 @@ shadow's clip inset, bleed avoidance under opaque rounded borders, the square co
 (`Docs/Scene.md`, Status, step 5); the proof's sound by ear (its levels and lengths are first guesses).
 
 **What M9 leaves for the port:** `Application.Data` is the game's data: the area packs in `packs/` beside the
-executable (the committed `Assets/Packs/audio.pak` and `ui.pak`, copied there by `build.sh`/`build.ps1`), `classes/`
+executable (since GM2's Q77, 2026-11-22: and a `models-<race>.pak` per race right after `models.pak`; `Docs/Assets.md`, S3-4) (the committed `Assets/Packs/audio.pak` and `ui.pak`, copied there by `build.sh`/`build.ps1`), `classes/`
 beside them, the player's `mods/` in the per-user game folder, and the development folder on top
 (`ApplicationOptions.DevelopmentFolder` or `$STATVENTURE_DEV_FOLDER`); records are read with `Data.Load<T>(path)`.
 `Application.Storage` is the player's game folder: save slots, settings, character files (export and import of the JSON
@@ -1315,6 +1315,12 @@ the design and the tests):
   Q72 (2026-11-21) the dark theme's sepia kept on the sheet's seal; with the manager's GM2-P31 (the emblems' colours from
   the race's accent by one rule), GM2-P32 (the medallion's make) and GM2-P34 (the pictures scaled down from the 640 px
   render).
+  **Q77 (2026-11-22, asked by the manager on the races' worker's measure of the pack's size):** "A pack per race":
+  `models.pak` keeps the human, the gear, the clips, the emblems and every shared model, each other race has its
+  `models-<race>.pak` beside it; M9's S3-4 changed to the five area packs by name with every `models-*.pak` in `packs/`
+  right after `models.pak`, in the ordinal order of the names (`Docs/Assets.md`, S3-4); with the manager's GM2-P44 (a
+  model's build the same bytes every time), GM2-P45 (a model races share stored once) and GM2-P46 (no smaller model
+  record now); in `Docs/Game/Hero.md` ("Questions from the steps", "Decisions").
 - **Decisions for GM3 (2026-11-20, asked early at the user's request, before GM3 starts):** `Docs/Game-Plan.md`, GM3,
   "Decisions for GM3": GM3-1 the item models made for close-up, GM3-2 live 3D item pictures, GM3-3 armour fitted to
   every body, GM3-5 the hintless masterworks and Exotics designed by the port for approval (all as recommended); GM3-4,
@@ -4724,6 +4730,16 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     engine item: the line the engine draws where one surface rises from another). Found: the seal's picture is 72 % of the
     button's content box (113.76 px, not 124: step 7's note corrected); a square picture in a round button takes the pointer
     at its corners (`pointer-events: none`). 5266 + 1000 → 5285 + 1084 = 6369 tests, on the GPU and lavapipe.
+  - **GM2's engine task "the race packs" (the user's Q77, the manager's GM2-P44; 2026-11-22, the races' worker on the branch
+    `gm2-race-packs`; `Docs/Game/Hero.md`, "How it works", "The race packs"; `Docs/Assets.md`, S3-4):** the eight races
+    measured as step 9a's method would pack them (about 84 MB in one `models.pak`, 1,592 entries), and on the user's "a pack
+    per race": `models.pak` and a `models-<race>.pak` per race, mounted right after `models.pak` in the ordinal order of
+    their names (`Application.GamePackFiles`; S3-4 changed with a dated note, `DataMounts`, the editor's game packs),
+    `make-models-pack.sh` choosing a model's pack by its file's name (the human's in `models.pak`), `licenses.txt`'s cover
+    line, the tests (the pack test packing over a copy of the committed pack, 14 s to 0.6 s). GM2-P44: the hair caps' and
+    beards' rims extruded in one order (`kit.extrude_edges`), so a model's build gives the same bytes every time (Blender's
+    extrusion ordered its faces by address, the exporter's four-decimal rounding of normals showed it now and then), the
+    171 committed models unchanged. Recorded: Q77, GM2-P44–GM2-P46 (GM2-P46 an engine item for GM3). 5289 + 1084 = 6373 tests on the GPU and lavapipe (`main` `b8b2e28`: 5285 + 1084 = 6369; 4 new, the engine's).
 
 ## Milestones
 

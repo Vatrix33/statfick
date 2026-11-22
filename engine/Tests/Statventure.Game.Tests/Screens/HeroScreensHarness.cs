@@ -17,7 +17,7 @@ namespace Statventure.Game.Tests;
 /// The race carousel and the character maker (GM2 step 8) attached as the game attaches them, on the game's document
 /// without a window (<see cref="GameUiHarness"/>) with the real parts on its scratch per-user folder: the settings, a
 /// session on its storage, the mods, a randomness of the test's (seeded, or scripted). Their data is the screens' test
-/// data over the committed <c>data.pak</c> (<see cref="HeroTestData"/>), or the shipped data alone (<c>models.pak</c> and <c>data.pak</c>). The game's sheets are
+/// data over the committed <c>data.pak</c> (<see cref="HeroTestData"/>), or the shipped data alone (the models packs, <c>models.pak</c> and the races' own, and <c>data.pak</c>). The game's sheets are
 /// asked in the game's order before theirs, and the commands the flow hands over to are stand-ins recording their runs
 /// (<see cref="Ran"/>): <c>open-sheet</c> (GM2 step 7's) and <c>start-screen</c>, unless the test attaches the real start
 /// screen (<c>start: true</c>) or the real start screen and sheet (<c>sheet: true</c>: the whole flow as the game runs it,
@@ -55,7 +55,7 @@ sealed class HeroScreensHarness : IDisposable
         start |= sheet;
         H = harness;
         if (shipped)
-            _shipped = new VirtualFileSystem([Mount.Pack(Path.Combine(TestPaths.Packs, "models.pak")), Mount.Pack(Path.Combine(TestPaths.Packs, "data.pak"))]);
+            _shipped = new VirtualFileSystem([.. TestPaths.ModelsPacks.Select(Mount.Pack), Mount.Pack(Path.Combine(TestPaths.Packs, "data.pak"))]);
         else if (own)
             _ownData = new HeroTestData(Path.Combine(TestPaths.Packs, "data.pak"), races);
         Data = _shipped ?? (_ownData ?? Shared).Data;

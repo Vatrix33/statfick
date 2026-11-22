@@ -21,4 +21,11 @@ public static class TestPaths
     /// truth"): the repo's engine/Assets/Packs/ (made by the first step that commits a pack).
     /// </summary>
     public static string Packs => Path.GetFullPath(Path.Combine(ProjectDirectory(), "..", "..", "Assets", "Packs"));
+
+    /// <summary>
+    /// The committed models packs in the order the game mounts them (the user's Q77 of GM2: <c>models.pak</c>, then a
+    /// <c>models-&lt;race&gt;.pak</c> for each race with models of its own; <see cref="Statventure.Core.Application.GamePackFiles"/>).
+    /// </summary>
+    public static IReadOnlyList<string> ModelsPacks =>
+        [.. Statventure.Core.Application.GamePackFiles(Packs).Where(f => Path.GetFileName(f) == "models.pak" || Statventure.Core.Application.IsModelsPackName(Path.GetFileName(f)))];
 }

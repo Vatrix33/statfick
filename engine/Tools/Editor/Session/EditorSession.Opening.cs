@@ -57,11 +57,11 @@ public sealed partial class EditorSession
     public string SettingsFolder => System.IO.Path.Combine(PlayerFolder, SettingsFolderName);
 
     /// <summary>
-    /// The game's packs: the area packs in <see cref="GameData.PacksFolder"/> that are there, in the order the game mounts
-    /// them (<see cref="Application.AreaPacks"/>; other files there aren't the game's).
+    /// The game's packs: the area packs in <see cref="GameData.PacksFolder"/> that are there, the models packs after
+    /// <c>models.pak</c>, in the order the game mounts them (<see cref="Application.GamePackFiles"/>; other files there
+    /// aren't the game's).
     /// </summary>
-    public IReadOnlyList<string> GamePacks =>
-        [.. Application.AreaPacks.Select(area => System.IO.Path.Combine(Game.PacksFolder, area + ".pak")).Where(File.Exists)];
+    public IReadOnlyList<string> GamePacks => Application.GamePackFiles(Game.PacksFolder);
 
     /// <summary>Whether <paramref name="file"/> is one of the game's packs (<see cref="GamePacks"/>).</summary>
     public bool IsGamePack(string file)

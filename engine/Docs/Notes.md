@@ -687,6 +687,16 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   views seam and a `SurfaceViews` with the painter's `SurfaceTexture` (`claude-work/gm2/step8/capture/`); the old game's
   picker in any state through its test client (`claude-work/gm2/step8/old-picker/`). This session's sandbox refuses a
   shell heredoc with quotes and `cd` with `git` in one command: write the script to a file and run it.
+- 2026-11-22 (the PC, GM2's races' worker, the engine task "the race packs" on the branch `gm2-race-packs`, 5289 + 1084 = 6373 tests on the GPU and lavapipe (`main` `b8b2e28`: 5285 + 1084 = 6369; 4 new, the engine's)):
+  **a pack per race and builds that give the same bytes** (`Docs/Game/Hero.md`, "How it works", "The race packs"; the
+  user's Q77, the manager's GM2-P44). Gotchas: Blender's `bmesh.ops.extrude_edge_only` makes its faces in the order of a
+  map keyed by addresses, which changes from run to run, and the glTF exporter rounds normals to four decimals before
+  renormalising, so a face order's last-bit difference in a vertex normal comes out as a 5e-5 step now and then: put an
+  operator's new faces in an order of your own (`kit.extrude_edges`) and prove a build by Blender's own mesh data, not
+  only by the `.glb` (`claude-work/gm2/races-repo/tools/probe-build.py` dumps it before the export); a `bm.faces.sort`
+  key must return a number. To find which pack a committed model is in, the file's name decides
+  (`<race>-<sex>-<build>.glb`, `Docs/Assets.md`); a test that packs the committed models packs over a copy of the
+  committed pack (the writer's reuse), not afresh, or it costs a minute and more each run once the races are in.
 - 2026-11-21 (the PC, GM2 step 9a's worker on the branch `gm2-step9a`, 5266 + 1000 = 6266 tests on the GPU and lavapipe): **the shared
   sets and the human in the repo** (`Docs/Game/Hero.md`, "How it works", step 9a). Gotchas: a material's name may hold a
   dot (`eye.white`, `hair.tie`, `cloth.trim`): strip only Blender's `.001` suffix, never at the first dot; a part with no

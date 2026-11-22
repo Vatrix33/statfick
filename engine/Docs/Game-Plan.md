@@ -2397,6 +2397,16 @@ and waits for the user's go, asked when its milestone reaches it:
     and tightened. It shows on the live emblem (GM2 step 11), not on the pictures (Blender's). Not a way: joining the
     raised shapes into the field in the model (the manager's exact union in Blender, 2026-11-21: two emblems the same to
     the eye, the elf's killed Blender).
+  - **Smaller model records, for GM3's armour (GM2-P46, the manager, 2026-11-22; measured by GM2's races' worker):** not
+    now; when GM3 fits armour to every body and the models packs grow again. A model record (`model.primitive`) stores
+    each vertex as 48 bytes (positions and normals as floats, four 16-bit joints, four float weights) and its indices as 32
+    bits; Brotli in the pack keeps about 40 % of it. Measured on 276 of the races' models at the pack's settings: 16-bit
+    indices and 8-bit joints save 1 % (Brotli takes their zeros already); the float arrays stored as byte planes and the
+    indices as deltas, lossless, 14 %; 16-bit positions (0.03 mm steps over a 2 m figure), normals and weights 37 %, as
+    byte planes 44 % (a picture then differs by sub-pixel amounts: the Blender comparisons measured again, no longer
+    `GltfImport`'s bit for bit). Every part also carries the whole skeleton (32 nodes, 30 inverse bind matrices), about
+    3 KB a model stored, about half of a mark's. The numbers: `claude-work/gm2/races-repo/size/variants-table.txt`
+    (`Docs/Game/Hero.md`, "Decisions", GM2-P46; "How it works", "The race packs").
 
 ### The three decision-id collisions
 
@@ -2802,3 +2812,7 @@ GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detai
   (GM2-P31) in the game and the scripts, their pictures in `ui.pak` (GM2-P34) on the sheet's seal and the carousel (Q71,
   Q72), held to Blender under the emblems' own limits (Q70; an engine item, "Engine items the port will meet"); Q67 (the
   live emblem rocks) for step 11. 5285 + 1084 = 6369 tests. (`Docs/Game/Hero.md`, "How it works", step 10.)
+- **2026-11-22, GM2's engine task "the race packs" (the user's Q77, the branch `gm2-race-packs`):** a pack per race
+  (`models.pak` and a `models-<race>.pak` per race, mounted right after it), the build's determinism (GM2-P44), before
+  steps 9b–9e bring the races' models; the manager's GM2-P45 (a model races share stored once) and GM2-P46 (smaller model
+  records later: "Engine items the port will meet") recorded (`Docs/Game/Hero.md`, "How it works", "The race packs").

@@ -53,9 +53,10 @@ public class CommittedPackTests
     {
         var packs = Directory.Exists(TestPaths.Packs) ? Directory.GetFiles(TestPaths.Packs) : [];
         var gameKinds = Statventure.Editor.Game.GameLibraryLoader.Run.Kinds(Statventure.Editor.Game.GameLibrary.Read(Statventure.Tests.Editor.Game.GameTesting.BuiltLibrary)).Types;
+        // Every file there is one of the game's packs: an area pack or a models pack beside models.pak (S3-4, Q77).
+        Assert.Equal(packs.Order(StringComparer.Ordinal), Application.GamePackFiles(TestPaths.Packs).Order(StringComparer.Ordinal));
         foreach (var file in packs)
         {
-            Assert.Contains(Path.GetFileNameWithoutExtension(file), Application.AreaPacks);
             Assert.Equal(".pak", Path.GetExtension(file));
             Assert.Empty(Problems(file, gameKinds));
         }

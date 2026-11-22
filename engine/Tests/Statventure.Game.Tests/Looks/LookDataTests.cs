@@ -14,7 +14,8 @@ namespace Statventure.Game.Tests;
 /// there until their bodies' models are in <c>models.pak</c> (the manager's GM2-P18: a look's models are references,
 /// refused when missing, so bodies, parts and presets enter <c>data.pak</c> with their models). Moving them in is one step,
 /// the writer here: with <c>STATVENTURE_LOOK_DATA=write</c> the tests write into <c>Assets/Data/data/looks/</c> a body
-/// for each model <c>models/humanoid/bodies/&lt;race&gt;-&lt;sex&gt;-&lt;build&gt;</c> in <c>Assets/Packs/models.pak</c> and a preset
+/// for each model <c>models/humanoid/bodies/&lt;race&gt;-&lt;sex&gt;-&lt;build&gt;</c> in the models packs of <c>Assets/Packs</c>
+/// (<c>models.pak</c> and a race's own <c>models-&lt;race&gt;.pak</c>, the user's Q77) and a preset
 /// for each old look whose race and sex have their average body (its parts and colours kept from the preset's file when
 /// there is one); then <c>Tools/Scripts/make-data-pack.sh</c>. What is committed is held to the catalogue (a preset's
 /// name, label, order, race, sex and average body) and to its checks over the game's packs.
@@ -101,13 +102,16 @@ public class LookDataTests
             : new Dictionary<string, T>();
     }
 
+    /// <summary>The committed models packs' entries (models.pak's and each race's models pack's, the user's Q77), in path order.</summary>
     static IReadOnlyList<string> CommittedModels()
     {
-        var pak = Path.Combine(TestPaths.Packs, "models.pak");
-        if (!File.Exists(pak))
-            return [];
-        using var pack = PackFile.Open(pak);
-        return [.. pack.Entries.Select(e => e.Path)];
+        var paths = new List<string>();
+        foreach (var pak in TestPaths.ModelsPacks)
+        {
+            using var pack = PackFile.Open(pak);
+            paths.AddRange(pack.Entries.Select(e => e.Path));
+        }
+        return [.. paths.Order(StringComparer.Ordinal)];
     }
 
     /// <summary>The 72 looks: nine races of the data's playable ones, four per sex, each a name, a label and a place of its own.</summary>

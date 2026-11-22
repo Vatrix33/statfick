@@ -58,6 +58,8 @@ cover packs/audio.pak -
 cover packs/data.pak -
 # The humanoid family's models and clips (GM2 step 4a): made in Blender from the repo's scripts, ours.
 cover packs/models.pak -
+# The races' own models beside them, a pack per race (GM2, the user's Q77): made the same way, ours.
+cover packs/models-*.pak -
 cover packs/ui.pak licenses/Lato-OFL.txt licenses/STIX-OFL.txt
 # The game's data library beside the program (M12-9, Q19; ours, the editor loads it).
 cover Statventure.Game.Data.dll -

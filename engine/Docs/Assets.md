@@ -623,6 +623,11 @@ step 4, running beside it, asked Q38 on):
   `models`, `audio`, `ui`, `world`, `data`, each mounted if it is in `packs/`; other files there are
   ignored, and no `packs/` folder (the engine's tests, the sandbox) means no packs. Then `classes/`, the
   mods (step 9) and the development folder. (Not every `.pak` in `packs/`.)
+  **Changed by the user's Q77 of GM2 (2026-11-22, "A pack per race"; `Docs/Game/Hero.md`, "Questions from the steps"):**
+  the five area packs by name, and right after `models.pak` every `models-*.pak` in `packs/` (a name after the dash, lower
+  case, the ending `.pak`) in the ordinal order of the names; other files there are still ignored. `models.pak` keeps the
+  human's models, the gear, the clips, the emblems and every model races share; each other race's models are in its
+  `models-<race>.pak` ("How it works", "Models and state machines in packs", which pack a model goes in).
 - **S3-5. The development folder** is `ApplicationOptions.DevelopmentFolder`, which the game's own
   command line fills at port time, else the folder the environment variable `STATVENTURE_DEV_FOLDER`
   names; a folder named that doesn't exist is an error. (Not the engine reading `--dev` from the command
@@ -1033,10 +1038,13 @@ the records are step 2's test types).
   there at `classes` if it is a folder; then the development folder, `ApplicationOptions.DevelopmentFolder`
   else `$STATVENTURE_DEV_FOLDER` (`Application.DevelopmentFolderVariable`; empty means none), made a full
   path from the current folder; missing, the mount fails ("No folder …"). Mods come between the classes
-  and the development folder since step 9 (below, step 9).
+  and the development folder since step 9 (below, step 9). *Since GM2's Q77 (2026-11-22):* the packs are
+  `Application.GamePackFiles(packs)`, the area packs with every `models-<name>.pak` there right after `models.pak` in the
+  ordinal order of the names (S3-4 above; `Docs/Game/Hero.md`, "How it works", "The race packs").
 - **`TestPaths.Packs`:** the repo's `engine/Assets/Packs/`. `CommittedPackTests` checks every committed
-  pack there: one of the area packs, opens, every entry's hash, every record readable with the engine's
-  record types (none is committed yet: steps 6 and 7 commit the first).
+  pack there: one of the area packs (since Q77 of GM2: one of the game's packs, `Application.GamePackFiles`), opens, every
+  entry's hash, every record readable with the engine's record types (none is committed yet: steps 6 and 7 commit the
+  first). `TestPaths.ModelsPacks` (2026-11-22): the committed models packs, `models.pak` and the races' own.
 - **Later needs:** packs are the source of truth and the editor (M11) edits them, so once a pack holds
   both imported and editor-made entries (`audio.pak` with the port's effect patches), re-importing must
   keep the other entries: an "update" command (sources added to or replacing entries of an existing pack)
@@ -1235,6 +1243,16 @@ No pack is committed (Q1).
   `files.Load<StateMachineDefinition>(path)` and runs `Validate()` (M7's rules); a machine that doesn't validate is
   a `DataFileException` naming the pack and entry or the loose file ("not a valid state machine: broken/base: a
   transition shut → nowhere names a state that doesn't exist"), the `ArgumentException` inside.
+- **Which pack a model goes in** (GM2, the user's Q77 of 2026-11-22, a pack per race; `Tools/Scripts/make-models-pack.sh`,
+  held by the engine's `Humanoid/HumanoidPackTests`): the game's models are `models.pak` and, beside it in `packs/`, one
+  `models-<race>.pak` for each race with models of its own. A model's file under `Assets/Models` named
+  `<race>-<sex>-<build>.glb` (sex `male` or `female`, build `average`, `slender` or `strong`; the race's id, which may
+  hold a dash: `dark-elf-male-average.glb`) is its race's and goes in `models-<race>.pak`, except the human's, which stays
+  in `models.pak`; every other file (the gear made once, the clip library, the state machines, the emblems) goes in
+  `models.pak`. A model several races share is the race's it was first made for (GM2-P45) and is in that race's pack. The
+  entry's path is the same whichever pack holds it (`models/humanoid/parts/hair/long/elf-male-average`), so a mod
+  replaces a race's model as any other, by its path (Q8: the mods mount above every pack). A race's pack is written only
+  when the race has models; one whose race has none any more is removed by the script.
 - **Sizes of a model's JSON form** (a fact for the editor's and the dump's later work: a committed
   `models.pak` shows in `git diff` as this): `figure.glb` (105 KB) is a 123 KB record, 24 KB stored, and its JSON
   form (extract, the development folder, the dump) is 22,286 lines and 700 KB: each vertex's joints an object of
@@ -1402,7 +1420,8 @@ helper `Core/TestApplication.cs`: a real application with a small window, as `Ap
   hash compared; `File.Replace` puts a changed pack in place, as Windows PowerShell's .NET has no overwriting
   `File.Move`); not run (no PowerShell here, and Windows isn't checked).
 - **The mounts** (Q2, Q8, S3-4): `Application.DataMounts(options, executableFolder, environment, modsFolder)`
-  gives the area packs, `classes/`, then `Mount.Mods` of the player's `mods/` (a full path; mounted even when
+  gives the area packs (since GM2's Q77, 2026-11-22: the game's packs, `Application.GamePackFiles`, the races' models
+  packs right after `models.pak`; with `GamePacksOnly` too), `classes/`, then `Mount.Mods` of the player's `mods/` (a full path; mounted even when
   the folder isn't there, so a mod put there later shows on Reload), then the development folder. `Run()`
   passes `AppContext.BaseDirectory` and `Storage.ModsFolder`; each mount and each mod is logged ("Data").
   `ApplicationOptions.GamePacksOnly` (M11 step 3, for the editor, which shows one pack over the game's packs: P6;

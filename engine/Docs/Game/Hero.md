@@ -257,7 +257,26 @@ look's 3 px lines swallow the medallion (at 72 px its 40 beads become a black ri
 `claude-work/gm2/step10-repo/try1/compare.png`). The filter step 10 chose: Lanczos of three lobes stretched to the scale,
 in sRGB with the cover multiplied in, the scaling part of the regenerable script ("How it works", step 10).
 
-### Questions from the steps (Q43–Q67 and Q70–Q73, the user, 2026-11-15 to 2026-11-21)
+**The manager's decisions on the races' packs and builds (GM2-P44–GM2-P46, 2026-11-21 and 22; GM2-P44 from his hand-over of
+9b–9e, `claude-work/gm2/step9a/handover-races/HANDOVER.md`, the others on the races' worker's report of the pack's size;
+recorded by the race packs' task, "How it works", "The race packs"):**
+- **GM2-P44, a model's build gives the same bytes every time:** found (the twin braids' and the crown braid's hair caps,
+  one normal 5.35e-05 off in 4 and 5 builds of 100) and made so: the rims Blender's extrusion makes come out in one order
+  (`kit.extrude_edges`, the new faces after the old ones in the reverse order of the edges they come from), the committed
+  models keeping their bytes. Agreed as built (2026-11-22), with the same one-line change at the two extrusions of the
+  races' `forms.py` from the hand-over when the races' tools come in (no shape changes).
+- **GM2-P45, a model two races share is stored once:** a model that is bit for bit the same for two races (the Half-Beast's
+  and the Merfolk's hair and head pieces are the human's; the dark elf's hair the elf's: measured on the manager's builds)
+  is stored once, in the pack of the race it was first made for (the human's in `models.pak`, the elf's in
+  `models-elf.pak`), and the other race's data names it (step 9a's `look.part.model` with bodies of several races, no new
+  form). Each pair is checked by building both once in scratch and comparing; what isn't identical gets its own model. A
+  test holds it: every model a race's data names is in the mounted packs, and no two entries of the packs are
+  byte-identical records. (Steps 9b–9e.)
+- **GM2-P46, no smaller model record now:** the measured ways to store models smaller (lossless byte planes of the float
+  arrays, 14 % smaller; 16-bit positions, normals and weights, 44 %; the skeleton every part carries, about 3 KB a model)
+  wait for GM3's armour fitted to every body (`Docs/Game-Plan.md`, "Engine items the port will meet").
+
+### Questions from the steps (Q43–Q67, Q70–Q73 and Q77, the user, 2026-11-15 to 2026-11-22)
 
 Q43 and Q44 raised by step 1 (the `race` kind's fields; the docs didn't answer them) and asked by the manager with the
 question tool the same day; both the recommended option. Q45 asked by the manager on 2026-11-16 for step 6 (step 2 had
@@ -438,6 +457,13 @@ the sheets the user saw: `claude-work/gm2/step9a/approval/` `builds-faces/`, `se
   hidden** ("Hide the row"): a colour row is shown only when its slot has two or more swatches; the human's brows and eye
   whites disappear from the maker, and a race or a mod that gives them more swatches gets the row. The look still holds the
   swatch (step 6's check). Built by step 9a (`LookMaker.OfferedSlots`, "How it works", step 9a).
+- **Q77 (2026-11-22, the question tool, asked by the manager on the races' worker's measure of the pack's size): "A pack
+  per race"** (the user told the numbers: the eight races as step 9a's method one `models.pak` of about 84 MB, 1,592
+  entries, against GitHub's 100 MB a file; not "build the pack, don't commit it", not "one pack, stored smaller").
+  `models.pak` keeps the human, the gear, the clips, the emblems and every model races share; each other race gets
+  `models-<race>.pak` beside it in `packs/`. This changes M9's S3-4 (`Docs/Assets.md`): the five area packs by name, and
+  right after `models.pak` every `models-*.pak` in `packs/` in the ordinal order of the names; other files there are still
+  ignored. Built by the race packs' task ("How it works", "The race packs").
 
 Step 10's, the nine emblems (the numbers the manager's): Q66 and Q67 and the medallions' approval came with the art
 (the manager's hand-over, `claude-work/gm2/step10/handover/HANDOVER.md`); Q70 was raised by step 10's comparison with
@@ -1981,6 +2007,10 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
      manager's GM2-P35 (two close-ups owed to an engine task), GM2-P36 (`look.part`'s `order`) and the user's Q73 (a colour
      of one swatch shows no row). Its choices:
      "How it works", step 9a ("Choices made"). What a race of 9b–9e now needs: there, "For later steps".
+   - **Before 9b–9e, the race packs' engine task done (2026-11-22, the races' worker, the branch `gm2-race-packs`; "How it
+     works", "The race packs"):** the user's Q77 (a pack per race) in the mounts, the editor, `make-models-pack.sh` and the
+     tests, and GM2-P44's deterministic builds; GM2-P45 and GM2-P46 recorded. Its choices: there ("Choices made"). What
+     9b–9e need of it: there ("For the races").
    - **An approval stop added (2026-11-18, the user's Q59):** the clips checked on the smallest and largest bodies (the
      hobbit's slender, the Goliath's strong) happens here, on the real bodies, not on blockouts in step 4: once 9c and 9e
      have made those bodies and the engine scales the hips' place by the legs' length (GM2-P22), the manager shows the user
@@ -4630,6 +4660,102 @@ on the PC), over two grounds for the cover; the pictures named by their size in 
 laid out, chosen per image by a resize observer (the engine has no `srcset`, `image-set()` or resolution media query);
 the nearest by ratio, the smaller side; "every size or none" for a mod's emblem; the strip's picture absolutely placed (a
 class on its medallion); the harness's images; Chromium given the committed files; the maker's fixtures not recaptured.
+### The race packs: a pack per race, and builds that give the same bytes (2026-11-22, the branch `gm2-race-packs`)
+
+The engine task the manager set before steps 9b–9e, on the races' worker's first report (the hand-over's point 0, the
+pack's size; GM2-P44): the user's Q77 (a pack per race) and the manager's GM2-P44 (a model's build the same bytes every
+time) in the repo; GM2-P45 and GM2-P46 recorded ("Decisions"). No race model yet: the mechanism proven on the human's
+models and the tests' own. Rebased on `main` `b8b2e28` (step 10, the emblems: `models.pak` made again by the script, the committed 10,860,567 bytes and 173 entries; the nine emblems' `make-humanoid.sh check` the same bytes with the fix) before the final runs.
+
+**Why: the measure (2026-11-21; `claude-work/gm2/races-repo/size/`).** The manager's 557 full-level builds of the eight
+races (`claude-work/gm2/step9a/out/race/`) packed by the repo's packer: 60.5 MB (164 MB of records). The eight races as
+step 9a's method (`parts-by-race.md`'s lists; per race six bodies, twelve faces, hair, beards and head pieces per sex,
+the marks per face, crests, ears, tails) are 1,428 models, about 73.4 MB in the pack (the hair 280 models 27.7 MB, the
+bodies 48 22.7 MB, the faces 96 13.3 MB, the marks 696 3.4 MB, the beards 84 3.3 MB): one `models.pak` of about 84 MB and
+1,592 entries, and the committed `.glb` files beside it about 167 MB more (about 86 MB as git stores them). A body's
+megabyte is its outfit for three quarters (the human man's average body: 3,306 of 12,066 vertices skin); a hobbit's foot
+tufts are a third of each hobbit body. Bit for bit the same between races, measured on the builds: the Half-Beast's and the
+Merfolk's 40 hair styles and their head pieces are the human's, the dark elf's hair the elf's (164 models, 12.6 MB:
+GM2-P45); a tail per build differs from its average body's by a translation only; the dwarf's, hobbit's, Goliath's and
+elf's hair are not the human's under any linear map (1–5 mm off, other triangles), each race's beards its own. The
+smaller encodings measured on 276 models are GM2-P46's (`Docs/Game-Plan.md`, "Engine items the port will meet").
+
+**The mounts (Q77; S3-4 as it reads since, `Docs/Assets.md`).** `Application.GamePackFiles(packsFolder)`: the area packs
+by name in their order (`Application.AreaPacks`: `models`, `audio`, `ui`, `world`, `data`), and right after `models.pak`
+every file in `packs/` whose name is a models pack's (`Application.IsModelsPackName`: `ModelsPackPrefix` `models-`, a
+name after it, the ending `.pak`, compared ordinally, so lower case on every system; a folder is none) in the ordinal order
+of the names; other files there aren't the game's; no folder, no packs. Without `models.pak` the models packs still come
+first. `Application.DataMounts` mounts these (with `GamePacksOnly` too), so a models pack lies under `classes/`, the mods
+and the development folder as every pack does: a mod's model at a race's model's path is the one read (Q8), Reload reads a
+models pack's new contents, and a models pack put into `packs/` after the start mounts at the next start, as an area pack
+does (which packs mount is decided once, S9-C). The editor's `Session.GamePacks` is the same list (`IsGamePack`, the base
+under an open pack, a dev setup's writable game packs). `build.sh`, `build.ps1` and the publish copy every committed `.pak`
+already; `Tools/Packaging/licenses.txt` covers `packs/models-*.pak` (the family's models, ours); the packages' listings
+name each shipped file, so a race's pack adds its `file packs/models-<race>.pak` line to both game listings when it is
+committed (`check-packages.sh --listing`).
+
+**Which pack a model goes in (`Tools/Scripts/make-models-pack.sh`; the rule for modders in `Docs/Assets.md`, "Models and
+state machines in packs"):** a file of `Assets/Models` named `<race>-<sex>-<build>.glb` (sex `male` or `female`, build
+`average`, `slender` or `strong`; a race's id may hold a dash, `dark-elf-male-average.glb`) is its race's, in
+`models-<race>.pak`, but the human's stays in `models.pak`; every other file (the gear made once, the clip library, the
+machines, the emblems) is in `models.pak`. A part made per body of a race (a lizard's tail, GM3's armour on a race's body)
+lands in its race's pack by the same name; a model races share (GM2-P45) is in the pack of the race it was first made for.
+Each pack is packed anew from a scratch folder of its share; a race's pack is written only when the race has models, and
+one whose race has none any more is removed. On the committed models (the human's alone) `models.pak` comes out the same
+bytes.
+
+**GM2-P44: the build's one varying thing.** 9a's flake reproduced: the woman's twin braids built 100 times four at a
+time, 4 off by one normal of vertex 291 (5.35e-05); the crown braid likewise, 5 in 100 (`claude-work/gm2/races-repo/flaky/`;
+`tools/flaky-probe.sh`, `probe-build.py`: Blender's own mesh data dumped before each export). The cause: the hair cap's and
+the beard shell's rim are extruded by `bmesh.ops.extrude_edge_only`, which makes its faces while iterating a map keyed by
+the edges' addresses (Blender 5.2's `bmo_extrude.cc`, `boundary_map.out`), so the ring's faces come out in another order
+on almost every run (the same faces). Blender sums a vertex's faces into its normal in the faces' order, so the rim
+vertices' normals differ in their last bit, and the glTF exporter rounds every normal to four decimals
+(`io_scene_gltf2`, `primitive_extract.py`, `ROUNDING_DIGIT`) before renormalising: a last bit at a rounding boundary moves
+the normal by a step, 5.35e-05. Built twice side by side, exactly the 52 models with an extruded rim (41 hair styles, 11
+beards; the stubble has none) varied in Blender's data; the other 117 were bit-identical. The fix,
+`kit.extrude_edges`: the extrusion with its new faces put after the old ones in the reverse order of the edges they are
+made from (`forms.open_cap` and `forms.build_beard` call it). The reverse order is the one the committed models were
+built with where it shows: in the ascending order 9 of the 53 hair and beard models differ every time, in the reverse none.
+Proven: both caps 100 builds of 100 the committed bytes, Blender's data bit-identical; every manifest model built twice
+side by side, 171 of 171 the committed bytes in both and all 169 meshed models' data bit-identical between them;
+`make-humanoid.sh check` 171 of 171. The races' `forms.py` of the hand-over gets the same one-line change at its two
+extrusions when the races' tools come in (the manager's word, 2026-11-22; no shape changes).
+
+**Tests** (5289 + 1084 = 6373 tests on the GPU and lavapipe (`main` `b8b2e28`: 5285 + 1084 = 6369; 4 new, the engine's)): `ApplicationDataTests.TheModelsPacksMountRightAfterModelsPakInTheirNamesOrder` (the order, five
+models packs among seven files that aren't, a folder named as one, without `models.pak`, `GamePackFiles` and
+`IsModelsPackName` themselves; the older test's stray `models-old.pak`, now a models pack, renamed `models_old.pak`) and
+`AModelsPackReadsUnderTheModsAndReloadReadsItAgain`; `SessionOpeningTests` (a race's pack among the editor's game packs);
+`CommittedPackTests` (every committed file one of the game's packs); `HumanoidPackTests`:
+`EachModelsPackIsWhatThePackerMakesOfItsShareOfAssetsModels` (each models pack the packer's of its share, a race's pack
+there exactly when the race has models, every model once in the pack its name gives; packed over a copy of the committed
+pack, so an unchanged entry keeps its stored bytes, checked by its hash: 14 s before, 0.6 s now, where the eight races'
+models would have cost a minute and more each run), `AModelsPackIsTheRaceTheFilesNameBeginsWith` (the rule),
+`TheGameLoadsTheFamilysModelsFromTheirPacks`, `ARacesModelsPackServesItsModelsAndAModsModelWinsOverIt` (the tests' own small
+models in `models.pak` and a race's `models-test.pak`, loaded as their `.glb` files read, a mod's model winning over the
+race's). The game's tests that read the shipped models (`HeroScreensHarness`'s shipped data, `LookDataTests`' look writer)
+take every models pack (`TestPaths.ModelsPacks`).
+
+**Shown able to fail.** *The C# rules* (`mutate.py` under the shared lock in a headless cage;
+`claude-work/gm2/races-repo/packs-task/mutations.json`, made by `tools/make-mutations.py`): 16 mutations of the mounts' rule and the editor's game packs (no models packs, after the last area pack, before `models.pak`, only with `models.pak`, the names in reverse, in the folder's or a culture's order, either end's case ignored, any ending, no name after the dash, any prefix, folders too, another prefix, `DataMounts` and the editor back on the area packs alone): **15 killed, one that can't differ** ("the names in a culture's order": the repo builds with `InvariantGlobalization`, `Directory.Build.props`, so the invariant culture compares ordinally; a capital name, `models-C.pak`, was added to the test all the same and the ordering mutations run again, `mutations-rerun.json.log`). Nothing written to the player's real folders. *The script's
+rule* (`tools/pack-script-rules.py`: the script run in the worktree with stand-in models of a race `test` and of the dark
+elf and a file with a build that isn't one, a stale race pack put beside; then without them, `models.pak` the committed
+bytes again): **6 of 6 killed** (the human's in a race pack, the women's or the strong build's in `models.pak`, every file in `models.pak`, the race read from the whole path, a stale race pack kept; `packs-task/pack-script-rules.log`).
+
+**Runs:** each full run under the shared lock in a headless cage, a scratch per-user folder, sound to the null device (`claude-work/gm2/races-repo/packs-task/full-gpu-1.log`, `full-lavapipe-1.log`), on the rebased branch: 5289 + 1084 = 6373 tests on the GPU and lavapipe (`main` `b8b2e28`: 5285 + 1084 = 6369; 4 new, the engine's). `make-humanoid.sh check` 171 of 171 before the rebase and the nine emblems after it (180 in all); `make-models-pack.sh` on `b8b2e28`'s models: `models.pak` the committed bytes. The player's real folders the same before and after every run.
+
+**Choices made (internal, recorded here):** a models pack's name matched exactly and ordinally (`models-` and `.pak` in
+lower case on every system, as the path rule's names are); a race's pack chosen by the model file's name (no table of races
+in the script; the human the one exception, Q77's); the pack test packing over a copy of the committed pack (the reuse the
+packer has, as the `ui.pak` and `audio.pak` tests do) instead of compressing every model anew; `TestPaths.ModelsPacks` for
+the tests that read the shipped models; one `cover packs/models-*.pak` line, the listings left to the commit that adds a
+race's pack; GM2-P44's reverse edge order (measured to keep the committed bytes; the ascending one doesn't).
+
+**For the races (9b–9e).** A race's models named `<race>-<sex>-<build>.glb` go in its pack with no change; add each race's
+`file packs/models-<race>.pak` to `Tools/Packaging/listings/stat-fick-linux.txt` and `-windows.txt`; the editor's
+`BrowserTests` list the dev packs folder by name (it grows by the races' packs); GM2-P45's test (every model the data
+names in the mounted packs, no two byte-identical records); the hand-over's `forms.py` with `kit.extrude_edges` at its two
+extrusions.
 
 ## Status
 
@@ -4815,3 +4941,11 @@ class on its medallion); the harness's images; Chromium given the committed file
   design's 124 (step 7's note corrected); a square picture in a round medallion takes the pointer at its corners. 5266 +
   1000 → 5285 + 1084 = 6369 tests on the GPU and on lavapipe (`main` `d1da4b9`; 103 new); mutations 69 of 70 killed (a tie
   of two sizes can't differ), the carousel's sheet 5 of 7 (two can't differ), the scripts 19 of 19, the tools 2 of 2.
+- **2026-11-22, the race packs' engine task done** (the races' worker, the branch `gm2-race-packs`, before steps 9b–9e;
+  "How it works", "The race packs"): the user's Q77 (a pack per race) in the engine's mounts (`Application.GamePackFiles`:
+  every `models-<name>.pak` right after `models.pak`, S3-4 changed with a dated note), the editor's game packs,
+  `make-models-pack.sh` (a model's race pack by its file's name, the human's in `models.pak`) and the tests (the pack test
+  packing over a copy of the committed pack: 14 s to 0.6 s); the manager's GM2-P44 (the hair caps' and beards' extruded
+  rims in one order: the build gives the same bytes every time, the committed models unchanged; the flake 4 and 5 in 100
+  before, none in 100 after). Recorded: the user's Q77, the manager's GM2-P44–GM2-P46. 5289 + 1084 = 6373 tests on the GPU and lavapipe (`main` `b8b2e28`: 5285 + 1084 = 6369; 4 new, the engine's).
+
