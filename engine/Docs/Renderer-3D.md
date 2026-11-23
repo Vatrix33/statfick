@@ -352,6 +352,12 @@ come up.
   (`Renderer3D.Render` returns it: an item's group, which `Model.Draw` and `Terrain.Draw` take as
   their owner, or the item); `SurfaceViews.Pick` maps a viewport point through the element's CSS
   transforms into its picture.
+- **A view's memory** (GM2-P33, 2026-11-20, GM2 step 11; `View3DMemoryTests`): a view's `RenderTarget3D` makes the sun's
+  4096² shadow atlas (64 MiB) only at its first shadow pass (`ShadowMap` on first use, `HasShadowMap`), so a view with
+  nothing that receives shadows (a figure alone: the game's portraits and the carousel's emblem) never makes it; its
+  `Renderer3D` is disposable and gives back its skinning arenas (device memory for the posed vertices of the frames in
+  flight), and `View3D.Dispose` disposes it with the target, the picture and the records' copies (before, every view let go
+  kept its arenas: about 3.7 MiB for a humanoid figure). Every user of a `Renderer3D` of its own disposes it.
 - Cameras keep the vertical extent fixed and widen with the aspect ratio (a Blender camera with
   sensor fit vertical): perspective by a vertical field of view, orthographic by the height of the
   world in view (Blender's orthographic scale). `Camera.View` is `Matrix4x4.CreateLookAt`.
@@ -788,7 +794,8 @@ Started 2026-10-30.
   the engine's look (`CelStyle.Default` under the lizardman test's sun). The game's look is its entry
   `render/styles/game` (data.pak); the engine's test scenes keep `CelStyle.Default` (GM2's Q11). Measured beside: a view
   with nothing that receives shadows runs no shadow pass (`FitShadow` finds no receiver), yet its render target allocates
-  the 4096² atlas (64 MiB) all the same: an engine task (the atlas only where something receives).
+  the 4096² atlas (64 MiB) all the same: an engine task (the atlas only where something receives). *Done by GM2 step 11
+  (GM2-P33, 2026-11-20): "3D views in the UI", "A view's memory".*
 - **GM2's ink task (2026-11-17/18, a worker on the branch `gm2-ink-cover`; `Docs/Game/Hero.md`, "How it works", "The
   ink's cover").** The engine item step 4a recorded (the feature edges' depth allowance). Each sample's sheet
   (`RenderTarget3D.Sheets`, R16_UINT MSAA: a 16-bit hash of the mesh drawn and the triangle's island; `Model`'s islands,

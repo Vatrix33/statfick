@@ -27,7 +27,7 @@ public class JiruanRenderTests(GpuFixture gpu)
         var items = shadows ? view.Items : view.Items.Select(i => i with { ReceivesShadows = false }).ToList();
         var style = inkOnly ? scene.Style : scene.Style with { OutlineWidth = 0, InnerWidth = 0 };
         using var target = new RenderTarget3D(device, scene.Width, scene.Height);
-        var renderer = new Renderer3D(device) { InkCoverageOnly = inkOnly };
+        using var renderer = new Renderer3D(device) { InkCoverageOnly = inkOnly };
         var frame = device.BeginFrame();
         renderer.Render(frame, target, view.Camera, items, Colors.LinearFromHex(scene.Background), view.Sun, style, scene.Scale, scene.Time);
         device.EndFrame(frame);

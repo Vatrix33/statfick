@@ -1,0 +1,385 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.max-hp-per-levels": 1,
+    "race.swatch": 1
+  },
+  "name": "Human",
+  "playable": true,
+  "statModifiers": {
+    "strength": 2,
+    "vitality": 1,
+    "mind": -3,
+    "dexterity": -1,
+    "intelligence": 1,
+    "wisdom": 0,
+    "speed": -1,
+    "luck": 1
+  },
+  "passive": {
+    "id": "rulers-of-the-world",
+    "name": "Rulers of the World",
+    "condition": "Every fifth character level",
+    "description": "Gain 2 additional maximum HP every fifth character level.",
+    "effects": [
+      {
+        "$type": "effect.max-hp-per-levels",
+        "amount": 2,
+        "interval": 5
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "emblem": "human",
+  "order": 10,
+  "swatches": [
+    {
+      "slot": "skin",
+      "name": "Porcelain",
+      "colour": "#c9a48c"
+    },
+    {
+      "slot": "skin",
+      "name": "Fair",
+      "colour": "#bd9273"
+    },
+    {
+      "slot": "skin",
+      "name": "Rosy",
+      "colour": "#b98570"
+    },
+    {
+      "slot": "skin",
+      "name": "Tan",
+      "colour": "#aa7a5a"
+    },
+    {
+      "slot": "skin",
+      "name": "Olive",
+      "colour": "#9a7650"
+    },
+    {
+      "slot": "skin",
+      "name": "Bronze",
+      "colour": "#8e5f3f"
+    },
+    {
+      "slot": "skin",
+      "name": "Brown",
+      "colour": "#6e452d"
+    },
+    {
+      "slot": "skin",
+      "name": "Deep",
+      "colour": "#50321f"
+    },
+    {
+      "slot": "hair",
+      "name": "Black",
+      "colour": "#15110f"
+    },
+    {
+      "slot": "hair",
+      "name": "Dark brown",
+      "colour": "#2a1a11"
+    },
+    {
+      "slot": "hair",
+      "name": "Brown",
+      "colour": "#3a2416"
+    },
+    {
+      "slot": "hair",
+      "name": "Chestnut",
+      "colour": "#54301b"
+    },
+    {
+      "slot": "hair",
+      "name": "Auburn",
+      "colour": "#6b2d17"
+    },
+    {
+      "slot": "hair",
+      "name": "Copper",
+      "colour": "#8a4a22"
+    },
+    {
+      "slot": "hair",
+      "name": "Blond",
+      "colour": "#a98448"
+    },
+    {
+      "slot": "hair",
+      "name": "Ash blond",
+      "colour": "#9c8a66"
+    },
+    {
+      "slot": "hair",
+      "name": "Grey",
+      "colour": "#77726c"
+    },
+    {
+      "slot": "hair",
+      "name": "White",
+      "colour": "#b9b4aa"
+    },
+    {
+      "slot": "eyes",
+      "name": "Dark",
+      "colour": "#0a0706"
+    },
+    {
+      "slot": "eyes",
+      "name": "Brown",
+      "colour": "#3a2414"
+    },
+    {
+      "slot": "eyes",
+      "name": "Hazel",
+      "colour": "#5a4a22"
+    },
+    {
+      "slot": "eyes",
+      "name": "Green",
+      "colour": "#2f5a38"
+    },
+    {
+      "slot": "eyes",
+      "name": "Blue",
+      "colour": "#2f5078"
+    },
+    {
+      "slot": "eyes",
+      "name": "Grey",
+      "colour": "#56606a"
+    },
+    {
+      "slot": "eyes",
+      "name": "Amber",
+      "colour": "#8a5a1c"
+    },
+    {
+      "slot": "eyes",
+      "name": "Violet",
+      "colour": "#4a3a6a"
+    },
+    {
+      "slot": "lips",
+      "name": "Natural",
+      "colour": "#7c4238"
+    },
+    {
+      "slot": "lips",
+      "name": "Rose",
+      "colour": "#96524e"
+    },
+    {
+      "slot": "lips",
+      "name": "Red",
+      "colour": "#8a2420"
+    },
+    {
+      "slot": "lips",
+      "name": "Plum",
+      "colour": "#5c2a34"
+    },
+    {
+      "slot": "cloth",
+      "name": "Red",
+      "colour": "#74211d"
+    },
+    {
+      "slot": "cloth",
+      "name": "Rust",
+      "colour": "#7a3d24"
+    },
+    {
+      "slot": "cloth",
+      "name": "Ochre",
+      "colour": "#9a7a2c"
+    },
+    {
+      "slot": "cloth",
+      "name": "Forest",
+      "colour": "#3d5a36"
+    },
+    {
+      "slot": "cloth",
+      "name": "Teal",
+      "colour": "#2a5a56"
+    },
+    {
+      "slot": "cloth",
+      "name": "Blue",
+      "colour": "#2f4a70"
+    },
+    {
+      "slot": "cloth",
+      "name": "Violet",
+      "colour": "#4a3c6a"
+    },
+    {
+      "slot": "cloth",
+      "name": "Plum",
+      "colour": "#5e3552"
+    },
+    {
+      "slot": "cloth",
+      "name": "Bone",
+      "colour": "#b3a78c"
+    },
+    {
+      "slot": "cloth",
+      "name": "Black",
+      "colour": "#221f1d"
+    },
+    {
+      "slot": "cloth.trim",
+      "name": "Gold",
+      "colour": "#bb8d3c"
+    },
+    {
+      "slot": "cloth.trim",
+      "name": "Silver",
+      "colour": "#9a9c9e"
+    },
+    {
+      "slot": "cloth.trim",
+      "name": "Bone",
+      "colour": "#b8ab8e"
+    },
+    {
+      "slot": "cloth.trim",
+      "name": "Black",
+      "colour": "#1f1c1a"
+    },
+    {
+      "slot": "cloth.trim",
+      "name": "Crimson",
+      "colour": "#8a2a24"
+    },
+    {
+      "slot": "trousers",
+      "name": "Charcoal",
+      "colour": "#292320"
+    },
+    {
+      "slot": "trousers",
+      "name": "Brown",
+      "colour": "#3f2e22"
+    },
+    {
+      "slot": "trousers",
+      "name": "Grey",
+      "colour": "#4a4a48"
+    },
+    {
+      "slot": "trousers",
+      "name": "Navy",
+      "colour": "#23293a"
+    },
+    {
+      "slot": "trousers",
+      "name": "Olive",
+      "colour": "#3a3d28"
+    },
+    {
+      "slot": "trousers",
+      "name": "Black",
+      "colour": "#151312"
+    },
+    {
+      "slot": "leather",
+      "name": "Brown",
+      "colour": "#3a261b"
+    },
+    {
+      "slot": "leather",
+      "name": "Black",
+      "colour": "#181412"
+    },
+    {
+      "slot": "leather",
+      "name": "Tan",
+      "colour": "#6a4a2c"
+    },
+    {
+      "slot": "buckle",
+      "name": "Brass",
+      "colour": "#bb8d3c"
+    },
+    {
+      "slot": "buckle",
+      "name": "Steel",
+      "colour": "#8a8e94"
+    },
+    {
+      "slot": "hair.tie",
+      "name": "Red",
+      "colour": "#8f2a2e"
+    },
+    {
+      "slot": "hair.tie",
+      "name": "Blue",
+      "colour": "#2f4f7a"
+    },
+    {
+      "slot": "hair.tie",
+      "name": "Green",
+      "colour": "#3d5f3a"
+    },
+    {
+      "slot": "hair.tie",
+      "name": "Gold",
+      "colour": "#bb8d3c"
+    },
+    {
+      "slot": "hair.tie",
+      "name": "Black",
+      "colour": "#1a1614"
+    },
+    {
+      "slot": "hair.tie",
+      "name": "White",
+      "colour": "#b9b2a0"
+    },
+    {
+      "slot": "marking",
+      "name": "Brown",
+      "colour": "#7b4a34"
+    },
+    {
+      "slot": "marking",
+      "name": "Dark",
+      "colour": "#2e1a12"
+    },
+    {
+      "slot": "marking",
+      "name": "Rose",
+      "colour": "#a8685a"
+    },
+    {
+      "slot": "marking",
+      "name": "Pale",
+      "colour": "#d9ac98"
+    },
+    {
+      "slot": "marking",
+      "name": "Red",
+      "colour": "#8a3a30"
+    },
+    {
+      "slot": "brows",
+      "name": "Dark",
+      "colour": "#130c08"
+    },
+    {
+      "slot": "eye.white",
+      "name": "Ivory",
+      "colour": "#d2c7b2"
+    }
+  ]
+}

@@ -774,6 +774,26 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   headless cage the input harness captures the first fixture of a run at the output's size (2400 × 2400: put another
   fixture first) and paints no hovered look (offscreen: no pointer that can hover); a capture script that moves only
   `ui-<name>@<scale>.json` loses the `.styles.json` beside it.
+- 2026-11-21 (the PC, GM2 step 11's worker on the branch `gm2-step11`): **the live figures and the live emblem**
+  (`Docs/Game/Hero.md`, "How it works", step 11; the user's Q67–Q69, the manager's GM2-P33). Gotchas: a `View3D` disposed
+  kept its `Renderer3D`'s skinning arenas (about 3.7 MiB a figure) until GM2-P33 made the renderer disposable: measure a
+  view's memory with VMA's `CalculateStatistics` after `WaitIdle` and `Collect`, it comes back to the byte now; an
+  exception in a click or key handler is caught and logged by the event loop, so a view that throws while a screen
+  shows its next race only leaves the rest of the handler undone (test the state, not the absence of a crash); a figure
+  framed before its points are known throws, so a new view is filled before it is shown; the maker's colour rows need a
+  colour for every slot the race has swatches for (a preset without them throws in `RenderChoices`), so a test's data
+  that adds swatches adds whole presets too; a 94 px view's comparison hinges on single MSAA pixels under M6's no-stray
+  rule for unshadowed scenes; `Actor.Placement` is already the node's world after the ground's lift (multiplied by
+  `Node.World` again it turns the figure twice); a script that builds and then runs `dotnet test --no-build` runs the
+  last good build when the build fails: stop on the build's errors; a wait loop on `pgrep -f <pattern>` can match its own
+  command line (bracketing one pattern doesn't help when another pattern of the line holds the plain text): have the job
+  write a done file at its end and wait on that; a camera looking exactly level at a relief puts every horizontal face
+  edge-on, where Freestyle and the engine part (the live emblem turned: the human's missed lines 2.5 % level, 0.5 % from
+  the pictures' 5° up; face-on unlike ink up to 33 % level, 3.9 % from 5° up); since "contacts kept" a clip library is loaded with its keyed body (`AnimationClip.AllOf(data,
+  path)`) or binding a clip to a body with a mesh throws. Recipes: the screens with live views drawn offscreen
+  frame by frame for videos (`claude-work/gm2/step11/capture/`, `make-videos.sh`), every frame of the maker's videos
+  counted for its figure's pixels (`empty-check.py`), the tests' data copied from the shipped data by a test with a write
+  switch (`LiveViewData.OverlayFiles`), so the shipped data can change under it.
 
 ## Asking about design choices (user rule)
 

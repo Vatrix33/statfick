@@ -20,10 +20,15 @@
 # 7. The race emblems (Reference/emblem-scenes.json, GM2 step 10: the game's committed emblems, engine/Assets/Models, in
 #    their races' colours and the game's look from the pictures' camera, over black and over white; written by the game's
 #    tests, EmblemReferenceTests) into Golden/r3d-emblem-*.png, from which the game's tests make the emblems' pictures.
+# 8. The game's live views (GM2 step 11): the figures the sheet, the race carousel and the maker show (Reference/
+#    live-view-looks.json, written by the game's tests, LiveViewReferenceTests: each look with its screen's view size,
+#    ground, scale, sun and its stand's moment) assembled as in 6 (Reference/live-view-scenes.json) and rendered into
+#    Golden/r3d-live-*.png; and the carousel's rocking emblems as their views hold them (Reference/live-emblem-scenes.json,
+#    written by the same tests) rendered into Golden/r3d-live-emblem-*.png.
 # Run the tests once first: they write Tests/Statventure.Tests/Reference/r3d-scenes.json,
-# anim-scenes.json, figure-scenes.json and humanoid-scenes.json (and the game's tests assembly-looks.json and
-# emblem-scenes.json). Extra arguments
-# name the scenes to render or evaluate (all by default).
+# anim-scenes.json, figure-scenes.json and humanoid-scenes.json (and the game's tests assembly-looks.json,
+# emblem-scenes.json, live-view-looks.json and live-emblem-scenes.json). Extra arguments name the scenes to render or
+# evaluate (all by default).
 #
 # --out <folder> (GM2 step 3a): everything is made into <folder> instead, laid out as the test project
 # (<folder>/Data/Models, Data/Terrain, Golden, Actual/blender-glow, with the scene files copied into
@@ -42,7 +47,7 @@ if [ "${1:-}" = "--out" ]; then
   OUT="$(cd "$2" && pwd)"
   shift 2
   mkdir -p "$OUT/Reference" "$OUT/Data/Models/humanoid" "$OUT/Data/Terrain" "$OUT/Golden"
-  for scenes in r3d-scenes anim-scenes node-scenes stage-scenes curve-scenes figure-scenes humanoid-scenes assembly-looks emblem-scenes; do
+  for scenes in r3d-scenes anim-scenes node-scenes stage-scenes curve-scenes figure-scenes humanoid-scenes assembly-looks emblem-scenes live-view-looks live-emblem-scenes; do
     [ -f "$TESTS/Reference/$scenes.json" ] && cp "$TESTS/Reference/$scenes.json" "$OUT/Reference/"
   done
   # The figure scenes' model is the humanoid frame's sample (Tools/Models/humanoid, make-humanoid.sh), not made here.
@@ -59,9 +64,10 @@ data["modelFolder"] = models
 json.dump(data, open(path, "w"), indent=2)
 PY
   done
-  # The assembly list's data and models are the committed ones (and the tests' own data beside the list): by their folders.
-  if [ -f "$OUT/Reference/assembly-looks.json" ]; then
-    python3 - "$OUT/Reference/assembly-looks.json" "$TESTS/Reference" <<'PY'
+  # The assembly lists' data and models are the committed ones (and the tests' own data beside the lists): by their folders.
+  for list in assembly-looks live-view-looks; do
+    [ -f "$OUT/Reference/$list.json" ] || continue
+    python3 - "$OUT/Reference/$list.json" "$TESTS/Reference" <<'PY'
 import json, os, sys
 path, reference = sys.argv[1], sys.argv[2]
 data = json.load(open(path))
@@ -72,6 +78,16 @@ for scene in data["scenes"]:
         scene["clips"] = os.path.normpath(os.path.join(reference, scene["clips"]))
     if scene.get("data"):
         scene["data"] = [os.path.normpath(os.path.join(reference, folder)) for folder in scene["data"]]
+json.dump(data, open(path, "w"), indent=2)
+PY
+  done
+  # The live emblem's scenes name their models from the engine's folder (the tests' stand-in, the emblems' own).
+  if [ -f "$OUT/Reference/live-emblem-scenes.json" ]; then
+    python3 - "$OUT/Reference/live-emblem-scenes.json" "$TESTS/Reference" <<'PY'
+import json, os, sys
+path, reference = sys.argv[1], sys.argv[2]
+data = json.load(open(path))
+data["modelFolder"] = os.path.normpath(os.path.join(reference, data["modelFolder"]))
 json.dump(data, open(path, "w"), indent=2)
 PY
   fi
@@ -97,6 +113,15 @@ if [ -f "$OUT/Reference/assembly-looks.json" ]; then
   blender_run "$STATVENTURE_SOURCE/Tools/Models/humanoid/assemble.py" -- --list "$OUT/Reference/assembly-looks.json" --scenes "$OUT/Reference/assembly-scenes.json"
   blender_run "$STATVENTURE_SOURCE/Tools/BlenderReference/render_scenes.py" -- "$OUT/Reference/assembly-scenes.json" "$OUT/Golden" "$OUT/Actual/blender-glow" "$@"
   python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/compose_glow.py" "$OUT/Reference/assembly-scenes.json" "$OUT/Golden" "$OUT/Actual/blender-glow"
+fi
+if [ -f "$OUT/Reference/live-view-looks.json" ]; then
+  blender_run "$STATVENTURE_SOURCE/Tools/Models/humanoid/assemble.py" -- --list "$OUT/Reference/live-view-looks.json" --scenes "$OUT/Reference/live-view-scenes.json"
+  blender_run "$STATVENTURE_SOURCE/Tools/BlenderReference/render_scenes.py" -- "$OUT/Reference/live-view-scenes.json" "$OUT/Golden" "$OUT/Actual/blender-glow" "$@"
+  python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/compose_glow.py" "$OUT/Reference/live-view-scenes.json" "$OUT/Golden" "$OUT/Actual/blender-glow"
+fi
+if [ -f "$OUT/Reference/live-emblem-scenes.json" ]; then
+  blender_run "$STATVENTURE_SOURCE/Tools/BlenderReference/render_scenes.py" -- "$OUT/Reference/live-emblem-scenes.json" "$OUT/Golden" "$OUT/Actual/blender-glow" "$@"
+  python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/compose_glow.py" "$OUT/Reference/live-emblem-scenes.json" "$OUT/Golden" "$OUT/Actual/blender-glow"
 fi
 blender_run "$STATVENTURE_SOURCE/Tools/BlenderReference/evaluate_animations.py" -- "$OUT/Reference/anim-scenes.json" "$OUT/Golden" "$@"
 blender_run "$STATVENTURE_SOURCE/Tools/BlenderReference/evaluate_curves.py" -- "$OUT/Reference/curve-scenes.json" "$OUT/Golden" "$@"

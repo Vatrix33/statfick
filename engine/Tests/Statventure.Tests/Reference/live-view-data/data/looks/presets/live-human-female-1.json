@@ -1,0 +1,34 @@
+{
+  "$types": {
+    "look.preset": 1,
+    "look.hero": 1
+  },
+  "label": "Live woman",
+  "order": 50,
+  "look": {
+    "race": "human",
+    "sex": "female",
+    "body": "human-female-average",
+    "parts": {
+      "face": "face-human-female-1",
+      "hair": "hair-long-female",
+      "marks": "marks-none",
+      "head-piece": "head-piece-none"
+    },
+    "colours": {
+      "skin": "Rosy",
+      "hair": "Auburn",
+      "eyes": "Green",
+      "lips": "Natural",
+      "cloth": "Teal",
+      "cloth.trim": "Gold",
+      "trousers": "Grey",
+      "leather": "Brown",
+      "buckle": "Brass",
+      "hair.tie": "Red",
+      "marking": "Brown",
+      "brows": "Dark",
+      "eye.white": "Ivory"
+    }
+  }
+}

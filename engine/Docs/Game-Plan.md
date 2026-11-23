@@ -907,6 +907,28 @@ design is open.
   hidden** ("Hide the row"): a colour row is shown only when its slot has two or more swatches (the human's brows and eye
   whites disappear from the maker; a race or a mod that gives them more swatches gets the row); the look still holds the
   swatch.
+- Q67–Q69 came with step 11's live views (asked by the manager with the question tool, 2026-11-20; in full in
+  `Docs/Game/Hero.md`, "Questions from the steps"). **Q67: the carousel's live emblem rocks from side to side** ("Rock from
+  side to side": about 35° to each side and back, the motif always readable, its back never seen; it changes Q36's
+  "slowly turning"; the period, 8 s, the user's Q78 below). **Q68, not the
+  recommendation: "Turned to the left"**: in the sheet, the carousel and the maker the figure's front is turned to the
+  screen's left under the game's own sun, so its face is lit; Q31's and Q41's fixed three-quarter view is this facing
+  (the hero shows its left side there, one-sided parts on the far side). (Not as planned, the front to the right with the
+  face in shadow; not the sun mirrored for the portraits only.) **Q69: "An empty panel"** for Dev
+  Mode's enemy-only races and an enemy-only hero until their real models exist, no stand-in shipped (replacing Q27's
+  "shown as the engine's stand-in figure until GM9").
+- Q78 and step 11's approval came with step 11's videos on the shipped data (asked by the manager with the question
+  tool, 2026-11-22; in full in `Docs/Game/Hero.md`, "Questions from the steps"). **The live figures: "Yes, all three
+  screens"** (the sheet, the carousel, the maker as in the videos). **Q78: the live emblem's sway, "8 seconds"** a whole
+  sway, right, left and back (step 11's proposal; seen on the stand-in shapes; not 12 s, not 5 s). **Q79: the live
+  emblem "Lit from the front"** (2026-11-22, on step 11's finding that step 10's emblems fell into the shade band turning
+  right under the game's sun): its view's own light from the front and above, the face lit through the whole sway, the
+  game's sun the figures' (built as 25° left and 30° up, measured: `Docs/Game/Hero.md`, "How it works", step 11). **The
+  live emblem so: "Yes, it is right"** (2026-11-22, shown the video and a still at 0° and ±35°). **Q80: the live emblem
+  seen by "The pictures' camera"** (2026-11-22: step 10's picture camera, about 5° up, so at rest it shows its relief as
+  the picture beside it; the level camera had put the relief's horizontal faces exactly edge-on). **Q81: its limits
+  "Accept for now, as before"** (2026-11-22: `ReferenceLimits.LiveEmblem`, the emblems' with missed lines 3.6 % and inside
+  pixels one in 3,100, joining Q70's engine item; "Engine items the port will meet").
 
 ## GM3 Arms and armour: the forge, artifacts and the inventory
 
@@ -2337,6 +2359,8 @@ and waits for the user's go, asked when its milestone reaches it:
   - **The shadow atlas only where something receives shadows:** a view with no scenery (the sheet's, the carousel's and
     the maker's figure) runs no shadow pass, but every view's render target allocates the 4096² atlas (64 MiB) all the
     same (`RenderTarget3D`): 64 of a portrait view's 76 MiB at 240 × 440. GM2 step 11's live views (GM2-P16's memory).
+    *Done by GM2 step 11 (the manager's GM2-P33, 2026-11-20): the atlas made at a view's first shadow pass, and a view's
+    renderer disposed with it (its skinning arenas, about 3.7 MiB a figure, had been kept by every view let go).*
   - **`surface` in the engine and in Chromium:** the engine lays it out as a replaced element (a 300 × 150 natural size, its
     children never drawn), Chromium as an unknown inline element; a view's box is sized fully (`display: block`, a width
     and a height) until the two agree. Known, not changed.
@@ -2415,6 +2439,14 @@ and waits for the user's go, asked when its milestone reaches it:
     `GltfImport`'s bit for bit). Every part also carries the whole skeleton (32 nodes, 30 inverse bind matrices), about
     3 KB a model stored, about half of a mark's. The numbers: `claude-work/gm2/races-repo/size/variants-table.txt`
     (`Docs/Game/Hero.md`, "Decisions", GM2-P46; "How it works", "The race packs").
+  - **Joined by GM2 step 11 (the user's Q81, 2026-11-22, "Accept for now, as before"): the live emblem turned.** In the
+    carousel's live emblem's comparison (640 × 640, step 10's pictures' camera, Q80, its own light from the front, Q79,
+    the pose 1 s into the sway, 24.7° to the right) two more part the engine from Blender: **the contour Freestyle draws
+    where a raised inner wall or the edge of a lit crescent is seen nearly edge-on** (the dark elf's eclipse crescent:
+    missed lines 3.28 % on both drivers, the engine draws none there), and **the rim's beads' single pixels at the light
+    band's edge** (inside pixels up to 120 at 640 px on lavapipe, 97 on the GPU). Meanwhile the live emblems are held to
+    `ReferenceLimits.LiveEmblem` (the emblems' with missed lines 3.6 % and inside pixels one in 3,100); with the line on
+    raised relief, these are measured again and tightened.
 
 ### The three decision-id collisions
 
@@ -2831,3 +2863,11 @@ GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detai
   ground" widened by the manager and done ("Engine items the port will meet"; `Docs/Game/Hero.md`, "How it works",
   "Contacts kept"): a clip keeps its contacts with the ground on every body (the hobbit's toe-down feet, the Goliath's
   lying thighs, the strong builds' kneeling knees), the human's four builds now held to the man's ground bounds. 5389 + 1086 = 6475 tests.
+- **2026-11-23, GM2 step 11 done** (a worker, the branch `gm2-step11`; `Docs/Game/Hero.md`, "How it works", step 11):
+  the live figures of the sheet, the carousel and the maker, standing by their soles and facing the screen's left (Q68),
+  and the carousel's live emblem, step 10's nine, rocking in 8 s (Q67, Q78) under their own light from the front (Q79),
+  seen by the pictures' camera (Q80), held to Blender under a limit set of their own (Q81) at 640 px (the manager's
+  GM2-P47); an empty panel for enemy-only races (Q69); the user's approvals of the three screens and of the live emblem
+  ("GM2's detail round"); the manager's GM2-P33 (the engine item "the shadow atlas only where something receives
+  shadows" done, and a view's renderer disposed with it); Q70's engine item joined by the turned live emblem ("Engine items
+  the port will meet"). 5391 + 1131 = 6522 tests on the GPU and on lavapipe (47 new).

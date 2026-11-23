@@ -228,7 +228,7 @@ public partial class Render3DReferenceTests(GpuFixture gpu)
             if (!shadows)
                 items = items.Select(i => i with { ReceivesShadows = false }).ToList();
             using var target = new RenderTarget3D(device, scene.Width, scene.Height);
-            var renderer = new Renderer3D(device) { InkCoverageOnly = inkOnly };
+            using var renderer = new Renderer3D(device) { InkCoverageOnly = inkOnly };
             var frame = device.BeginFrame();
             renderer.Render(frame, target, scene.Camera.ToCamera(), items, Colors.LinearFromHex(scene.Background), scene.Sun ?? default, scene.Style, scene.Scale, scene.Time,
                 scene.ParticlesNow());

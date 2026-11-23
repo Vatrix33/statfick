@@ -4,6 +4,7 @@ using Statventure.Game.Data.Actors;
 using Statventure.Game.Data.Effects;
 using Statventure.Game.Data.Races;
 using Statventure.Game.Data.Saves;
+using Statventure.Game.Figures;
 using Statventure.Game.Screens.Races;
 using Statventure.Game.Settings;
 using Statventure.Game.Sounds;
@@ -53,11 +54,17 @@ public sealed class SheetScreen : IGameScreen
     GameParts? _parts;
     SheetContext _context = SheetContext.Plain;
     UiDocument? _document;
-    UiElement? _page, _settingsButton, _toggle, _dot, _status;
+    UiElement? _page, _settingsButton, _toggle, _dot, _status, _figure;
     FieldTools? _tools;
     EmblemPictures? _pictures;
     int _dotTimer;
     bool _showing;
+
+    /// <summary>
+    /// The 3D view of the portrait panel (GM2 step 11): the game's live one on its window (<see cref="LiveHeroViews"/>,
+    /// the hero's figure standing in <c>surface#hero-view</c>), none on a document without one; a test's own.
+    /// </summary>
+    internal IHeroViews Views { get; set; } = NoHeroViews.Instance;
 
     public void Attach(GameParts parts)
     {
@@ -65,11 +72,14 @@ public sealed class SheetScreen : IGameScreen
         var ui = parts.Ui;
         ui.UseStylesheet(Stylesheet);
         var document = _document = ui.Document;
+        if (Views is NoHeroViews)
+            Views = LiveHeroViews.For(parts, () => document.Files);
         foreach (var node in Statventure.UI.Dom.Markup.Parse(Markup))
             document.Body.Append(node);
         _settingsButton = Q("#settings-open-button");
         _toggle = Q("#field-tools-toggle");
         _page = Q("main.game-page");
+        _figure = Q($"#{SheetMarkup.ViewId}");
         _dot = Q("main.game-page .status-dot");
         _status = Q("#backup-status");
         _tools = new FieldTools(document, ui.Windows);
@@ -141,6 +151,8 @@ public sealed class SheetScreen : IGameScreen
     void Hide()
     {
         _tools!.Close(restoreFocus: false);
+        // The portrait's view let go (GM2-P16: a screen keeps only the views it shows).
+        Views.Hide(_figure!);
         _showing = false;
         _page!.Hidden = true;
         _settingsButton!.Hidden = true;
@@ -213,6 +225,10 @@ public sealed class SheetScreen : IGameScreen
         // The race's emblem picture (Q36, GM2 step 10), else the ✦.
         Q(".hero-sigil-fallback").Hidden = _pictures!.Show(Q("#race-icon"), race?.Emblem);
         Text("#hero-race-name", SheetTexts.RaceName(race));
+
+        // The hero's figure standing in the portrait panel (GM2-2, Q31; GM2 step 11): built again only when the look
+        // changes (a Dev Mode hero of an enemy-only race has none: the panel's ground alone).
+        Views.ShowFigure(_figure!, hero.Race ?? "", save.Look);
 
         // The EXP card.
         Text("#exp-current", SheetTexts.Value(hero.Experience));

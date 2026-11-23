@@ -45,12 +45,22 @@ public sealed class RenderTarget3D : IDisposable
     /// </summary>
     public GpuImage Sheets { get; }
     public GpuImage Edges { get; }
-    public GpuImage ShadowMap { get; }
+
+    /// <summary>
+    /// The sun's 16 shadow maps' atlas (4096², 64 MiB), made at the first shadow pass (GM2-P33, 2026-11-20): a view with
+    /// nothing that receives shadows (a figure alone, as the game's portraits) never makes it.
+    /// </summary>
+    public GpuImage ShadowMap => _shadowMap ??= GpuImage.CreateDepth(_device, ShadowSize * ShadowTiles, ShadowSize * ShadowTiles, DepthFormat, sampled: true);
+
+    /// <summary>Whether the shadow atlas was made (the tests' look at it).</summary>
+    internal bool HasShadowMap => _shadowMap is not null;
+
     /// <summary>The nearest feature edge point at each pixel (feature.frag) and its depth test.</summary>
     public GpuImage Features { get; }
     public GpuImage FeatureDepth { get; }
 
     readonly GpuDevice _device;
+    GpuImage? _shadowMap;
     GlowImages? _glow;
     (GpuImage Layer, GpuImage Resolved)? _particles;
     GpuImage? _records;
@@ -117,7 +127,6 @@ public sealed class RenderTarget3D : IDisposable
             Usage = VkImageUsageFlags.ColorAttachmentBit | VkImageUsageFlags.SampledBit,
         });
         Edges = GpuImage.CreateRenderTarget(device, width, height, EdgeFormat);
-        ShadowMap = GpuImage.CreateDepth(device, ShadowSize * ShadowTiles, ShadowSize * ShadowTiles, DepthFormat, sampled: true);
         Features = GpuImage.CreateRenderTarget(device, width, height, FeatureFormat);
         FeatureDepth = GpuImage.CreateDepth(device, width, height, DepthFormat);
     }
@@ -130,7 +139,7 @@ public sealed class RenderTarget3D : IDisposable
         Surface.Dispose();
         Sheets.Dispose();
         Edges.Dispose();
-        ShadowMap.Dispose();
+        _shadowMap?.Dispose();
         Features.Dispose();
         FeatureDepth.Dispose();
         foreach (var image in _glow?.All ?? [])
@@ -236,9 +245,10 @@ public sealed record CelStyle(Vector4 Ink, float ShadowMix, float BandEdge)
 /// <summary>
 /// Draws meshes into a <see cref="RenderTarget3D"/>: depth tested (reversed depth), back faces
 /// culled unless double-sided, MSAA 4×, flat or cel-shaded, then the ink lines
-/// (Docs/Renderer-3D.md).
+/// (Docs/Renderer-3D.md). It keeps device memory of its own for the posed vertices of the frames in
+/// flight (its skinning arenas): disposing it gives them back (GM2-P33, 2026-11-20).
 /// </summary>
-public sealed class Renderer3D(GpuDevice device)
+public sealed class Renderer3D(GpuDevice device) : IDisposable
 {
     /// <summary>Model ids in a surface record have 10 bits (0 is the background, 1023 the particles in the glow's owner records).</summary>
     const int MaxModels = 1022;
@@ -391,6 +401,19 @@ public sealed class Renderer3D(GpuDevice device)
         ];
         return frame.Upload<Vector4>(block);
     }
+
+    /// <summary>Gives back the skinning arenas (destroyed once the frames still drawing with them finish).</summary>
+    public void Dispose()
+    {
+        for (var i = 0; i < _arenas.Length; i++)
+        {
+            _arenas[i]?.Dispose();
+            _arenas[i] = null;
+        }
+    }
+
+    /// <summary>The device memory its skinning arenas hold now (the tests' look at it).</summary>
+    internal ulong ArenaBytes => _arenas.Aggregate(0UL, (sum, arena) => sum + (arena?.Size ?? 0));
 
     /// <summary>Per frame in flight: device memory for posed vertices, reused from the frame's start.</summary>
     readonly GpuBuffer?[] _arenas = new GpuBuffer?[8];

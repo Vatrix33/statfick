@@ -319,7 +319,7 @@ public class ModelPackRenderTests(GpuFixture gpu, TestModelPack pack) : IClassFi
             if (!shadows)
                 items = items.Select(i => i with { ReceivesShadows = false }).ToList();
             using var target = new RenderTarget3D(device, scene.Width, scene.Height);
-            var renderer = new Renderer3D(device);
+            using var renderer = new Renderer3D(device);
             var frame = device.BeginFrame();
             renderer.Render(frame, target, scene.Camera.ToCamera(), items, Colors.LinearFromHex(scene.Background), scene.Sun ?? default, scene.Style, scene.Scale, scene.Time,
                 scene.ParticlesNow());

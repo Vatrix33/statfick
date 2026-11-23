@@ -1331,6 +1331,16 @@ the design and the tests):
   right after `models.pak`, in the ordinal order of the names (`Docs/Assets.md`, S3-4); with the manager's GM2-P44 (a
   model's build the same bytes every time), GM2-P45 (a model races share stored once) and GM2-P46 (no smaller model
   record now); in `Docs/Game/Hero.md` ("Questions from the steps", "Decisions").
+  **Step 11's, the live views: Q68, Q69 (2026-11-20), Q78–Q81 (2026-11-22), asked by the manager:** the live
+  emblem (Q67 above) one whole sway every 8 s (Q78), lit from the front by its view's own light so its face stays lit
+  through the sway (Q79; built as 25° left and 30° up, measured), seen by step 10's pictures' camera, 5° up (Q80), held
+  to Blender under a limit set of its own for now (Q81: `ReferenceLimits.LiveEmblem`, the emblems' with missed lines
+  3.6 % and inside pixels one in 3,100, to be tightened with Q70's engine task); the portraits' figures face
+  the screen's left under the game's sun (Q68, not the recommendation); an empty panel for Dev Mode's enemy-only races
+  (Q69); with the manager's GM2-P33 (a view's renderer disposed with it, the shadow atlas only where a shadow pass runs)
+  and GM2-P47 (the live emblems held to Blender at 640 px, step 10's approved size; their own sizes a measured record);
+  **step 11's live figures approved (2026-11-22): "Yes, all three screens"**, and its live emblem under its own light
+  (2026-11-22): "Yes, it is right"; in the same two places.
 - **Decisions for GM3 (2026-11-20, asked early at the user's request, before GM3 starts):** `Docs/Game-Plan.md`, GM3,
   "Decisions for GM3": GM3-1 the item models made for close-up, GM3-2 live 3D item pictures, GM3-3 armour fitted to
   every body, GM3-5 the hintless masterworks and Exotics designed by the port for approval (all as recommended); GM3-4,
@@ -4782,6 +4792,28 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     five scratch bodies within the man's ground bounds (at most 2.23 mm under; were up to 56.29). The worker's stop on the
     rule as written and the manager's answer (the legs' shortfall, the reach pass, the hands): `Docs/Game/Hero.md`,
     "Decisions", GM2-P37. 5347 + 1084 → 5389 + 1086 = 6475 tests, on the GPU and lavapipe.
+  - **GM2 step 11, the live figures and the live emblem (2026-11-20 to 23, a worker on the branch `gm2-step11`, rebased
+    last on `8e583b6`; `Docs/Game/Hero.md`, "How it works", step 11):** the game's `IHeroViews`, `LiveHeroViews`
+    (`Game/Statventure.Game/Figures/LiveViews.cs`), one per screen on the window's `SurfaceViews`: the hero's figure in the
+    sheet's portrait panel, the carousel's race and the maker's look, each standing by its soles (`stand`, the figures'
+    machine, Q57; the clip library loaded with its keyed body, the contacts kept) in the portraits' view (the user's Q68:
+    the front turned to the screen's left, `Portraits.Light`; render.py's framing, `Portraits.CameraFor`), in the game's
+    look on its surface's ground; the maker's every change drawn at once in the same view; paused under a window and while
+    the game's window is hidden; let go with its screen, its memory given back to the byte; a look the data can't build
+    logged once and shown as the panel's ground. The carousel's live emblem: step 10's nine models in their races' colours
+    (`Emblems.PaletteOf`), rocking ±35° in 8 s (Q67, Q78), under its own light from the front (`LiveEmblems.SunOf`, 25° left
+    and 30° up, measured: Q79), seen by step 10's pictures' camera (Q80); the medallion showing it, step 10's picture or
+    the ✦, one at a time. The user's Q69: an empty panel for Dev Mode's enemy-only races. **The engine (the manager's
+    GM2-P33):** `Renderer3D` disposable, disposed by `View3D.Dispose` (its skinning arenas, about 3.7 MiB a figure, had
+    been kept by every view let go), and `RenderTarget3D`'s 64 MiB shadow atlas made at a view's first shadow pass
+    (`Docs/Renderer-3D.md`, "A view's memory"); `View3DMemoryTests`. Against Blender: each screen's figure at 1 and 1.65
+    (`make-blender-references.sh` step 8, `assemble.py` assembling the live views' list) under `DetailedFigure`; the nine
+    live emblems at 640 px (GM2-P47) under `ReferenceLimits.LiveEmblem` (Q81; the emblems' with missed lines 3.6 % and
+    inside pixels one in 3,100, to be tightened with Q70's engine task), their own sizes a measured record. A screen with
+    its views: 24–71 MiB and 0.3–0.6 ms a frame on the GPU, 27–34 ms on lavapipe. 5391 + 1131 = 6522 tests on the GPU and
+    on lavapipe (`main` `8e583b6`: 5389 + 1086 = 6475; 47 new: 2 the engine's, 45 the game's), none held; mutations 78
+    (77 killed, the far plane can't differ), 81 after 9a (80), 29 for the second round (29), 1 after the last rebase (1);
+    `assemble.py`'s list rules 4 of 4. Approved by the user 2026-11-22: the three screens and the live emblem.
 
 ## Milestones
 

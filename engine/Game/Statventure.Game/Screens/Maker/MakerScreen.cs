@@ -2,6 +2,7 @@ using Statventure.Core;
 using Statventure.Game.Data.Actors;
 using Statventure.Game.Data.Looks;
 using Statventure.Game.Data.Races;
+using Statventure.Game.Figures;
 using Statventure.Game.Screens.Races;
 using Statventure.Game.Sounds;
 using Statventure.Packs;
@@ -66,12 +67,14 @@ public sealed class MakerScreen : IGameScreen
     /// <summary>Tests: the game's data the maker reads (the races, bodies, parts and presets); the document's by default (the game's).</summary>
     internal Func<VirtualFileSystem?>? Data { get; set; }
 
-    /// <summary>The 3D views (GM2 step 11's); none until then.</summary>
+    /// <summary>The 3D views: the game's live ones on its window (GM2 step 11, <see cref="LiveHeroViews"/>), none on a document without one; a test's own.</summary>
     internal IHeroViews Views { get; set; } = NoHeroViews.Instance;
 
     public void Attach(GameParts parts)
     {
         _parts = parts;
+        if (Views is NoHeroViews)
+            Views = LiveHeroViews.For(parts, () => GameData);
         var ui = parts.Ui;
         ui.UseStylesheet(Stylesheet);
         foreach (var node in Statventure.UI.Dom.Markup.Parse(Markup))

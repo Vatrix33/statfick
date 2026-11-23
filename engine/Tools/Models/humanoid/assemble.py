@@ -147,14 +147,16 @@ def style_of(records):
     return style, sun
 
 
-def scene_of(name, look, gear, records, models, background, view, size, pose_options):
+def scene_of(name, look, gear, records, models, background, view, size, pose_options, sun_override=None):
     """One scene of render_scenes.py's format: the assembled figure in the data's style, posed (a clip at a time, or at
     rest; a clip's locations following the body's size, render.py's pose_at), standing by its soles (GM2-P22, as the
     game's HeroFigure stands), turned for the view and framed at rest as render.py frames a figure (the sandbox's figure
-    mode alike)."""
+    mode alike); the sun the data's, or `sun_override` (the game's live portraits' own, GM2 step 11)."""
     import render
     assembled = resolve(look, records, models, gear)
     style, sun = style_of(records)
+    if sun_override is not None:
+        sun = sun_override
     options = {"models": [assembled["body"]], "garments": assembled["garments"],
                "items": [f"{glb}@{socket}" for glb, socket in assembled["items"]],
                "size": size, "scale": 1.0, "elevation": 5.0, "margin": 0.06}
@@ -173,9 +175,11 @@ def scene_of(name, look, gear, records, models, background, view, size, pose_opt
 
 
 def from_list(list_path, out_path):
-    """Every scene of an assembly list (AssemblyTests' Reference/assembly-looks.json) into a scene file at out_path, its
-    models by their paths from the models folder, named relative to the file's folder. A scene read against other data
-    folders than the list's names its own ("data": the game's alone, say, where the list's add the tests' race)."""
+    """Every scene of an assembly list (AssemblyTests' Reference/assembly-looks.json; the live views' live-view-looks.json,
+    GM2 step 11) into a scene file at out_path, its models by their paths from the models folder, named relative to the
+    file's folder. A scene read against other data folders than the list's names its own ("data": the game's alone, say,
+    where the list's add the tests' race); a scene may give its own "background" (else the list's), "scale" (the device
+    scale: the line widths, the hatching and the glow; else 1) and "sun" (else the data's style's)."""
     base =os.path.dirname(os.path.abspath(list_path))
     with open(list_path) as f:
         listed = json.load(f)
@@ -193,10 +197,11 @@ def from_list(list_path, out_path):
     scenes = []
     for item in listed["scenes"]:
         pose = {"clip": item.get("clip"), "time": item.get("time"),
-                "clips": os.path.normpath(os.path.join(base, item["clips"])) if item.get("clips") else None}
+                "clips": os.path.normpath(os.path.join(base, item["clips"])) if item.get("clips") else None,
+                "scale": item.get("scale")}
         records = records_of(item.get("data") or listed["data"])
-        scenes.append(scene_of(item["name"], item["look"], item.get("gear"), records, models, listed["background"], item["view"],
-                               f"{item['width']}x{item['height']}", pose))
+        scenes.append(scene_of(item["name"], item["look"], item.get("gear"), records, models, item.get("background", listed["background"]),
+                               item["view"], f"{item['width']}x{item['height']}", pose, item.get("sun")))
     out_dir = os.path.dirname(os.path.abspath(out_path))
     for spec in scenes:
         for model in spec["models"]:

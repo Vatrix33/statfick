@@ -684,7 +684,7 @@ public class SceneParticleRenderTests(GpuFixture gpu)
                 return new DrawItem(mesh, o.Model, Colors.LinearFromHex(o.Color));
             }).ToList();
             using var target = new RenderTarget3D(device, scene.Width, scene.Height);
-            var renderer = new Renderer3D(device);
+            using var renderer = new Renderer3D(device);
             var frame = device.BeginFrame();
             renderer.Render(frame, target, scene.Camera.ToCamera(), items, Colors.LinearFromHex(scene.Background), scene.Sun ?? default,
                 scene.Style with { OutlineWidth = 0, InnerWidth = 0 }, scene.Scale, scene.Time, view.Particles);

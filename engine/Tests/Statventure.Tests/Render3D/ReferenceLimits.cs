@@ -5,7 +5,8 @@ namespace Statventure.Tests.Render3D;
 /// on the geometry's edges and inside surfaces (<see cref="Render3DReferenceTests.CompareShadowed"/>) and the ink
 /// lines' (<see cref="Render3DReferenceTests.CompareInk"/>). <see cref="M6"/> is M6's, measured over the test
 /// scenes, for every scene but a detailed stage or figure (<see cref="DetailedFigure"/>, GM2 step 4a: the humanoid
-/// family's figures) or a race emblem (<see cref="Emblem"/>, GM2 step 10). <see cref="DetailedStage"/> (Docs/Scene.md, S7-12) is set from
+/// family's figures) or a race emblem (<see cref="Emblem"/>, GM2 step 10; the carousel's live emblem: <see cref="LiveEmblem"/>,
+/// GM2 step 11). <see cref="DetailedStage"/> (Docs/Scene.md, S7-12) is set from
 /// the measurement of Ji'ruan's stage (step 7's ink study), where two things part the engine from Freestyle
 /// that M6's scenes don't have: Freestyle drops the far scenery's sub-pixel detail (bark, branches and foliage
 /// 30 m away: about 56 % of the extra lines), and it draws no line where separate objects meet or rest in each
@@ -111,5 +112,26 @@ internal sealed record ReferenceLimits
         TotalInk = 0.186,
         // Measured 0.097–0.140 (the Half-Beast's).
         Coverage = 0.154,
+    };
+
+    /// <summary>
+    /// The carousel's live emblems (GM2 step 11; Docs/Game/Hero.md, "How it works", step 11; LiveViewReferenceTests' nine
+    /// scenes at 640 × 640 by step 10's pictures' camera, 5° up, the user's Q80, under the emblem's own light from the
+    /// front, Q79, the pose 1 s into the sway, 24.7° to the right; the manager's GM2-P47 the size): the emblems' limits
+    /// (<see cref="Emblem"/>) with two widened, the user's Q81 ("Accept for now, as before", 2026-11-22), each the worst
+    /// measured on the PC's GPU and on lavapipe plus about a tenth. What parts the engine from Blender in the turned
+    /// medallion: Freestyle draws a contour where a raised inner wall or the edge of a lit crescent is seen nearly edge-on
+    /// (the dark elf's eclipse crescent: the engine draws none there), and the rim's beads have single pixels inside the
+    /// gold a few levels apart at the light's band edge (most on lavapipe). Both joined the engine task the user accepted
+    /// with Q70 (Docs/Game-Plan.md, "Engine items the port will meet": the engine's lines on raised relief); then these
+    /// are measured again and tightened. The rest are the emblems'.
+    /// </summary>
+    public static readonly ReferenceLimits LiveEmblem = Emblem with
+    {
+        // Measured 0.01–3.28 % (the dark elf's crescent contour, the same on both drivers).
+        Missed = 0.036,
+        // Measured 82–120 inside pixels off by more than 2 levels of 409,600 (the elf's on lavapipe, one in 3,413; 97 on
+        // the GPU): one in 3,100 allows 132.
+        InsideEvery = 3100,
     };
 }

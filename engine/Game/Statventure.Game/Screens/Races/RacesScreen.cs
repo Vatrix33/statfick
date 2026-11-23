@@ -2,6 +2,7 @@ using Statventure.Core;
 using Statventure.Game.Data.Actors;
 using Statventure.Game.Data.Looks;
 using Statventure.Game.Data.Races;
+using Statventure.Game.Figures;
 using Statventure.Game.Screens.Sheet;
 using Statventure.Game.Settings;
 using Statventure.Game.Sounds;
@@ -74,7 +75,7 @@ public sealed class RacesScreen : IGameScreen
     /// <summary>Tests: the game's data the carousel reads (the races, the presets the figure shows); the document's by default (the game's).</summary>
     internal Func<VirtualFileSystem?>? Data { get; set; }
 
-    /// <summary>The 3D views (GM2 step 11's); none until then.</summary>
+    /// <summary>The 3D views: the game's live ones on its window (GM2 step 11, <see cref="LiveHeroViews"/>), none on a document without one; a test's own.</summary>
     internal IHeroViews Views { get; set; } = NoHeroViews.Instance;
 
     /// <summary>Tests: the emblems' pictures the carousel shows (GM2 step 10).</summary>
@@ -83,6 +84,8 @@ public sealed class RacesScreen : IGameScreen
     public void Attach(GameParts parts)
     {
         _parts = parts;
+        if (Views is NoHeroViews)
+            Views = LiveHeroViews.For(parts, () => GameData);
         var ui = parts.Ui;
         ui.UseStylesheet(Stylesheet);
         foreach (var node in Statventure.UI.Dom.Markup.Parse(Markup))

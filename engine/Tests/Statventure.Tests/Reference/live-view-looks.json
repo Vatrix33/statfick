@@ -1,0 +1,286 @@
+{
+  "format": "statventure.assembly",
+  "version": 1,
+  "data": [
+    "../../../Assets/Data",
+    "live-view-data"
+  ],
+  "models": "../../../Assets/Models",
+  "background": "#2a1f1a",
+  "scenes": [
+    {
+      "name": "live-sheet-1",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-average",
+        "parts": {
+          "face": "face-human-male-1",
+          "hair": "hair-crop",
+          "beard": "beard-stubble",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Tan",
+          "hair": "Brown",
+          "eyes": "Brown",
+          "lips": "Natural",
+          "cloth": "Forest",
+          "cloth.trim": "Gold",
+          "trousers": "Grey",
+          "leather": "Brown",
+          "buckle": "Brass",
+          "hair.tie": "Red",
+          "marking": "Brown",
+          "brows": "Dark",
+          "eye.white": "Ivory"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "-45",
+      "width": 308,
+      "height": 438,
+      "clip": "stand",
+      "time": 1,
+      "clips": "../../../Assets/Models/humanoid/clips.glb",
+      "background": "#2a1f1a",
+      "scale": 1
+    },
+    {
+      "name": "live-sheet-1.65",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-average",
+        "parts": {
+          "face": "face-human-male-1",
+          "hair": "hair-crop",
+          "beard": "beard-stubble",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Tan",
+          "hair": "Brown",
+          "eyes": "Brown",
+          "lips": "Natural",
+          "cloth": "Forest",
+          "cloth.trim": "Gold",
+          "trousers": "Grey",
+          "leather": "Brown",
+          "buckle": "Brass",
+          "hair.tie": "Red",
+          "marking": "Brown",
+          "brows": "Dark",
+          "eye.white": "Ivory"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "-45",
+      "width": 509,
+      "height": 724,
+      "clip": "stand",
+      "time": 1,
+      "clips": "../../../Assets/Models/humanoid/clips.glb",
+      "background": "#2a1f1a",
+      "scale": 1.65
+    },
+    {
+      "name": "live-races-1",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-average",
+        "parts": {
+          "face": "face-human-male-1",
+          "hair": "hair-crop",
+          "beard": "beard-stubble",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Tan",
+          "hair": "Brown",
+          "eyes": "Brown",
+          "lips": "Natural",
+          "cloth": "Forest",
+          "cloth.trim": "Gold",
+          "trousers": "Grey",
+          "leather": "Brown",
+          "buckle": "Brass",
+          "hair.tie": "Red",
+          "marking": "Brown",
+          "brows": "Dark",
+          "eye.white": "Ivory"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "-45",
+      "width": 278,
+      "height": 408,
+      "clip": "stand",
+      "time": 1,
+      "clips": "../../../Assets/Models/humanoid/clips.glb",
+      "background": "#0f0a07",
+      "scale": 1
+    },
+    {
+      "name": "live-races-1.65",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-average",
+        "parts": {
+          "face": "face-human-male-1",
+          "hair": "hair-crop",
+          "beard": "beard-stubble",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Tan",
+          "hair": "Brown",
+          "eyes": "Brown",
+          "lips": "Natural",
+          "cloth": "Forest",
+          "cloth.trim": "Gold",
+          "trousers": "Grey",
+          "leather": "Brown",
+          "buckle": "Brass",
+          "hair.tie": "Red",
+          "marking": "Brown",
+          "brows": "Dark",
+          "eye.white": "Ivory"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "-45",
+      "width": 460,
+      "height": 674,
+      "clip": "stand",
+      "time": 1,
+      "clips": "../../../Assets/Models/humanoid/clips.glb",
+      "background": "#0f0a07",
+      "scale": 1.65
+    },
+    {
+      "name": "live-maker-1",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "female",
+        "body": "human-female-average",
+        "parts": {
+          "face": "face-human-female-1",
+          "hair": "hair-long-female",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Rosy",
+          "hair": "Auburn",
+          "hair.tie": "Red",
+          "eyes": "Green",
+          "brows": "Dark",
+          "lips": "Natural",
+          "cloth": "Teal",
+          "cloth.trim": "Gold",
+          "trousers": "Grey",
+          "marking": "Brown",
+          "eye.white": "Ivory",
+          "leather": "Brown",
+          "buckle": "Brass"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "-45",
+      "width": 328,
+      "height": 536,
+      "clip": "stand",
+      "time": 1,
+      "clips": "../../../Assets/Models/humanoid/clips.glb",
+      "background": "#0f0a07",
+      "scale": 1
+    },
+    {
+      "name": "live-maker-1.65",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "female",
+        "body": "human-female-average",
+        "parts": {
+          "face": "face-human-female-1",
+          "hair": "hair-long-female",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Rosy",
+          "hair": "Auburn",
+          "hair.tie": "Red",
+          "eyes": "Green",
+          "brows": "Dark",
+          "lips": "Natural",
+          "cloth": "Teal",
+          "cloth.trim": "Gold",
+          "trousers": "Grey",
+          "marking": "Brown",
+          "eye.white": "Ivory",
+          "leather": "Brown",
+          "buckle": "Brass"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "-45",
+      "width": 542,
+      "height": 886,
+      "clip": "stand",
+      "time": 1,
+      "clips": "../../../Assets/Models/humanoid/clips.glb",
+      "background": "#0f0a07",
+      "scale": 1.65
+    }
+  ]
+}

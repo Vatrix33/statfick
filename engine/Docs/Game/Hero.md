@@ -304,7 +304,7 @@ recorded by the race packs' task, "How it works", "The race packs"):**
   arrays, 14 % smaller; 16-bit positions, normals and weights, 44 %; the skeleton every part carries, about 3 KB a model)
   wait for GM3's armour fitted to every body (`Docs/Game-Plan.md`, "Engine items the port will meet").
 
-### Questions from the steps (Q43–Q67, Q70–Q73 and Q77, the user, 2026-11-15 to 2026-11-22)
+### Questions from the steps (Q43–Q73 and Q77–Q81, the user, 2026-11-15 to 2026-11-22)
 
 Q43 and Q44 raised by step 1 (the `race` kind's fields; the docs didn't answer them) and asked by the manager with the
 question tool the same day; both the recommended option. Q45 asked by the manager on 2026-11-16 for step 6 (step 2 had
@@ -499,6 +499,71 @@ the sheets the user saw: `claude-work/gm2/step9a/approval/` `builds-faces/`, `se
   `models-<race>.pak` beside it in `packs/`. This changes M9's S3-4 (`Docs/Assets.md`): the five area packs by name, and
   right after `models.pak` every `models-*.pak` in `packs/` in the ordinal order of the names; other files there are still
   ignored. Built by the race packs' task ("How it works", "The race packs").
+Q67–Q69 came with step 11's live views (asked by the manager with the question tool on 2026-11-20; the numbers the
+manager's), and the manager's GM2-P33 with them ("How it works", step 11).
+- **Q67 The carousel's live emblem rocks from side to side** (2026-11-20, "Rock from side to side"): it sways slowly about 35°
+  to each side and back about its upright axis, so the motif is always readable and its back never seen; it does not turn
+  all the way round. This changes Q36's "a live, slowly turning emblem". Its period: Q78 below (8 s a whole sway, eased
+  as a sine, toward the screen's right first).
+- **Q68 The portraits' facing: "Turned to the left"** (2026-11-20; step 11's variant (c), not the manager's
+  recommendation): in the sheet, the carousel and the maker the figure's front is turned to the screen's left (−45°) under
+  the game's own sun, so its face is lit; Q31's and Q41's "fixed three-quarter view" means this facing. The user was told
+  that the hero then shows its left side in these views and that one-sided parts (a side braid, a flower, a feather, hair
+  beads) are on the far side there though they show in battle. (Not (a) as planned, the front to the screen's right with
+  the face in shadow; not (b) the sun mirrored for the portraits only.) Step 11's pictures:
+  `claude-work/gm2/step11/approval/portraits/`.
+- **Q69 Dev Mode's enemy-only races: "An empty panel"** (2026-11-20): the carousel's panel and the sheet's portrait stay
+  empty for an enemy-only race and an enemy-only hero until their real models exist; no stand-in is shipped. This
+  replaces the design's "shown as the engine's stand-in figure until GM9" (Q27's (a); "The new hero's flow", "Dev Mode").
+- **GM2-P47 (the manager, 2026-11-22, on step 11's report that 7 of its 18 live emblem samples at the carousel's sizes,
+  94 and 156 px, were past `ReferenceLimits.Emblem` against Blender's direct renders): the live emblems' scenes are held
+  to Blender at 640 × 640 under `ReferenceLimits.Emblem`** (the view's own camera, Q79's light, the race's palette and
+  the pose 1 s into the sway; the nine emblems; both drivers); no limit changed or added. The reason: Blender's own render
+  at 94 or 156 px was never a look anyone approved: step 10 found Freestyle's lines swallow an emblem rendered directly
+  that small, so every small picture is the 640 px render scaled down (GM2-P34), and the emblems' limits were measured
+  at 640 px (Q70); at the carousel's sizes there is no approved Blender picture to hold the engine to, at 640 px there
+  is. (Not a limit set for small sizes, which would need the user's word and measure against a reference nobody chose;
+  not only the samples that pass, which would be choosing the result.) The carousel's own sizes stay watched as a
+  measured record: each live emblem at 94 and 156 px against its own 640 px render scaled down by GM2-P34's filter
+  ("How it works", step 11, with the numbers).
+- **GM2-P33 (the manager, 2026-11-20, on step 11's report): two engine changes in step 11's commit.** (1) `Renderer3D`
+  disposable, freeing its skinning arenas, and disposed by `View3D.Dispose` (every view let go had kept about 3.7 MiB of
+  posed-vertex buffers); (2) `RenderTarget3D`'s 4096² shadow atlas (64 MiB) made at its first shadow pass, so a view with
+  nothing that receives shadows never makes it. Each with an engine test of its own (`View3DMemoryTests`).
+- **The manager, the same day:** the carousel's and the maker's 1 px inner rule round an empty panel (step 8's
+  `box-shadow` on the `surface`, which a view's picture covers) is step 8's approved look: left as it is. The videos'
+  approval waits for step 9a's data (the human's colours, presets and parts).
+- **Step 11's live figures approved (2026-11-22, the question tool, asked by the manager with the videos on the shipped
+  data): "Yes, all three screens"**: the sheet, the carousel and the maker as in `sheet-dark-shipped.mp4`,
+  `races-dark-shipped.mp4`, `maker-dark-shipped.mp4` and their light ones (`claude-work/gm2/step11/approval/videos/`).
+- **Q78 The live emblem's sway: "8 seconds"** (2026-11-22, the question tool, asked by the manager with the same videos):
+  one whole sway (to the right, to the left and back) every 8 s, step 11's proposal; the user saw it on the stand-in
+  shapes (the real emblems are step 10's) and was told so. (Not 12 s, not 5 s.)
+- **Q79 The live emblem's light: "Lit from the front"** (2026-11-22, the question tool, asked by the manager on step 11's
+  finding with its still and video: on step 10's real emblems, under the game's sun from the screen's left, the medallion's
+  whole face dropped into the shade band whenever it turned right past about 17°, a third of each sway): the emblem's own
+  view gets a light from the front and above, so its face stays lit through the whole sway and only the relief's small
+  shadows move; the game's sun stays the figures'. Bounds: face-on and at both ends of the sway (±35°) no face of the
+  field or the motif that looks at the viewer is in the shade band; the light chosen by measuring, starting from straight
+  ahead and about 35° up a little from the left; at rest as close as the lights allow to step 10's picture beside it.
+  (Not "rock to the left only", not "keep it as it is".) Built by step 11 ("How it works", step 11: 25° left, 30° up).
+- **Step 11's live emblem approved (2026-11-22, the question tool, asked by the manager with `emblem-dark-shipped.mp4` and
+  the still at 0°, +35° and −35°, `claude-work/gm2/step11/approval/videos/`): "Yes, it is right"**: step 10's emblems
+  rocking 35° to each side in 8 s under their own light from the front (Q79's, as measured).
+- **Q80 The live emblem's camera: "The pictures' camera"** (2026-11-22, the question tool, asked by the manager on step
+  11's finding that the view's level camera put every horizontal face of the relief exactly edge-on, where Freestyle and
+  the engine part; shown `claude-work/gm2/step11/approval/emblem-limits/camera-level-vs-pictures.png`, the human's and the
+  elf's emblem at 0° and ±35° under both, and told the change is barely visible): the live emblem is seen by step 10's
+  picture camera exactly (`Emblems.PictureCamera()`, about 5° up, as `emblem-scenes.json` has it), so at rest it shows its
+  relief as the picture beside it in the strip. (Not the level camera of the approved video.) Q79's light stays: with this
+  camera every viewer-facing face of the nine stays lit through the sway with the same margin (0.053).
+- **Q81 The live emblem's limits: "Accept for now, as before"** (2026-11-22, the question tool, asked by the manager with
+  step 11's measures and the dark elf's crop, `approval/emblem-limits/`): the live emblems' comparison (640 × 640, Q80's
+  camera, Q79's light, the pose 1 s into the sway) gets a limit set of its own for now, `ReferenceLimits.LiveEmblem`: the
+  emblems' (`Emblem`, Q70) with missed lines 3.6 % and inside pixels one in 3,100 (the worst measured, the dark elf's
+  crescent contour 3.28 % on both drivers and the elf's 120 inside pixels on lavapipe, plus about a tenth); both join the
+  engine task the user accepted with Q70 (Game-Plan, "Engine items the port will meet"), after which the limits are
+  measured again and tightened. (Not "fix the engine first", not "leave those two out".)
 
 Step 10's, the nine emblems (the numbers the manager's): Q66 and Q67 and the medallions' approval came with the art
 (the manager's hand-over, `claude-work/gm2/step10/handover/HANDOVER.md`); Q70 was raised by step 10's comparison with
@@ -513,9 +578,8 @@ step 10 ("How it works", step 10).
   Merfolk walk on legs). None repeats an old seal's motif (Q37).
 - **The nine medallions approved as renders** (2026-11-20, "Yes, all nine"; `claude-work/gm2/step10/approval/emblems.png`):
   step 10's second approval stop.
-- **Q67 The live emblem rocks from side to side** (2026-11-20, "Rock from side to side"): it sways slowly about 35 degrees
-  to each side and back and never shows its back; the back of the model stays plain. This changes Q36's "slowly turning"
-  for the carousel's live emblem; its period is step 11's proposal (8 s).
+- **Q67 The live emblem rocks from side to side** (2026-11-20; in full with step 11's questions above): it never shows its
+  back, so the back of the model stays plain; its period the user's Q78 (8 s, 2026-11-22).
 - **Q70 The emblems' lines against Freestyle** (2026-11-21; raised by step 10: the engine's lines on the nine emblems
   passed neither the detailed figures' limits nor M6's: extra lines 5.5–13.0 % against 3 %, total ink up to 17.0 % over
   Freestyle's against 10 %, the coverage difference up to 0.140 against 0.12, every Freestyle line drawn; the engine draws a
@@ -1095,13 +1159,14 @@ and the port's own sheet for what changes:
   two Artifact slots below it. The figure "wearing the equipped gear" (GM2-2): a `surface` element with a `SceneView` and
   the hero's `Actor` (the look's body, parts and palette; GM3's gear as `ActorItem`s and `ActorGarment`s); before GM3 in
   its own outfit, the five slots inert (Q33). It **idles in a fixed three-quarter view and does nothing else** (Q31): no
-  turning, no reactions to the sheet. Its view's background is the panel's dark colour; nothing in the panel is scenery,
+  turning, no reactions to the sheet; that view's front turned to the screen's left in the game's own sun (the user's
+  Q68, 2026-11-20; it stands relaxed, Q57). Its view's background is the panel's dark colour; nothing in the panel is scenery,
   and characters receive no shadows (M6), so no shadow is seen there and no ground is modelled. What that saves beyond the
-  ground: a view with nothing to receive a shadow has no use for the shadow pass and its 4096² atlas (64 MB, allocated per
-  render target, `Renderer3D.cs` 104); whether the engine still allocates and renders them for such a view is measured by
-  step 5, and if it does, the change (the atlas and the pass only for a view with scenery) is an engine task for the
-  manager. An idling figure renders every frame, so the view pauses while a window covers the sheet and while the game's
-  window is hidden (the engine's `visibilitychange`). It is built again only when the look or the gear changes.
+  ground: a view with nothing to receive a shadow has no use for the shadow pass and its 4096² atlas (64 MB); step 5 found
+  the pass not run but the atlas allocated for every view, and since GM2-P33 (step 11) the engine makes the atlas only at a
+  view's first shadow pass. An idling figure renders every frame, so the view pauses while a window covers the sheet and while the game's
+  window is hidden (the engine's `visibilitychange`). It is built again only when the look or the gear changes (GM2 step
+  11: "How it works", step 11).
 - **The heading** (Q30): the hero's name as the page's heading in the old heading's style, the race and the level under
   it (the old eyebrow, the copy line and the seal button's place as the captures show). The seal button shows the race's
   emblem picture (Q36); outside Dev Mode it is inert ("<race> · Race locked", the old title), in Dev Mode it opens the
@@ -1124,11 +1189,13 @@ Name, race, maker, sheet (Q25): GM1's name prompt, then the race carousel, then 
 race and a look (Q26): leaving goes back to the start screen, and a hero without both (a GM1 save, a flow left unfinished)
 opens on the flow again.
 - **The race carousel** (`Screens/Races/`; Q28): one race at a time with a large figure (the race's first preset, idling in a
-  fixed three-quarter view as the sheet's, Q41), the race's emblem live and slowly turning (Q36), and the old list's content for that race: its name, its
+  fixed three-quarter view as the sheet's, Q41, its front turned to the screen's left, Q68), the race's emblem live and
+  rocking slowly from side to side (Q36 as changed by Q67), and the old list's content for that race: its name, its
   eight modifiers ("STR +2" …) and its passive's name and description; the old texts ("Choose a *race*", the intro line);
   the next and previous race in `races.json`'s order by buttons and the arrow keys; choosing it opens the maker. Dev Mode
   (Q27): the 19 enemy-only races in the carousel too ("Non-playable · Dev Mode"), chosen at once as the old game did
-  (no look), shown as the engine's stand-in figure until GM9 makes their bodies; the race changeable later from the
+  (no look), shown with an empty panel until their real models exist (the user's Q69, 2026-11-20, replacing Q27's "the
+  engine's stand-in figure until GM9": no stand-in is shipped); the race changeable later from the
   sheet's seal button, a playable race then opening the maker again.
 - **The character maker** (`Screens/Maker/`; GM2-1, GM2-6): the hero's figure large, idling in a fixed
   three-quarter view as the sheet's (Q41), the race's eight presets as a list (Q21), labelled with the old labels (Q20), four per sex; the choices by category (sex, build, face, hair, colours …),
@@ -1251,8 +1318,9 @@ new motifs** (Q37), each proposed as a sketch first, before any modelling: the s
 T5's "seals that sit with the six older ones" has no six to sit with: the nine are one new set). Shown as pictures where
 small (Q36): the sheet's seal button (about 124, 99 or 72 px; *113.76, 89.28 and 61.92 px as laid out, step 10*), a companion's sheet (68 or 52 px), PNGs in `ui.pak` rendered
 by Blender from the emblem's script at each size and at 1 and 1.65, regenerable (GP-4) and compared with the engine's
-render; and live, slowly turning (*rocking about 35° to each side since Q67*), only for the race shown in the carousel (Q36, one live view, GM2-P16). Approved as
-sketches, then as renders of all nine together (Q66; "How it works", step 10).
+render; and live only for the race shown in the carousel (Q36, one live view, GM2-P16), rocking slowly from side to side
+about 35° each way, never turning to its back, one whole sway every 8 s (the user's Q67, 2026-11-20, in place of Q36's
+"slowly turning", and Q78, 2026-11-22; GM2 step 11's `LiveEmblems`). Approved as sketches, then as renders of all nine together (Q66; "How it works", step 10).
 
 ### Meeting GP-8
 
@@ -1291,8 +1359,9 @@ swatches apart from a race is not asked (GM2-P7's note) and is left for a later 
 The old powers on the sheet come back under the setting (GM1-3, GM1-12, GM1-13): the attribute fields and "−" steppers,
 the permanent bonuses, the purse, the EXP form, levelling without EXP, "Full HP", "Full Mana", "Restore both to full". In
 the carousel: the 19 enemy-only races, and another race once chosen, from the sheet's seal button, a playable race
-opening the maker again (outside GM2-7, a development tool); an enemy-only hero shown as the engine's stand-in figure
-until GM9. The sheet follows the setting live.
+opening the maker again (outside GM2-7, a development tool); an enemy-only hero shown with an empty portrait panel until
+its race's real models exist (the user's Q69, 2026-11-20, replacing Q27's "the engine's stand-in figure until GM9"). The
+sheet follows the setting live.
 
 ### Sounds (GM1-6; Q38)
 
@@ -1620,7 +1689,8 @@ made.
 later; an enemy-only race had no look step.
 - (a) **The old powers:** the enemy-only races listed, the race changeable any time, a playable race changed in Dev Mode
   opening the maker again (a development tool outside GM2-7); an enemy-only hero shown as the engine's stand-in figure
-  until GM9 makes those bodies. *Recommended:* faithful to Dev Mode's purpose.
+  until GM9 makes those bodies. *Recommended:* faithful to Dev Mode's purpose. (Its stand-in figure replaced by an empty
+  panel: the user's Q69, 2026-11-20.)
 - (b) **Race only:** Dev Mode changes the race but never the look.
 - (c) **No race powers** in Dev Mode.
 - **Answer (the user, 2026-11-15): (a).**
@@ -2090,6 +2160,17 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
       human bodies), so its node goes where its soles should be; its clips, bound by `ClipBinding` as step 4b says, follow
       its body's legs with nothing to add. A view framed on the figure (`FigureFraming.CameraFor`) frames it as it stands:
       its rest points raised by `-Ground`, as the figure mode and `AssemblyTests` do.
+    - **Done 2026-11-23 (a worker, the branch `gm2-step11`; "How it works", step 11), approved by the user (the three
+      screens and the live emblem, 2026-11-22)**, on step 10's emblems; the other races' figures come with their races'
+      steps (data, not code). With the user's Q67 (the emblem rocks), Q68 (the portraits face the screen's left), Q69 (an
+      empty panel for enemy-only races), Q78 (8 s a sway), Q79 (the emblem's own light from the front), Q80 (the
+      pictures' camera) and Q81 (the live emblems' limits), the manager's GM2-P33 (the engine's two memory changes) and
+      GM2-P47 (the live emblems held to Blender at 640 px). Its choices: `LiveHeroViews`, one per screen, made by
+      `LiveHeroViews.For` on the window's `SurfaceViews` (none without a window); the figure rebuilt into the same view, a
+      colour change in place, the clock carried on; the views off the document's frames while covered or hidden; the
+      ground the surface's computed `background-color`; the framing render.py's, ported as `Portraits.CameraFor`; the
+      emblem model at `Emblems.ModelPath(emblem)`, its palette `Emblems.PaletteOf`, the medallion one thing at a time; the
+      references of the live views written by the tests and assembled by `assemble.py` on its own.
 12. **The sounds** (anywhere; the user's ear on the PC). Any time.
     - Owns: the patches (Q38: a race chosen, a maker choice, the random roll, a point spent, a level up, a respec, the
       hero confirmed) in `Assets/Audio/effects/`, `audio.pak`, `SoundNames` and its test; the wiring once 7 and 8 are
@@ -4740,6 +4821,259 @@ them with no code change. Its builds' ground: measured by `BothBodiesStayOnTheGr
 lie and kneel under the man's bounds: the manager's to judge with Q59). *Step 11:* the figures' parts by body and
 face (`HeroFigure` does it). *GM2-P22's task and step 11:* the four new bodies are in `models.pak` (Q59's check is on the
 hobbit's and the Goliath's).
+### Step 11: the live figures and the live emblem (2026-11-20 to 22, the branch `gm2-step11`)
+
+The hero's figure in the sheet's portrait panel, the shown race's figure in the race carousel and the look being made in
+the character maker, live in the game's look, and the carousel's live emblem. Decided on the way: the user's Q67 (the
+emblem rocks from side to side), Q68 (the portraits face the screen's left), Q69 (an empty panel for enemy-only races),
+the manager's GM2-P33 (the engine's two memory changes), the 1 px inner rule left as step 8 had it ("Decisions",
+"Questions from the steps"). Rebased on the figure's ground and step 9a (2026-11-21): the figures stand by their soles,
+the live views' data is written again from the shipped data, the references and the videos are made again on it; the
+user approved the three screens on those videos and chose the emblem's period, Q78 (2026-11-22). Rebased on step 10
+(2026-11-22, the second round's start): the live emblem shows step 10's nine emblems in their races' colours. Rebased
+last on "the race packs" (the live views' test data mounts every models pack as the game does, `TestPaths.ModelsPacks`),
+"colour schemes" (nothing of the live views moved) and "contacts kept" (the clip library loaded with each clip's keyed
+body, the figures' skeleton with what they wear: the woman's `stand` keeps her feet planted; the live figures'
+references made again by its rule). The other races' figures come with their races' step (data, not code).
+
+**The views** (`Game/Statventure.Game/Figures/LiveViews.cs`). `LiveHeroViews` is the game's `IHeroViews` (step 8's seam),
+one per screen: each screen takes `LiveHeroViews.For(parts, data)` at `Attach` (the sheet's `Views` new, its
+`surface#hero-view` shown in its `Render` and let go in its `Hide`; the carousel and the maker keep their step 8 calls),
+which gives live views on the window's `SurfaceViews` (`parts.Ui.Host.Views`) and `NoHeroViews` on a document without a
+window (the tests' screens, which keep their recordings). Each surface it fills gets a `View3D` and a `SceneView`, the view
+a frame client of the document. **A figure** (`ShowFigure`): the look's `HeroFigure` (step 5's builder) on a node turned
+for the portraits, its own `Actor` of the built figure's model, garments, items, palette and ground (hung on the node by
+its soles, GM2-P22's "the figure's ground") with an `Animator` playing the
+figures' state machine (`models/humanoid/machines/figure`: `stand` looped, Q57) over the family's clip library
+(`models/humanoid/clips`, loaded with each clip's keyed body, `AnimationClip.AllOf(data, path)`, and bound to the
+figure's skeleton with what it wears: GM2-P37's "contacts kept"), in the game's style and sun (`GameStyle`), on the surface's computed `background-color` (linear,
+premultiplied: the sheet's `--portrait-ground` `#2a1f1a`, the carousel's and the maker's panels' `#0f0a07`; a transparent
+surface, the medallion's, leaves the view transparent), framed for the surface's laid-out content box in device pixels
+(rounded, as `SurfaceViews` renders it; a resize observer frames it again after a layout that changed it). Shown again:
+the same look (its `Preset`, the maker's display, left out) builds nothing; other colours on the same body and parts change
+the palette in place (no model loaded again); another body or parts builds the figure again into the same view, its
+clock carried on, so the next picture is the new figure (never the old one after the click, never an empty panel: the
+maker's videos were checked frame by frame). A null look (an enemy-only race or hero, Q69; a race with no body) shows
+nothing; a look the data can't build (`LookRefusedException`, a model that doesn't read: a mod gone under a slot's save)
+is logged once while the screen shows (`[Figures] #<surface>: the <race>'s look can't be shown (…): the view stays empty`)
+and shows nothing. A figures' machine naming a clip the library hasn't, or no machine or library, leaves the figure at
+rest; a broken game's look gives the views the engine's own (each logged). **Paused**: while a game window is open
+(`GameWindows.Opened`/`Closed`) or the game's window is hidden (`visibilitychange`), every view is off the document's
+frames, so nothing moves or renders and the last picture stays; taken up again it goes on where it stopped (a frame
+client's first frame moves it by nothing). **Released** (`Hide`): off the window's surfaces and the document's frames,
+the view disposed (its target, picture, records and, since GM2-P33, its renderer's skinning arenas) and the figure's
+models disposed: the GPU memory given back to the byte (`EachScreenKeepsOnlyTheViewsItShowsAndTheirMemoryIsGivenBack`).
+A screen keeps only the views it shows (GM2-P16 as amended): the carousel two, the maker one, the sheet one.
+
+**The portraits** (`Figures/Portraits.cs`): `Portraits.Light` holds the user's Q68, `FacingLeft` (the front turned to the
+screen's left, −45°, in the game's own sun); `AsPlanned` (+45°, render.py's three-quarter) and `SunMirrored` (+45°, the
+sun's x negated for the portraits only) are the other two ways the user was shown, each tested
+(`EachPortraitLightTurnsAndLightsAsItSays`), so a change is one line (then the live views' list is written again and
+rendered). The framing is render.py's full view (`view_spec`; the figure mode's `FigureFraming.CameraFor`), ported:
+the figure's surface points at rest as it stands on its node (`ModelData.RestPoints` raised by `-Actor.Ground`, as the
+figure mode's `Lift`: its body's and garments' skinned at rest, its items' at their sockets) turned, their
+box's middle the target, the box's height or its width over the picture's aspect, whichever is larger, with 6 % of room on
+each side, orthographic, 5° down from 5 m beyond the figure's reach; held equal to the figure mode's
+(`ThePortraitsFrameAsTheFigureModeDoes`, with gear on) and to `assemble.py`'s within 10⁻⁴.
+
+**The live emblem** (`LiveEmblems`, `LiveEmblem`; Q36, Q67, Q78): the race's `emblem` (Q44) names its model, step 10's
+`Emblems.ModelPath(emblem)` (`models/humanoid/emblems/<emblem>` in `models.pak`; the nine races with one: the human, the
+elf, the dark elf, the dwarf, the hobbit, the lizardman, the half-beast, the goliath, the merfolk); without that model in
+the data `ShowEmblem` is false. The model is placed so the middle of its box is on the rocking node's axis, rocked about
++Y as a sine, 35° to each side, one whole sway (right, left and back) every 8 s (the user's Q78, 2026-11-22; toward the
+screen's right first, this step's), seen by step 10's pictures' camera exactly (`Emblems.PictureCamera()`: orthographic,
+about 5° up, 3 units high; the user's Q80, 2026-11-22: so at rest it shows its relief as the picture beside it in the
+strip, and the relief's horizontal faces aren't exactly edge-on, where Freestyle and the engine part; first built level,
+the camera of the approved video), in the game's look, transparent over the medallion. **Its light** (the user's Q79, 2026-11-22, "Lit from the front"): its view's own sun,
+`LiveEmblems.SunOf` (the game's sun's strength 3 and angle 3°, from `LiveEmblems.LightDirection`: 25° from straight
+ahead toward the screen's left and 30° up, (−0.3660, 0.5, 0.7849)); the figures keep the game's sun. Chosen by measuring
+(a scratch probe over the nine emblems' models, `claude-work/gm2/step11/ZzScratchEmblemLight.cs`, its table
+`emblem-light.txt`): a vertex is lit where the light's diffuse, its strength / π times the normal's cosine to it, reaches
+the look's band edge 0.36 (the engine's rule: the cosine at least 0.377); the faces that look at the viewer are the
+vertices whose normal at rest is within 20° of the medallion's front (the field, the tops of the motif's outlines and of
+the rim); over the sway every 0.25°, azimuth 0–50° and elevation 20–45°. The game's sun (46.8° left, 28.7° up) leaves
+them in the shade band at worst (−0.241, all of them, on the way right; 84 % of every face turned to the viewer).
+Straight ahead keeps them lit with the most room (0.28–0.38) but flattens the relief and is furthest from the game's
+sun (40–43°). Of the lights that keep them lit with at least 0.05 of room through the whole sway (about 3° of turn more
+than 35° before the band), 25° left and 30° up is the nearest to the game's sun (19.1° from it; 0.053 of room; 13.3 % of
+the faces turned to the viewer in shade face-on, the relief's sides, against the game's sun's 15.3 %), which is also the
+light of step 10's pictures in the strip beside it (their scenes take the game's sun, "How it works", step 10, the
+pictures' 1.: not a front light, so the nearest lit light is what keeps the live emblem at rest closest to its picture).
+35° up as Q79 began with fails by 25° left (0.031 of room); 20° left and 35° up keeps more room (0.089) but sits 23.6°
+from the game's sun. Held by `TheLiveEmblemsFaceStaysLitThroughTheSway` at every frame of a 60-a-second sway, the nine
+emblems, at least 0.05 of room (the game's sun failing the same measure). Its colours: the race's by step 10's rule, `LiveHeroViews.EmblemPalette =
+Emblems.PaletteOf` (the race's id in the data to a palette of the six `emblem.*` slots from its accent colour; null, the
+model's own). The engine's test shapes (`shapes.glb`) that stood in for the emblems before step 10 are only test data
+now (a test's own emblem by a name of its own: a mod's emblem named apart from its race).
+
+**The medallion** (`#races-emblem`; step 10's picture and this step's live view share it): the carousel's `Render` asks
+for the live view first (`ShowEmblem`) and puts the class `is-live` on the medallion when one shows, and asks step 10's
+`EmblemPictures` for the picture (`img#races-emblem-picture`), its ✦ hidden while a picture shows. `races.css` draws
+neither the picture nor the ✦ under `.is-live`. So: a race whose emblem's model is in the data shows its emblem live (in
+the game, every race with an emblem); one whose emblem has pictures but no model (a mod's, or a document whose views
+can't be live, the tests' screens) its picture, chosen for the medallion's device-pixel size (94 px at 1, 156 at 1.65);
+one with no emblem (Dev Mode's enemy-only races) the ✦. The live view's first picture is drawn in the frame its race is
+shown in (the views render after the document's update, before the paint), so no frame shows neither, and the CSS rule
+makes none show both; under a game window the view keeps its last picture. Held frame by frame as the window's host draws
+(`TheMedallionDrawsThePictureOrTheLiveEmblemNeverBothOrNeither`: opening, rocking, from race to race and to one with no
+emblem in Dev Mode, under a window, and on data without the models).
+
+**GM2-P33, the engine's two changes** (`Docs/Renderer-3D.md`, "3D views in the UI"): `Renderer3D` is `IDisposable` and
+frees its skinning arenas (device memory for the posed vertices of the frames in flight), and `View3D.Dispose` disposes
+it (every view let go had kept them: about 3.7 MiB a figure, measured here); `RenderTarget3D.ShadowMap` is made at its
+first shadow pass (`HasShadowMap`), so a view with nothing that receives shadows never makes the 64 MiB atlas. Every user of
+`Renderer3D` disposes it now (the tests' harnesses: `using var renderer`); the sandbox and the editor's previews dispose
+their views. `View3DMemoryTests`: a skinned figure's view made, rendered and disposed six times gives every byte back,
+its arenas in use while it lives; a view with no shadow pass never makes the atlas, one with scenery makes it (64 MiB) and
+gives it back. No reference picture moved (the full suite's comparisons on both drivers).
+
+**Against Blender** (`LiveViewReferenceTests`; `make-blender-references.sh`'s step 7): each screen's figure as the screen
+shows it at the game's first window (1440 × 950) at device scales 1 and 1.65, at 1 s of its stand: the sheet's hero (the
+tests' copy of the game's first man, Wayfarer), the carousel's first preset (the same), the maker's look after the tests'
+copy of the first woman's preset (Ranger) is picked. The tests write `Reference/live-view-looks.json` (`STATVENTURE_LIVE_VIEWS=write`: each look, its
+view's size, ground, scale and turn, the stand's moment; the portraits' own sun only where it isn't the game's), which
+`assemble.py` assembles and frames from the data on its own (its list scenes now take `background`, `scale` and `sun`)
+into `Reference/live-view-scenes.json`, rendered into `Golden/r3d-live-*.png`; the views hold the same models, palette and
+camera (within 10⁻⁴) and its place (raised by its ground), then the shading and the lines under
+`ReferenceLimits.DetailedFigure` (unchanged). The data: the committed packs without their presets and the live views' own
+(`Reference/live-view-data/`, written by the tests from the shipped data: the human race with step 9a's swatches and two
+presets, copies of the first man's and woman's as "Live man" and "Live woman"), so a later change of the shipped human's
+swatches or presets doesn't move them. Measured on the shipped data's copies (GPU / lavapipe where they differ; the
+closest to its limit the carousel's edges at 1.65, 85 of 281 pixels):
+
+| Sample | Size | Inside | Edge | Edges' mean | Missed | Extra | Unlike | Coverage |
+|---|---|---|---|---|---|---|---|---|
+| sheet, 1 | 308 × 438 | 3 | 36 / 37 | 2.4 | 0.02 % | 0.11 % / 0.12 % | 0.10 % / 0.08 % | 0.076 |
+| sheet, 1.65 | 509 × 724 | 25 / 23 | 92 / 95 | 2.3 / 2.2 | 0.04 % | 0.27 % | 0.54 % | 0.056 |
+| carousel, 1 | 278 × 408 | 6 / 4 | 31 / 32 | 2.6 | 0 / 0.02 % | 0.12 % / 0.13 % | 0.47 % | 0.076 |
+| carousel, 1.65 | 460 × 674 | 9 | 82 / 85 | 2.4 | 0.05 % | 0.17 % | 0.65 % | 0.056 |
+| maker, 1 | 328 × 536 | 15 | 23 / 22 | 2.5 / 2.4 | 0.07 % | 0.01 % | 0.56 % | 0.069 |
+| maker, 1.65 | 542 × 886 | 43 / 40 | 80 / 84 | 2.3 | 0.05 % | 0.19 % | 0.36 % | 0.050 |
+| limit (`DetailedFigure`) | | 1 in 4,200 | 1 in 1,100 | 4 | 2 % | 3 % | 8.3 % | 0.12 |
+
+**The live emblems against Blender** (the manager's GM2-P47, 2026-11-22): the scene each of the nine live emblems' views
+holds (step 10's pictures' camera, Q80, Q79's light, the race's palette, the pose 1 s into the sway, 24.7° to the right;
+written as `Reference/live-emblem-scenes.json`, rendered on a ground of `#2a1f1a`) is held to Blender at 640 × 640, step
+10's renders' size, under the live emblems' own limits, `ReferenceLimits.LiveEmblem` (the user's Q81: the emblems' with
+missed lines 3.6 % and inside pixels one in 3,100, until Q70's engine task; `LiveViewReferenceTests.EmblemSize`; the
+18 renders at the carousel's own
+sizes first made, 36 files with their ink, were taken out for the nine at 640, 18 files). Why 640: at 94 or 156 px
+Blender's own render was never an approved look (GM2-P34: the small pictures are the 640 px render scaled down, because
+Freestyle's lines swallow an emblem rendered that small), and the emblems' limits were measured at 640 (Q70). Against
+Blender's direct small renders (with the level camera first built) 7 of the 18 had been past `Emblem`: dark elf at 94 px (the edges' mean 4.1) and 156 px
+(missed lines 169 of 6,005, 2.8 %), half-beast at 94 (4.4), elf at 94 (9 / 12 edge pixels past 0.7 of their contrast,
+8 allowed), merfolk at 94 (4.5) and 156 (4.4), dwarf at 94 (4.0, on lavapipe). At 640 with the level camera the turned
+scenes still parted (missed lines up to 3.24 %, the human's and the dark elf's; inside pixels 105 on lavapipe) and the
+face-on ones more (0 of 9: inside 117–139, unlike ink up to 33 %), the relief's horizontal faces exactly edge-on: so Q80's
+camera, then Q81's limits. Measured with them, all nine within `LiveEmblem` on both drivers (the worst, GPU / lavapipe:
+inside pixels 97 / 120 of the 132 allowed, edge pixels 33 / 32, the edges' mean 3.6, missed lines 3.28 %, the dark elf's
+crescent, extra 8.7 / 9.0 %, total ink 11.1 %, coverage 0.125, unlike ink 6.8 %; per emblem in
+`claude-work/gm2/step11/approval/emblem-limits/table-q81.md`). `TheLiveEmblemsLimitsAreTheEmblemsWidenedWhereMeasured`
+holds the set; `EachOfTheLiveEmblemsWidenedLimitsBites`: the dark elf fails under the emblems' 2 % missed lines, the elf
+under one inside pixel in 4,300, each passing under the set.
+
+**The carousel's own sizes, a measured record** (GM2-P47; `TheLiveEmblemsAtTheirOwnSizesAreMeasuredAgainstTheirLargeRenderScaledDown`,
+its numbers in the test's output): each live emblem drawn at 94 px (scale 1) and 156 px (1.65) against its own 640 px
+render scaled down by GM2-P34's filter (Lanczos of three lobes, premultiplied: as step 10's pictures are made), the
+shading with the lines off and the lines alone, with no limit. None of the project's limit sets is met by all 18 (`M6`,
+`DetailedStage`, `DetailedFigure` and `Emblem`: 0 of 18 each), so it is a record, not a pass or fail. The lines part most:
+the 640 render's 3 px lines scaled down are 0.4 px (94) and 0.7 px (156) wide, so the scaled reference has few pixels of
+half a line's cover (14 and about 400) and the small render's own 3 px lines are "extra" against it. As measured on
+2026-11-22 with Q80's camera (GPU / lavapipe where they differ; "yes": past `Emblem` against Blender's direct small
+render, as measured first with the level camera):
+
+| Emblem, size | Edges' mean | Edge pixels past 0.7 | Missed lines | Extra lines | Past `Emblem` against Blender's direct render |
+|---|---|---|---|---|---|
+| human, 94 px | 4.8 | 0 | 0 | 1936 of 2047 (95 %) / 1917 of 2028 (95 %) |  |
+| human, 156 px | 4.7 | 14 | 0 | 3895 of 5765 (68 %) / 3907 of 5765 (68 %) |  |
+| elf, 94 px | 5.0 / 5.1 | 3 | 0 | 1947 of 2077 (94 %) / 1897 of 2027 (94 %) | yes |
+| elf, 156 px | 4.7 | 16 | 0 | 4070 of 5832 (70 %) / 4065 of 5827 (70 %) |  |
+| dark-elf, 94 px | 5.7 | 1 | 0 | 2009 of 2113 (95 %) / 1990 of 2094 (95 %) | yes |
+| dark-elf, 156 px | 5.1 | 12 | 0 | 3818 of 5926 (64 %) / 3823 of 5926 (65 %) | yes |
+| dwarf, 94 px | 5.6 | 2 | 0 | 1895 of 2017 (94 %) / 1885 of 1998 (94 %) | yes |
+| dwarf, 156 px | 5.5 | 22 | 0 | 3769 of 5517 (68 %) / 3779 of 5524 (68 %) |  |
+| hobbit, 94 px | 4.7 / 4.6 | 0 | 0 | 1803 of 1901 (95 %) / 1784 of 1882 (95 %) |  |
+| hobbit, 156 px | 4.6 | 15 | 0 | 3543 of 5210 (68 %) / 3542 of 5210 (68 %) |  |
+| lizardman, 94 px | 5.3 / 5.2 | 0 | 0 | 1642 of 1740 (94 %) / 1623 of 1721 (94 %) |  |
+| lizardman, 156 px | 5.0 | 15 | 0 | 3340 of 5000 (67 %) / 3343 of 5000 (67 %) |  |
+| half-beast, 94 px | 5.8 | 5 | 0 | 1782 of 1880 (95 %) / 1763 of 1861 (95 %) | yes |
+| half-beast, 156 px | 5.2 | 28 / 27 | 0 | 4088 of 5685 (72 %) / 4098 of 5683 (72 %) |  |
+| goliath, 94 px | 4.8 | 3 | 0 | 1875 of 1977 (95 %) / 1846 of 1948 (95 %) |  |
+| goliath, 156 px | 4.6 | 16 / 17 | 0 | 3895 of 5584 (70 %) / 3898 of 5584 (70 %) |  |
+| merfolk, 94 px | 6.2 | 0 | 0 | 1680 of 1778 (94 %) / 1661 of 1759 (94 %) | yes |
+| merfolk, 156 px | 6.1 | 10 | 0 | 3408 of 4994 (68 %) / 3409 of 4992 (68 %) | yes |
+
+**The memory and the per-frame cost** (a scratch probe, the screens with their live views at 1440 × 950, medians of 200
+frames, the document's frame and the views' render, submit and wait; GPU memory as the allocator's bytes held with the
+views against none; the machine shared with other workers; `claude-work/gm2/step11/measure-live-*.txt`):
+
+| Screen | Views | GPU memory | A frame (GPU) | A frame (lavapipe) |
+|---|---|---|---|---|
+| sheet, 1 | 308 × 438 | 24.6 MiB (lavapipe 23.4) | 0.56 ms | 29.5 ms |
+| carousel, 1 | 278 × 408 and the emblem 94 × 94 | 24.3 MiB (21.9) | 0.38 ms | 30.0 ms |
+| maker, 1 | 328 × 536 | 32.3 MiB (28.3) | 0.34 ms | 26.9 ms |
+| sheet, 1.65 | 509 × 724 | 54.3 MiB (51.8) | 0.43 ms | 31.4 ms |
+| carousel, 1.65 | 460 × 674 and 156 × 156 | 54.1 MiB (48.0) | 0.51 ms | 32.0 ms |
+| maker, 1.65 | 542 × 886 | 70.9 MiB (65.5) | 0.47 ms | 34.0 ms |
+
+No shadow atlas in any of them (before GM2-P33: 64 MiB more a view, 128 for the carousel); all of it given back to the
+byte when the screen goes. Of a frame, the document's update with the scenes' advance (posing) is 0.09–0.13 ms (lavapipe
+0.15–0.19 ms); the rest
+is the views' render (on lavapipe nearly all of it). Paused under a window a frame costs 0.03 ms (lavapipe 0.01).
+
+**Tests** (game, 45: `LiveViewsTests` 22, `LiveViewsLogTests` 1, `LiveViewsProgramTests` 1, `LiveViewReferenceTests` 21;
+engine, 2: `View3DMemoryTests`): what each screen shows live and when, the figure standing as the machine says (by its
+soles), the portraits' view, framing (with gear on), ground, style and sun, the three ways of Q68, every change of the
+maker drawn at once in the same view (colours in place; other parts, another body or build, or a preset built again; a
+refusal letting the figure go), the pause under a window and while hidden (a view made under a window waiting too), the
+release and the memory given back (a figure rebuilt in place too), a refused look logged once and nothing crashing, a
+broken machine or look, the emblem's rocking (Q78's 8 s), its camera (Q80), its light keeping the face lit through the
+sway (Q79, the nine emblems at every frame), its palette by step 10's rule (by the race's id, its model by the emblem's
+name) and model rule, the medallion drawing the picture or the live emblem, never both or neither, frame by frame, the
+program's screens taking live views and a windowless document none, the live views' data written from the shipped data,
+the Blender comparisons (the six figures; the nine emblems at 640 px under `LiveEmblem`, its set and each widened limit
+biting), and the record of the emblems at their own sizes.
+
+**Shown able to fail** (`mutate.py` under the shared lock in a headless cage; `claude-work/gm2/step11/mutations.json`,
+made by `make-mutations.py`): 78 mutations of every rule the step adds: GM2-P33's two engine changes (5), the portraits
+(the user's answer, the turn, the sun, the framing's every term, the rest points of the body, the garments and the items),
+the views (a null look, the preset, a refusal said once and again after the screen hid, the same look, colours in place
+and what may not be recoloured, the rebuild in place, a refusal, the clock, the machine, the garments, the palette, the
+framing again, the old figure's models, the turn and the sun of the facing, the release from the surfaces, the frames and
+the device, the pause and each of its causes, a view made under a window, the ground and its premultiplication, the
+resize observer, the size's rounding, a broken look, a broken machine, the emblem's model rule, its view kept, its
+palette seam, its middle, its rocking, sway, period, direction, framing and motion, its model's disposal, `For`) and the
+screens' wiring. The first run: 68 killed, 8 survived, 2 that didn't build (a loop's body taken away); seven survivors were
+gaps, closed (the palette kept on a save, other parts and another body built again, a refusal after a shown figure, a
+figure rebuilt in place giving its models back, a view made under a window, the palette asked by the race's id where the
+emblem's name differs) and the two rewritten: **the rerun killed 9 of the 10; the standing list 78, 77 killed, one that
+can't differ:** the far plane render.py takes, `max(50, distance + reach + 10)`, is 50 for any figure under about 17 m
+(kept for Blender's parity). **Again after the rebase on the figure's ground and step 9a** (`mutations-9a.json`, 81: the
+rest points by the engine's `ModelData.RestPoints`, the figure raised by its ground, its items, the ground taken from
+the builder): 80 killed, the far plane the one that can't differ. **The second round** (`mutations-r2.json`, made by
+`make-mutations-r2.py`, 29: every rule of the live emblem on step 10's models, run again on them, its palette rule's
+wiring, Q78's period, Q79's light (the game's sun in its place, its direction, elevation, side and strength), Q80's
+camera (level, framed tight), GM2-P47's size and pose in the scenes and the comparison, Q81's set (the comparison under
+`Emblem` instead, either limit widened further) and the medallion's live class never or always set): **29 of 29
+killed**. **After the last rebase** (`mutations-final.json`, "contacts kept"): the clip library loaded without its keyed
+body, killed (1 of 1); the models packs' list in the live views' data can't differ while only `models.pak` is
+committed. *`assemble.py`'s list rules* (`assemble-rules.py`, each break applied to a copy of the
+scripts and run through the pinned Blender): the live views' list and step 5's both assemble to their committed scenes
+unchanged, and 4 of 4 breaks killed (a scene's scale, background or sun ignored, the sun's strength dropped). Nothing
+written to the player's real folders.
+
+**Approval** (`claude-work/gm2/step11/approval/`): the portraits' three ways for Q68 (`portraits/`, with a README) and the
+videos of the three screens on the shipped data after step 9a (`videos/`, LIST.md: the sheet; the carousel with the
+stand-in emblem's sway; the maker with two presets, the builds, a colour, a hair and random looks), for the user. The
+videos made before 9a are kept in `videos-pre-9a/`.
+
+**For later steps.** *Step 10:* the models at `models/humanoid/emblems/<emblem>` (above); the palette rule into
+`LiveHeroViews.EmblemPalette` where the screens make their views (`LiveHeroViews.For`); the emblem's live comparison adds a
+sample (`LiveViewReferenceTests.EmblemSamples`) on the real model. *Step 9 and the second round:* the bodies, parts and
+presets in the data show with no code change; the live views' tests keep their own copy of the human and two presets
+(written again with `STATVENTURE_LIVE_VIEWS=write` when wanted). *GM3:* the gear's garments and items frame with the
+figure already (`Portraits.RestPoints`); `ShowFigure` takes a look only: the gear comes in with `FigureGear` when GM3
+gives the sheet its equipment.
 
 ### Step 10: the nine emblems in the repo (2026-11-20 to 22, the branch `gm2-step10`)
 
@@ -5251,3 +5585,17 @@ extrusions.
   breaks of 15 (the evaluation, `clip_contacts.py`, `render.py`'s `pose_at`, the library's contacts). The user saw the
   clips played by the rule on the hobbit's slender and the Goliath's strong body and approved them (Q59's showing,
   2026-11-22: step 9's approval stop for Q59 passed).
+- **2026-11-23, step 11 done** (a worker, the branch `gm2-step11`, rebased last on `main` `8e583b6`; "How it works", step
+  11): the live views of the sheet, the race carousel and the maker (`LiveHeroViews`): the figures standing by their soles
+  (Q57) facing the screen's left (the user's Q68), every change of the maker drawn at once in the same view, paused when
+  covered or hidden, let go with their screens and their memory given back; the carousel's live emblem, step 10's nine,
+  rocking (Q67, Q78: 8 s) under its own light from the front (Q79) seen by step 10's pictures' camera (Q80), the
+  medallion showing it, its picture or the ✦, never two nor none; an empty panel for Dev Mode's enemy-only races (Q69).
+  Approved by the user: the three screens ("Yes, all three screens") and the live emblem ("Yes, it is right"), 2026-11-22.
+  With the manager's GM2-P33, two engine changes (a view's renderer disposed with it; the 64 MiB shadow atlas only for a
+  view with a shadow pass) and GM2-P47 (the live emblems held to Blender at 640 px, their own sizes a measured record).
+  Each screen's figure held to Blender at 1 and 1.65 under `DetailedFigure`; the nine emblems under the user's Q81's
+  `ReferenceLimits.LiveEmblem` (missed lines 3.6 %, inside one in 3,100: the dark elf's crescent contour and the beads at
+  the band's edge joined Q70's engine task). 5391 + 1131 = 6522 tests on the GPU and on lavapipe (`main` `8e583b6`: 5389 +
+  1086 = 6475; 47 new: 2 the engine's, 45 the game's), none held; mutations: the first list 78 (77 killed, one that can't
+  differ), again after 9a 81 (80), the second round 29 (29), the last rebase 1 (1); `assemble.py`'s list rules 4 of 4.

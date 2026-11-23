@@ -357,7 +357,7 @@ public class AssemblyTests(GpuFixture gpu)
     {
         var style = lines ? view.Style : view.Style with { OutlineWidth = 0, InnerWidth = 0 };
         using var target = new RenderTarget3D(device, width, height);
-        var renderer = new Renderer3D(device) { InkCoverageOnly = inkOnly };
+        using var renderer = new Renderer3D(device) { InkCoverageOnly = inkOnly };
         var frame = device.BeginFrame();
         renderer.Render(frame, target, view.Camera, view.Items, view.Background ?? Vector4.Zero, view.Sun, style, 1, view.Time, view.Particles);
         device.EndFrame(frame);

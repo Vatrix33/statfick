@@ -427,7 +427,7 @@ public class FigureReferenceTests(GpuFixture gpu)
         var style = lines ? view.Style : view.Style with { OutlineWidth = 0, InnerWidth = 0 };
         int w = figure.Spec.Width, h = figure.Spec.Height;
         using var target = new RenderTarget3D(device, w, h);
-        var renderer = new Renderer3D(device) { InkCoverageOnly = inkOnly };
+        using var renderer = new Renderer3D(device) { InkCoverageOnly = inkOnly };
         var frame = device.BeginFrame();
         renderer.Render(frame, target, view.Camera, view.Items, view.Background ?? Vector4.Zero, view.Sun, style, 1, view.Time, view.Particles);
         device.EndFrame(frame);

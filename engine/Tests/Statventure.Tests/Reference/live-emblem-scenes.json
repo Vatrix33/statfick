@@ -1,0 +1,979 @@
+{
+  "modelFolder": "../../..",
+  "terrainFolder": ".",
+  "shapes": {},
+  "scenes": [
+    {
+      "name": "live-emblem-human",
+      "width": 640,
+      "height": 640,
+      "background": "#2a1f1a",
+      "camera": {
+        "projection": "orthographic",
+        "position": [
+          0,
+          0.35,
+          4
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 45,
+        "orthographicHeight": 0.24,
+        "near": 0.1,
+        "far": 50
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "Assets/Models/humanoid/emblems/human.glb",
+          "matrix": [
+            [
+              0.9081524,
+              0,
+              -0.41863975,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0.41863975,
+              0,
+              0.9081524,
+              0
+            ],
+            [
+              -0.0012358244,
+              0,
+              -0.0026808656,
+              1
+            ]
+          ],
+          "scenery": false,
+          "pose": null,
+          "group": "emblem",
+          "anchor": [
+            -0.0012358244,
+            0,
+            -0.0026808656
+          ],
+          "objects": null,
+          "clipTime": null,
+          "palette": null
+        }
+      ],
+      "palette": {
+        "emblem.accent": "#cc7b53",
+        "emblem.cut": "#2b1b12",
+        "emblem.field": "#633622",
+        "emblem.high": "#e1d3ad",
+        "emblem.metal": "#bb8d3c",
+        "emblem.rim": "#bb8d3c"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          -0.36599815,
+          0.5,
+          0.7848855
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#080605",
+        "shadowMix": 0.58,
+        "bandEdge": 0.36,
+        "outlineWidth": 3,
+        "innerWidth": 1.8,
+        "creaseAngle": 120,
+        "hatchSpacing": 5,
+        "hatchWidth": 1.2,
+        "hatchAngle": 72,
+        "hatchInk": 0.5,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1,
+      "terrain": null,
+      "time": 0,
+      "particles": []
+    },
+    {
+      "name": "live-emblem-elf",
+      "width": 640,
+      "height": 640,
+      "background": "#2a1f1a",
+      "camera": {
+        "projection": "orthographic",
+        "position": [
+          0,
+          0.35,
+          4
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 45,
+        "orthographicHeight": 0.24,
+        "near": 0.1,
+        "far": 50
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "Assets/Models/humanoid/emblems/elf.glb",
+          "matrix": [
+            [
+              0.9081524,
+              0,
+              -0.41863975,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0.41863975,
+              0,
+              0.9081524,
+              0
+            ],
+            [
+              -0.0017415396,
+              0,
+              -0.0037779103,
+              1
+            ]
+          ],
+          "scenery": false,
+          "pose": null,
+          "group": "emblem",
+          "anchor": [
+            -0.0017415396,
+            0,
+            -0.0037779103
+          ],
+          "objects": null,
+          "clipTime": null,
+          "palette": null
+        }
+      ],
+      "palette": {
+        "emblem.accent": "#869381",
+        "emblem.cut": "#231e18",
+        "emblem.field": "#3f423a",
+        "emblem.high": "#e1d3ad",
+        "emblem.metal": "#bb8d3c",
+        "emblem.rim": "#bb8d3c"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          -0.36599815,
+          0.5,
+          0.7848855
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#080605",
+        "shadowMix": 0.58,
+        "bandEdge": 0.36,
+        "outlineWidth": 3,
+        "innerWidth": 1.8,
+        "creaseAngle": 120,
+        "hatchSpacing": 5,
+        "hatchWidth": 1.2,
+        "hatchAngle": 72,
+        "hatchInk": 0.5,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1,
+      "terrain": null,
+      "time": 0,
+      "particles": []
+    },
+    {
+      "name": "live-emblem-dark-elf",
+      "width": 640,
+      "height": 640,
+      "background": "#2a1f1a",
+      "camera": {
+        "projection": "orthographic",
+        "position": [
+          0,
+          0.35,
+          4
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 45,
+        "orthographicHeight": 0.24,
+        "near": 0.1,
+        "far": 50
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "Assets/Models/humanoid/emblems/dark-elf.glb",
+          "matrix": [
+            [
+              0.9081524,
+              0,
+              -0.41863975,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0.41863975,
+              0,
+              0.9081524,
+              0
+            ],
+            [
+              -0.0012358244,
+              0,
+              -0.0026808656,
+              1
+            ]
+          ],
+          "scenery": false,
+          "pose": null,
+          "group": "emblem",
+          "anchor": [
+            -0.0012358244,
+            0,
+            -0.0026808656
+          ],
+          "objects": null,
+          "clipTime": null,
+          "palette": null
+        }
+      ],
+      "palette": {
+        "emblem.accent": "#8a7586",
+        "emblem.cut": "#231a18",
+        "emblem.field": "#41333c",
+        "emblem.high": "#e1d3ad",
+        "emblem.metal": "#bb8d3c",
+        "emblem.rim": "#bb8d3c"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          -0.36599815,
+          0.5,
+          0.7848855
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#080605",
+        "shadowMix": 0.58,
+        "bandEdge": 0.36,
+        "outlineWidth": 3,
+        "innerWidth": 1.8,
+        "creaseAngle": 120,
+        "hatchSpacing": 5,
+        "hatchWidth": 1.2,
+        "hatchAngle": 72,
+        "hatchInk": 0.5,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1,
+      "terrain": null,
+      "time": 0,
+      "particles": []
+    },
+    {
+      "name": "live-emblem-dwarf",
+      "width": 640,
+      "height": 640,
+      "background": "#2a1f1a",
+      "camera": {
+        "projection": "orthographic",
+        "position": [
+          0,
+          0.35,
+          4
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 45,
+        "orthographicHeight": 0.24,
+        "near": 0.1,
+        "far": 50
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "Assets/Models/humanoid/emblems/dwarf.glb",
+          "matrix": [
+            [
+              0.9081524,
+              0,
+              -0.41863975,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0.41863975,
+              0,
+              0.9081524,
+              0
+            ],
+            [
+              -0.0012358244,
+              0,
+              -0.0026808656,
+              1
+            ]
+          ],
+          "scenery": false,
+          "pose": null,
+          "group": "emblem",
+          "anchor": [
+            -0.0012358244,
+            0,
+            -0.0026808656
+          ],
+          "objects": null,
+          "clipTime": null,
+          "palette": null
+        }
+      ],
+      "palette": {
+        "emblem.accent": "#9a7b5f",
+        "emblem.cut": "#251b14",
+        "emblem.field": "#493628",
+        "emblem.high": "#e1d3ad",
+        "emblem.metal": "#bb8d3c",
+        "emblem.rim": "#bb8d3c"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          -0.36599815,
+          0.5,
+          0.7848855
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#080605",
+        "shadowMix": 0.58,
+        "bandEdge": 0.36,
+        "outlineWidth": 3,
+        "innerWidth": 1.8,
+        "creaseAngle": 120,
+        "hatchSpacing": 5,
+        "hatchWidth": 1.2,
+        "hatchAngle": 72,
+        "hatchInk": 0.5,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1,
+      "terrain": null,
+      "time": 0,
+      "particles": []
+    },
+    {
+      "name": "live-emblem-hobbit",
+      "width": 640,
+      "height": 640,
+      "background": "#2a1f1a",
+      "camera": {
+        "projection": "orthographic",
+        "position": [
+          0,
+          0.35,
+          4
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 45,
+        "orthographicHeight": 0.24,
+        "near": 0.1,
+        "far": 50
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "Assets/Models/humanoid/emblems/hobbit.glb",
+          "matrix": [
+            [
+              0.9081524,
+              0,
+              -0.41863975,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0.41863975,
+              0,
+              0.9081524,
+              0
+            ],
+            [
+              -0.0012358244,
+              0,
+              -0.0026808656,
+              1
+            ]
+          ],
+          "scenery": false,
+          "pose": null,
+          "group": "emblem",
+          "anchor": [
+            -0.0012358244,
+            0,
+            -0.0026808656
+          ],
+          "objects": null,
+          "clipTime": null,
+          "palette": null
+        }
+      ],
+      "palette": {
+        "emblem.accent": "#969878",
+        "emblem.cut": "#251e16",
+        "emblem.field": "#474535",
+        "emblem.high": "#e1d3ad",
+        "emblem.metal": "#bb8d3c",
+        "emblem.rim": "#bb8d3c"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          -0.36599815,
+          0.5,
+          0.7848855
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#080605",
+        "shadowMix": 0.58,
+        "bandEdge": 0.36,
+        "outlineWidth": 3,
+        "innerWidth": 1.8,
+        "creaseAngle": 120,
+        "hatchSpacing": 5,
+        "hatchWidth": 1.2,
+        "hatchAngle": 72,
+        "hatchInk": 0.5,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1,
+      "terrain": null,
+      "time": 0,
+      "particles": []
+    },
+    {
+      "name": "live-emblem-lizardman",
+      "width": 640,
+      "height": 640,
+      "background": "#2a1f1a",
+      "camera": {
+        "projection": "orthographic",
+        "position": [
+          0,
+          0.35,
+          4
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 45,
+        "orthographicHeight": 0.24,
+        "near": 0.1,
+        "far": 50
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "Assets/Models/humanoid/emblems/lizardman.glb",
+          "matrix": [
+            [
+              0.9081524,
+              0,
+              -0.41863975,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0.41863975,
+              0,
+              0.9081524,
+              0
+            ],
+            [
+              -0.0012358244,
+              0,
+              -0.0026808656,
+              1
+            ]
+          ],
+          "scenery": false,
+          "pose": null,
+          "group": "emblem",
+          "anchor": [
+            -0.0012358244,
+            0,
+            -0.0026808656
+          ],
+          "objects": null,
+          "clipTime": null,
+          "palette": null
+        }
+      ],
+      "palette": {
+        "emblem.accent": "#7c8f76",
+        "emblem.cut": "#221d16",
+        "emblem.field": "#3a4034",
+        "emblem.high": "#e1d3ad",
+        "emblem.metal": "#bb8d3c",
+        "emblem.rim": "#bb8d3c"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          -0.36599815,
+          0.5,
+          0.7848855
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#080605",
+        "shadowMix": 0.58,
+        "bandEdge": 0.36,
+        "outlineWidth": 3,
+        "innerWidth": 1.8,
+        "creaseAngle": 120,
+        "hatchSpacing": 5,
+        "hatchWidth": 1.2,
+        "hatchAngle": 72,
+        "hatchInk": 0.5,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1,
+      "terrain": null,
+      "time": 0,
+      "particles": []
+    },
+    {
+      "name": "live-emblem-half-beast",
+      "width": 640,
+      "height": 640,
+      "background": "#2a1f1a",
+      "camera": {
+        "projection": "orthographic",
+        "position": [
+          0,
+          0.35,
+          4
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 45,
+        "orthographicHeight": 0.24,
+        "near": 0.1,
+        "far": 50
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "Assets/Models/humanoid/emblems/half-beast.glb",
+          "matrix": [
+            [
+              0.9081524,
+              0,
+              -0.41863975,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0.41863975,
+              0,
+              0.9081524,
+              0
+            ],
+            [
+              -0.0012358244,
+              0,
+              -0.0026808656,
+              1
+            ]
+          ],
+          "scenery": false,
+          "pose": null,
+          "group": "emblem",
+          "anchor": [
+            -0.0012358244,
+            0,
+            -0.0026808656
+          ],
+          "objects": null,
+          "clipTime": null,
+          "palette": null
+        }
+      ],
+      "palette": {
+        "emblem.accent": "#a77d53",
+        "emblem.cut": "#271b12",
+        "emblem.field": "#503722",
+        "emblem.high": "#e1d3ad",
+        "emblem.metal": "#bb8d3c",
+        "emblem.rim": "#bb8d3c"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          -0.36599815,
+          0.5,
+          0.7848855
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#080605",
+        "shadowMix": 0.58,
+        "bandEdge": 0.36,
+        "outlineWidth": 3,
+        "innerWidth": 1.8,
+        "creaseAngle": 120,
+        "hatchSpacing": 5,
+        "hatchWidth": 1.2,
+        "hatchAngle": 72,
+        "hatchInk": 0.5,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1,
+      "terrain": null,
+      "time": 0,
+      "particles": []
+    },
+    {
+      "name": "live-emblem-goliath",
+      "width": 640,
+      "height": 640,
+      "background": "#2a1f1a",
+      "camera": {
+        "projection": "orthographic",
+        "position": [
+          0,
+          0.35,
+          4
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 45,
+        "orthographicHeight": 0.24,
+        "near": 0.1,
+        "far": 50
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "Assets/Models/humanoid/emblems/goliath.glb",
+          "matrix": [
+            [
+              0.9081524,
+              0,
+              -0.41863975,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0.41863975,
+              0,
+              0.9081524,
+              0
+            ],
+            [
+              -0.0013396449,
+              0,
+              -0.0029060827,
+              1
+            ]
+          ],
+          "scenery": false,
+          "pose": null,
+          "group": "emblem",
+          "anchor": [
+            -0.0013396449,
+            0,
+            -0.0029060827
+          ],
+          "objects": null,
+          "clipTime": null,
+          "palette": null
+        }
+      ],
+      "palette": {
+        "emblem.accent": "#8f8a7d",
+        "emblem.cut": "#241c17",
+        "emblem.field": "#443e37",
+        "emblem.high": "#e1d3ad",
+        "emblem.metal": "#bb8d3c",
+        "emblem.rim": "#bb8d3c"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          -0.36599815,
+          0.5,
+          0.7848855
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#080605",
+        "shadowMix": 0.58,
+        "bandEdge": 0.36,
+        "outlineWidth": 3,
+        "innerWidth": 1.8,
+        "creaseAngle": 120,
+        "hatchSpacing": 5,
+        "hatchWidth": 1.2,
+        "hatchAngle": 72,
+        "hatchInk": 0.5,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1,
+      "terrain": null,
+      "time": 0,
+      "particles": []
+    },
+    {
+      "name": "live-emblem-merfolk",
+      "width": 640,
+      "height": 640,
+      "background": "#2a1f1a",
+      "camera": {
+        "projection": "orthographic",
+        "position": [
+          0,
+          0.35,
+          4
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 45,
+        "orthographicHeight": 0.24,
+        "near": 0.1,
+        "far": 50
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "Assets/Models/humanoid/emblems/merfolk.glb",
+          "matrix": [
+            [
+              0.9081524,
+              0,
+              -0.41863975,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0.41863975,
+              0,
+              0.9081524,
+              0
+            ],
+            [
+              -0.0012358244,
+              0,
+              -0.0026808656,
+              1
+            ]
+          ],
+          "scenery": false,
+          "pose": null,
+          "group": "emblem",
+          "anchor": [
+            -0.0012358244,
+            0,
+            -0.0026808656
+          ],
+          "objects": null,
+          "clipTime": null,
+          "palette": null
+        }
+      ],
+      "palette": {
+        "emblem.accent": "#67a490",
+        "emblem.cut": "#1f201a",
+        "emblem.field": "#2f4b42",
+        "emblem.high": "#e1d3ad",
+        "emblem.metal": "#bb8d3c",
+        "emblem.rim": "#bb8d3c"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          -0.36599815,
+          0.5,
+          0.7848855
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#080605",
+        "shadowMix": 0.58,
+        "bandEdge": 0.36,
+        "outlineWidth": 3,
+        "innerWidth": 1.8,
+        "creaseAngle": 120,
+        "hatchSpacing": 5,
+        "hatchWidth": 1.2,
+        "hatchAngle": 72,
+        "hatchInk": 0.5,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1,
+      "terrain": null,
+      "time": 0,
+      "particles": []
+    }
+  ]
+}

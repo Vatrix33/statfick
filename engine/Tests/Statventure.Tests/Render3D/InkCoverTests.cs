@@ -138,7 +138,7 @@ public class InkCoverTests(GpuFixture gpu)
             foreach (var (model, owner) in loaded)
                 model.Draw(items, Matrix4x4.Identity, owner: owner);
             using var target = new RenderTarget3D(device, width, height);
-            var renderer = new Renderer3D(device) { InkCoverageOnly = true };
+            using var renderer = new Renderer3D(device) { InkCoverageOnly = true };
             var frame = device.BeginFrame();
             renderer.Render(frame, target, camera, items, new Vector4(0.5f, 0.5f, 0.5f, 1), new SunLight(new(1, 1.1f, 0.7f), 3));
             device.EndFrame(frame);

@@ -164,8 +164,16 @@ public sealed class View3D(GpuDevice device) : IDisposable
         return new Pick3D(owner, (int)((record[0] >> 10) & 255), BitConverter.UInt32BitsToSingle(record[1]));
     }
 
+    /// <summary>Its renderer (the tests' look at what it holds).</summary>
+    internal Renderer3D Renderer => _renderer;
+
+    /// <summary>Its target (null before its first picture; the tests' look at it).</summary>
+    internal RenderTarget3D? Target => _target;
+
+    /// <summary>Gives back everything it made on the device: its renderer's skinning arenas, its target, its picture and its records' copies.</summary>
     public void Dispose()
     {
+        _renderer.Dispose();
         _target?.Dispose();
         _picture?.Dispose();
         foreach (var records in _records)
