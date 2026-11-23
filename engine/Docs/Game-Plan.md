@@ -2871,3 +2871,7 @@ GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detai
   ("GM2's detail round"); the manager's GM2-P33 (the engine item "the shadow atlas only where something receives
   shadows" done, and a view's renderer disposed with it); Q70's engine item joined by the turned live emblem ("Engine items
   the port will meet"). 5391 + 1131 = 6522 tests on the GPU and on lavapipe (47 new).
+- **2026-11-23, GM2's task "the keying kit" (GM2-P23, the branch `gm2-keying-kit`):** the manager's clip keying scripts in
+  the repo (`Tools/Models/humanoid/clips/kit/`; `make-humanoid.sh keys`, `measure`, `clip-video`), the 34 approved clips
+  its output byte for byte, every clip measured before it is shown and held to the family's bounds (the worst the 34
+  measure) (`Docs/Game/Hero.md`, "How it works", "The keying kit"). 5395 + 1131 = 6526 tests on the GPU and lavapipe (4 new).

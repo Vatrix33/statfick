@@ -93,9 +93,19 @@ the user and wait for their go-ahead before starting the next one.
   <library.glb>` keys a folder of clip files (`clips/library.py` gives their form; the frame's test clip `rest-sway` is the
   tests' data); `Tools/Scripts/make-models-pack.sh` makes `Assets/Packs/models.pak` afresh from `Assets/Models/`. Since step 4b
   (`Docs/Game/Hero.md`, "How it works", step 4b) the family's 34 approved clips are data in `Tools/Models/humanoid/clips/`
-  (the manager's, as keyed; the keying scripts come later, GM2-P23), built by the manifest's `clips` into
+  (the manager's, as keyed), built by the manifest's `clips` into
   `Assets/Models/humanoid/clips.glb` (`models.pak`'s `models/humanoid/clips`), held to Blender on both bodies
-  (`AnimationScenes`' `humanoid-<clip>-male|female`); the figures' small state machine is
+  (`AnimationScenes`' `humanoid-<clip>-male|female`). Since GM2-P23's task (`Docs/Game/Hero.md`, "How it works", "The
+  keying kit") they are the output of the keying kit `Tools/Models/humanoid/clips/kit/`, byte for byte:
+  `make-humanoid.sh keys [--check | --out <folder>] [clip ...]` writes the clips' keying sources (the clip modules, plain
+  Python) and bakes them on the man built by the family's builders (Blender) into `clips/<clip>.json` with their hashes in
+  `clips/kit/keyed.json` (`--check`: into scratch, compared byte for byte; about 11 s), `measure [--record | --check |
+  --series <clip> <L|R> <from> <to> | --parts <clip> <frames>] [clip ...]` measures a clip before anyone sees it (each arm's
+  wrist bend and forearm turn, jumps between keys, grips out of reach or in the trunk, every frame against the ground; the
+  family's bounds `clips/kit/bounds.json`, the worst the 34 measure; `measures.json`), `clip-video --out <folder> <clip>
+  [--every N] [--hold <stance>] [--gear <list>] [--plain]` renders it on a floor in the game's look (a video and a strip);
+  `check` with no names runs `keys --check` and `measure --check` too; `HumanoidKeyingKitTests` holds the records and the
+  bounds without Blender. The figures' small state machine is
   `Assets/Models/humanoid/machines/figure.json` (`models/humanoid/machines/figure`: `stand` looped, Q57). The
   figures are held to Blender's under `ReferenceLimits.DetailedFigure` (the user's Q55, tightened by Q58 and Q60 after
   GM2's ink task: each sample's sheet, a covered edge hidden as Freestyle hides it and the meshes' silhouettes,

@@ -4814,6 +4814,19 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     on lavapipe (`main` `8e583b6`: 5389 + 1086 = 6475; 47 new: 2 the engine's, 45 the game's), none held; mutations 78
     (77 killed, the far plane can't differ), 81 after 9a (80), 29 for the second round (29), 1 after the last rebase (1);
     `assemble.py`'s list rules 4 of 4. Approved by the user 2026-11-22: the three screens and the live emblem.
+  - **GM2's task "the keying kit" (GM2-P23; 2026-11-22/23, a worker on the branch `gm2-keying-kit`; `Docs/Game/Hero.md`, "How
+    it works", "The keying kit"):** the manager's scratch keying scripts as the repo's kit, `Tools/Models/humanoid/clips/
+    kit/`: the clips' keying sources written by plain Python (the ready stance, dense keys, grips from an arm's ways, the
+    weapon stances; a module per family of the clip table), baked in Blender 5.2 on the human man built by the family's own
+    builders (his skeleton's rest and his boots' every vertex and weight bit for bit the figure the clips were keyed on): the
+    legs solved for the feet, the boots kept on the ground, the arms solved for their grips; the 34 approved
+    `clips/<name>.json` its output byte for byte (all 34 in about 9 s), held by their sha256 (`keyed.json`). The manager's
+    measures as tools (`make-humanoid.sh measure`: wrist bends, forearm turns, jumps, grips out of reach or in the trunk,
+    every frame against the ground; `measures.json`) with the family's bounds, the worst the 34 measure (`bounds.json`), and
+    `clip-video` (a clip on a floor in the game's look). `HumanoidKeyingKitTests` holds the records and the bounds without
+    Blender; `make-humanoid.sh check` runs `keys --check` and `measure --check`. The kit's
+    rules broken 35 times, 32 killed, 3 unable to differ; the test's 29 mutations, 29 killed. 5395 + 1131 = 6526 tests on the
+    GPU and lavapipe (`main` `76f64a22`: 5391 + 1131 = 6522; 4 new, the engine's).
 
 ## Milestones
 

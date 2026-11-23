@@ -1,0 +1,2018 @@
+{
+ "comment": "Every clip's measures (measure.py, from make-humanoid.sh measure) with its data's sha256: held to bounds.json by the engine's HumanoidKeyingKitTests (Docs/Game/Hero.md, \"How it works\", \"The keying kit\").",
+ "clips": {
+  "advance": {
+   "clip": "04a95cd3f52be825707316b45bf79da2e51953e2ed36dda476283cf20071373b",
+   "arms": {
+    "L": {
+     "bend": 16,
+     "bendFrame": 1,
+     "turn": -70,
+     "turnFrame": 7,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 42,
+     "bendFrame": 19,
+     "turn": -6,
+     "turnFrame": 11,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 4,
+    "bend": 6,
+    "swing": 0
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -2.0,
+    "frame": 20,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 903.52,
+     "foot.L": -2.0,
+     "foot.R": -2.0,
+     "forearm.L": 1081.5,
+     "forearm.R": 979.39,
+     "hand.L": 1055.89,
+     "hand.R": 904.94,
+     "head": 1329.5,
+     "seat": 719.78,
+     "shin.L": 94.79,
+     "shin.R": 95.45,
+     "thigh.L": 421.95,
+     "thigh.R": 414.17,
+     "upper-arm.L": 1132.11,
+     "upper-arm.R": 1007.4
+    }
+   }
+  },
+  "bow": {
+   "clip": "d2ac4f5002a93d9bbe0f109252f99001e372279d50ff671c6b48c2bd42c5e089",
+   "arms": {
+    "L": {
+     "bend": 53,
+     "bendFrame": 55,
+     "turn": -47,
+     "turnFrame": 0,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 36,
+     "bendFrame": 56,
+     "turn": -83,
+     "turnFrame": 9,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 14,
+    "bend": 16,
+    "swing": 7
+   },
+   "short": {},
+   "trunk": {
+    "R": {
+     "frames": 1,
+     "first": 19,
+     "last": 19,
+     "worst": 0.04
+    }
+   },
+   "ground": {
+    "lowest": -0.14,
+    "frame": 64,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 937.43,
+     "foot.L": -0.14,
+     "foot.R": 2.1,
+     "forearm.L": 1006.15,
+     "forearm.R": 1098.45,
+     "hand.L": 990.58,
+     "hand.R": 1038.49,
+     "head": 1403.05,
+     "seat": 752.86,
+     "shin.L": 91.86,
+     "shin.R": 131.91,
+     "thigh.L": 517.41,
+     "thigh.R": 444.71,
+     "upper-arm.L": 1035.92,
+     "upper-arm.R": 1221.18
+    }
+   }
+  },
+  "cast": {
+   "clip": "62b7f8f9ce2864a0d42a1976a536575a9e87da5f750d6581f6a571e67ca25f91",
+   "arms": {
+    "L": {
+     "bend": 10,
+     "bendFrame": 1,
+     "turn": -72,
+     "turnFrame": 13,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 56,
+     "bendFrame": 37,
+     "turn": 16,
+     "turnFrame": 22,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 9,
+    "bend": 11,
+    "swing": 10
+   },
+   "short": {
+    "R": {
+     "frames": 2,
+     "first": 23,
+     "last": 24,
+     "worst": 0.014
+    }
+   },
+   "trunk": {},
+   "ground": {
+    "lowest": -0.17,
+    "frame": 27,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 882.51,
+     "foot.L": -0.17,
+     "foot.R": 0.7,
+     "forearm.L": 980.58,
+     "forearm.R": 935.77,
+     "hand.L": 939.81,
+     "hand.R": 863.73,
+     "head": 1313.34,
+     "seat": 702.42,
+     "shin.L": 93.61,
+     "shin.R": 104.4,
+     "thigh.L": 511.2,
+     "thigh.R": 379.13,
+     "upper-arm.L": 1082.18,
+     "upper-arm.R": 995.4
+    }
+   }
+  },
+  "critical-hurt": {
+   "clip": "25697cc994c4d11718e944aaeb5d73ab2bc79f6862ea7b0d762eadf31df4c028",
+   "arms": {
+    "L": {
+     "bend": 42,
+     "bendFrame": 1,
+     "turn": -68,
+     "turnFrame": 17,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 35,
+     "bendFrame": 15,
+     "turn": 55,
+     "turnFrame": 1,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 7,
+    "bend": 22,
+    "swing": 22
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -2.0,
+    "frame": 8,
+    "part": "foot.R",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 850.65,
+     "foot.L": -0.15,
+     "foot.R": -2.0,
+     "forearm.L": 1016.52,
+     "forearm.R": 901.91,
+     "hand.L": 978.8,
+     "hand.R": 828.96,
+     "head": 1253.31,
+     "seat": 672.56,
+     "shin.L": 92.28,
+     "shin.R": 103.41,
+     "thigh.L": 508.96,
+     "thigh.R": 384.97,
+     "upper-arm.L": 1062.67,
+     "upper-arm.R": 1013.1
+    }
+   }
+  },
+  "crossbow": {
+   "clip": "2e603d9671b4ecb6d1ff7013b8e5cef94e747391c4bd6dc353b3161b88dadd9f",
+   "arms": {
+    "L": {
+     "bend": 4,
+     "bendFrame": 37,
+     "turn": 62,
+     "turnFrame": 48,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 74,
+     "bendFrame": 27,
+     "turn": 69,
+     "turnFrame": 28,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 10,
+    "bend": 12,
+    "swing": 12
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -0.14,
+    "frame": 52,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 937.43,
+     "foot.L": -0.14,
+     "foot.R": 2.1,
+     "forearm.L": 981.57,
+     "forearm.R": 1012.55,
+     "hand.L": 903.36,
+     "hand.R": 973.71,
+     "head": 1402.91,
+     "seat": 752.86,
+     "shin.L": 91.86,
+     "shin.R": 132.51,
+     "thigh.L": 517.41,
+     "thigh.R": 444.71,
+     "upper-arm.L": 1018.22,
+     "upper-arm.R": 1064.47
+    }
+   }
+  },
+  "death": {
+   "clip": "d3a87c30a433fc8da16941746e437dfefda9ffc142c4450486f916353a526526",
+   "arms": {
+    "L": {
+     "bend": 3,
+     "bendFrame": 4,
+     "turn": -62,
+     "turnFrame": 4,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 23,
+     "bendFrame": 4,
+     "turn": -34,
+     "turnFrame": 34,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 0,
+    "bend": 0,
+    "swing": 0
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -1.98,
+    "frame": 10,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -1.92,
+    "lastPart": "foot.R",
+    "under": 0,
+    "parts": {
+     "back": 22.05,
+     "foot.L": -1.98,
+     "foot.R": -1.92,
+     "forearm.L": 103.79,
+     "forearm.R": 70.27,
+     "hand.L": 327.74,
+     "hand.R": 0.75,
+     "head": 1.58,
+     "seat": 29.88,
+     "shin.L": 13.51,
+     "shin.R": 16.72,
+     "thigh.L": -0.55,
+     "thigh.R": -1.88,
+     "upper-arm.L": 24.39,
+     "upper-arm.R": 25.14
+    }
+   }
+  },
+  "drink": {
+   "clip": "550b79a882d7e07e0fc2bb1d0b43e4938712db49a0ece4acf1e48a67918ed6f9",
+   "arms": {
+    "L": {
+     "bend": 44,
+     "bendFrame": 25,
+     "turn": -56,
+     "turnFrame": 26,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 40,
+     "bendFrame": 7,
+     "turn": 3,
+     "turnFrame": 1,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 23,
+    "bend": 15,
+    "swing": 11
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -0.14,
+    "frame": 65,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 925.47,
+     "foot.L": -0.14,
+     "foot.R": 2.1,
+     "forearm.L": 804.78,
+     "forearm.R": 935.39,
+     "hand.L": 723.13,
+     "hand.R": 856.36,
+     "head": 1379.94,
+     "seat": 740.65,
+     "shin.L": 92.2,
+     "shin.R": 132.94,
+     "thigh.L": 516.48,
+     "thigh.R": 440.51,
+     "upper-arm.L": 1040.26,
+     "upper-arm.R": 1077.8
+    }
+   }
+  },
+  "evade": {
+   "clip": "858076f5d33da89f03f59b5fab95f8abb3153479d52777d4bd175507339bdcf0",
+   "arms": {
+    "L": {
+     "bend": 25,
+     "bendFrame": 1,
+     "turn": -70,
+     "turnFrame": 19,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 38,
+     "bendFrame": 18,
+     "turn": 37,
+     "turnFrame": 11,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 8,
+    "bend": 7,
+    "swing": 1
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -2.0,
+    "frame": 5,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": 1.4,
+    "lastPart": "foot.R",
+    "under": 0,
+    "parts": {
+     "back": 855.36,
+     "foot.L": -2.0,
+     "foot.R": -2.0,
+     "forearm.L": 1067.57,
+     "forearm.R": 930.42,
+     "hand.L": 1064.16,
+     "hand.R": 850.99,
+     "head": 1292.87,
+     "seat": 674.14,
+     "shin.L": 94.79,
+     "shin.R": 115.81,
+     "thigh.L": 499.47,
+     "thigh.R": 401.01,
+     "upper-arm.L": 1080.04,
+     "upper-arm.R": 1000.56
+    }
+   }
+  },
+  "evade-hold": {
+   "clip": "4bc8db58225ef45ebd992aed500a19ca384650ca5b22b81f80e7fda006fecec6",
+   "arms": {
+    "L": {
+     "bend": 3,
+     "bendFrame": 64,
+     "turn": -64,
+     "turnFrame": 0,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 30,
+     "bendFrame": 0,
+     "turn": 16,
+     "turnFrame": 64,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 0,
+    "bend": 0,
+    "swing": 0
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": 1.07,
+    "frame": 5,
+    "part": "foot.R",
+    "piece": "boots",
+    "last": 1.4,
+    "lastPart": "foot.R",
+    "under": 0,
+    "parts": {
+     "back": 960.02,
+     "foot.L": 1.51,
+     "foot.R": 1.07,
+     "forearm.L": 1131.31,
+     "forearm.R": 1038.84,
+     "hand.L": 1101.28,
+     "hand.R": 964.53,
+     "head": 1446.76,
+     "seat": 778.76,
+     "shin.L": 132.29,
+     "shin.R": 162.65,
+     "thigh.L": 547.9,
+     "thigh.R": 491.62,
+     "upper-arm.L": 1187.68,
+     "upper-arm.R": 1158.3
+    }
+   }
+  },
+  "flee": {
+   "clip": "a99953e435b056fda990cbed9deea5bc23bb272800852a07b889524abf0678da",
+   "arms": {},
+   "jumps": [],
+   "largestJump": {
+    "turn": 0,
+    "bend": 0,
+    "swing": 0
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -2.01,
+    "frame": 25,
+    "part": "foot.R",
+    "piece": "boots",
+    "last": 11.93,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 970.74,
+     "foot.L": -2.0,
+     "foot.R": -2.01,
+     "forearm.L": 945.19,
+     "forearm.R": 923.41,
+     "hand.L": 879.76,
+     "hand.R": 852.72,
+     "head": 1432.71,
+     "seat": 795.2,
+     "shin.L": 93.28,
+     "shin.R": 86.66,
+     "thigh.L": 464.5,
+     "thigh.R": 464.11,
+     "upper-arm.L": 1067.41,
+     "upper-arm.R": 1066.28
+    }
+   }
+  },
+  "guard": {
+   "clip": "73c532140a1f46cc4d0f8eaa90be31314e5986d46ff48bc158011ee19b167e5c",
+   "arms": {
+    "L": {
+     "bend": 12,
+     "bendFrame": 1,
+     "turn": -58,
+     "turnFrame": 5,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 40,
+     "bendFrame": 9,
+     "turn": 2,
+     "turnFrame": 1,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 3,
+    "bend": 3,
+    "swing": 2
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -0.14,
+    "frame": 3,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.06,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 867.11,
+     "foot.L": -0.14,
+     "foot.R": 1.09,
+     "forearm.L": 1065.67,
+     "forearm.R": 963.16,
+     "hand.L": 1102.44,
+     "hand.R": 880.71,
+     "head": 1330.2,
+     "seat": 686.76,
+     "shin.L": 94.09,
+     "shin.R": 114.76,
+     "thigh.L": 511.57,
+     "thigh.R": 401.35,
+     "upper-arm.L": 1067.25,
+     "upper-arm.R": 1111.43
+    }
+   }
+  },
+  "guard-hold": {
+   "clip": "13ce8ac15535ce9505c1daa2fffb7f5fcce9538a8f134564cb8f02b95bcc9335",
+   "arms": {
+    "L": {
+     "bend": 5,
+     "bendFrame": 30,
+     "turn": -53,
+     "turnFrame": 0,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 40,
+     "bendFrame": 0,
+     "turn": 2,
+     "turnFrame": 40,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 0,
+    "bend": 0,
+    "swing": 0
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -0.08,
+    "frame": 16,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.06,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 891.79,
+     "foot.L": -0.08,
+     "foot.R": 1.06,
+     "forearm.L": 1090.0,
+     "forearm.R": 986.37,
+     "hand.L": 1153.76,
+     "hand.R": 903.44,
+     "head": 1351.58,
+     "seat": 710.65,
+     "shin.L": 93.74,
+     "shin.R": 114.17,
+     "thigh.L": 514.47,
+     "thigh.R": 413.89,
+     "upper-arm.L": 1091.97,
+     "upper-arm.R": 1134.1
+    }
+   }
+  },
+  "hold-bow": {
+   "clip": "826e05de49992c9ea06bb4b5b87bc8a9109b679bee5bc8045ae1a28e380ad005",
+   "arms": {
+    "L": {
+     "bend": 38,
+     "bendFrame": 30,
+     "turn": -47,
+     "turnFrame": 0,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 22,
+     "bendFrame": 80,
+     "turn": -76,
+     "turnFrame": 0,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 0,
+    "bend": 0,
+    "swing": 0
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -0.0,
+    "frame": 0,
+    "part": "foot.R",
+    "piece": "boots",
+    "last": -0.0,
+    "lastPart": "foot.R",
+    "under": 0,
+    "parts": {
+     "back": 1071.49,
+     "foot.L": 0.0,
+     "foot.R": -0.0,
+     "forearm.L": 1151.4,
+     "forearm.R": 1261.57,
+     "hand.L": 1180.73,
+     "hand.R": 1206.25,
+     "head": 1545.92,
+     "seat": 900.31,
+     "shin.L": 93.37,
+     "shin.R": 86.88,
+     "thigh.L": 538.01,
+     "thigh.R": 532.2,
+     "upper-arm.L": 1166.39,
+     "upper-arm.R": 1355.31
+    }
+   }
+  },
+  "hold-crossbow": {
+   "clip": "05399b978eb15eb84bef2fabb9251e153576eec1405555f09f7e14bb42aedc14",
+   "arms": {
+    "L": {
+     "bend": 1,
+     "bendFrame": 80,
+     "turn": 62,
+     "turnFrame": 30,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 35,
+     "bendFrame": 0,
+     "turn": -3,
+     "turnFrame": 0,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 0,
+    "bend": 0,
+    "swing": 0
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -0.0,
+    "frame": 0,
+    "part": "foot.R",
+    "piece": "boots",
+    "last": -0.0,
+    "lastPart": "foot.R",
+    "under": 0,
+    "parts": {
+     "back": 1071.49,
+     "foot.L": 0.0,
+     "foot.R": -0.0,
+     "forearm.L": 1135.68,
+     "forearm.R": 1124.88,
+     "hand.L": 1075.84,
+     "hand.R": 1126.04,
+     "head": 1545.92,
+     "seat": 900.31,
+     "shin.L": 93.37,
+     "shin.R": 86.88,
+     "thigh.L": 538.01,
+     "thigh.R": 532.2,
+     "upper-arm.L": 1151.5,
+     "upper-arm.R": 1157.09
+    }
+   }
+  },
+  "hold-staff": {
+   "clip": "4e77d06f9ba1f904b71ea2ac21723484f4d61886a11c0f0d31265ac5b6b1d329",
+   "arms": {
+    "L": {
+     "bend": 16,
+     "bendFrame": 20,
+     "turn": -73,
+     "turnFrame": 30,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 36,
+     "bendFrame": 0,
+     "turn": 9,
+     "turnFrame": 60,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 0,
+    "bend": 0,
+    "swing": 0
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -0.0,
+    "frame": 0,
+    "part": "foot.R",
+    "piece": "boots",
+    "last": -0.0,
+    "lastPart": "foot.R",
+    "under": 0,
+    "parts": {
+     "back": 1071.49,
+     "foot.L": 0.0,
+     "foot.R": -0.0,
+     "forearm.L": 1167.21,
+     "forearm.R": 1135.28,
+     "hand.L": 1366.64,
+     "hand.R": 1169.59,
+     "head": 1545.92,
+     "seat": 900.31,
+     "shin.L": 93.37,
+     "shin.R": 86.88,
+     "thigh.L": 538.01,
+     "thigh.R": 532.2,
+     "upper-arm.L": 1170.92,
+     "upper-arm.R": 1155.47
+    }
+   }
+  },
+  "hold-two-handed": {
+   "clip": "53d062602d4df979735b26f1ffd675776f50214da553b210467ef6da84532d20",
+   "arms": {
+    "L": {
+     "bend": 3,
+     "bendFrame": 90,
+     "turn": -70,
+     "turnFrame": 0,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 52,
+     "bendFrame": 20,
+     "turn": -30,
+     "turnFrame": 0,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 0,
+    "bend": 0,
+    "swing": 0
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -0.0,
+    "frame": 0,
+    "part": "foot.R",
+    "piece": "boots",
+    "last": -0.0,
+    "lastPart": "foot.R",
+    "under": 0,
+    "parts": {
+     "back": 1071.49,
+     "foot.L": 0.0,
+     "foot.R": -0.0,
+     "forearm.L": 1115.54,
+     "forearm.R": 1205.81,
+     "hand.L": 1084.66,
+     "hand.R": 1194.39,
+     "head": 1545.92,
+     "seat": 900.31,
+     "shin.L": 93.37,
+     "shin.R": 86.88,
+     "thigh.L": 538.01,
+     "thigh.R": 532.2,
+     "upper-arm.L": 1188.28,
+     "upper-arm.R": 1212.88
+    }
+   }
+  },
+  "hold-unarmed": {
+   "clip": "927ae6c86df996ffeae6cf91ef54558299493f347019744a1df40f568c390103",
+   "arms": {
+    "L": {
+     "bend": 7,
+     "bendFrame": 20,
+     "turn": 15,
+     "turnFrame": 10,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 7,
+     "bendFrame": 80,
+     "turn": -16,
+     "turnFrame": 0,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 0,
+    "bend": 0,
+    "swing": 0
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -0.0,
+    "frame": 0,
+    "part": "foot.R",
+    "piece": "boots",
+    "last": -0.0,
+    "lastPart": "foot.R",
+    "under": 0,
+    "parts": {
+     "back": 1071.49,
+     "foot.L": 0.0,
+     "foot.R": -0.0,
+     "forearm.L": 1267.52,
+     "forearm.R": 1235.11,
+     "hand.L": 1500.67,
+     "hand.R": 1476.13,
+     "head": 1545.92,
+     "seat": 900.31,
+     "shin.L": 93.37,
+     "shin.R": 86.88,
+     "thigh.L": 538.01,
+     "thigh.R": 532.2,
+     "upper-arm.L": 1264.75,
+     "upper-arm.R": 1228.32
+    }
+   }
+  },
+  "hurt": {
+   "clip": "2801ac7ae69b8c7b232d13b81206cdaa7f63c3fab71558e525bb8c8d2c3f82bc",
+   "arms": {
+    "L": {
+     "bend": 8,
+     "bendFrame": 9,
+     "turn": -69,
+     "turnFrame": 6,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 36,
+     "bendFrame": 8,
+     "turn": 20,
+     "turnFrame": 1,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 7,
+    "bend": 5,
+    "swing": 13
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -0.15,
+    "frame": 12,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 916.38,
+     "foot.L": -0.15,
+     "foot.R": 2.1,
+     "forearm.L": 1076.32,
+     "forearm.R": 998.85,
+     "hand.L": 1041.97,
+     "hand.R": 925.96,
+     "head": 1370.17,
+     "seat": 732.17,
+     "shin.L": 93.77,
+     "shin.R": 135.75,
+     "thigh.L": 515.05,
+     "thigh.R": 438.67,
+     "upper-arm.L": 1134.02,
+     "upper-arm.R": 1094.78
+    }
+   }
+  },
+  "idle": {
+   "clip": "100de40a2d16d64e7f8636cb9e1b23cca830feda141d6818eb05f95ff75290a9",
+   "arms": {},
+   "jumps": [],
+   "largestJump": {
+    "turn": 0,
+    "bend": 0,
+    "swing": 0
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -0.28,
+    "frame": 14,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.14,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 939.23,
+     "foot.L": -0.28,
+     "foot.R": 1.5,
+     "forearm.L": 1136.69,
+     "forearm.R": 1027.27,
+     "hand.L": 1113.59,
+     "hand.R": 954.01,
+     "head": 1408.83,
+     "seat": 754.79,
+     "shin.L": 94.07,
+     "shin.R": 122.07,
+     "thigh.L": 517.6,
+     "thigh.R": 445.94,
+     "upper-arm.L": 1167.25,
+     "upper-arm.R": 1129.91
+    }
+   }
+  },
+  "item": {
+   "clip": "b50f140d330eca408298786b48c43ff19737b7cba74411b76b4fdc00cbab249f",
+   "arms": {
+    "L": {
+     "bend": 21,
+     "bendFrame": 32,
+     "turn": -55,
+     "turnFrame": 39,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 35,
+     "bendFrame": 1,
+     "turn": 3,
+     "turnFrame": 1,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 12,
+    "bend": 5,
+    "swing": 4
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -0.21,
+    "frame": 25,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 907.32,
+     "foot.L": -0.21,
+     "foot.R": 1.09,
+     "forearm.L": 804.77,
+     "forearm.R": 987.3,
+     "hand.L": 723.13,
+     "hand.R": 914.36,
+     "head": 1344.16,
+     "seat": 725.38,
+     "shin.L": 94.47,
+     "shin.R": 135.73,
+     "thigh.L": 510.43,
+     "thigh.R": 414.42,
+     "upper-arm.L": 1029.4,
+     "upper-arm.R": 1095.76
+    }
+   }
+  },
+  "meditate": {
+   "clip": "cbef0d06660f5e08630d9f9fb94ce4f6003bc979ef8886d6ab5d9ffa9c34259c",
+   "arms": {
+    "L": {
+     "bend": 26,
+     "bendFrame": 1,
+     "turn": -66,
+     "turnFrame": 84,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 50,
+     "bendFrame": 16,
+     "turn": 8,
+     "turnFrame": 21,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 3,
+    "bend": 4,
+    "swing": 3
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -2.21,
+    "frame": 22,
+    "part": "shin.R",
+    "piece": "body",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 488.51,
+     "foot.L": -0.19,
+     "foot.R": -2.01,
+     "forearm.L": 484.5,
+     "forearm.R": 428.29,
+     "hand.L": 422.96,
+     "hand.R": 343.82,
+     "head": 947.63,
+     "seat": 367.66,
+     "shin.L": 92.08,
+     "shin.R": -2.21,
+     "thigh.L": 273.09,
+     "thigh.R": 2.0,
+     "upper-arm.L": 645.93,
+     "upper-arm.R": 627.32
+    }
+   }
+  },
+  "punch": {
+   "clip": "0a12dd450559fa2d61ad6827f3556d1ff4a1ff456a8fb02d54f7b72e3afff094",
+   "arms": {
+    "L": {
+     "bend": 10,
+     "bendFrame": 7,
+     "turn": 24,
+     "turnFrame": 9,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 27,
+     "bendFrame": 14,
+     "turn": -40,
+     "turnFrame": 12,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 15,
+    "bend": 23,
+    "swing": 4
+   },
+   "short": {
+    "R": {
+     "frames": 2,
+     "first": 9,
+     "last": 10,
+     "worst": 0.037
+    }
+   },
+   "trunk": {},
+   "ground": {
+    "lowest": -2.0,
+    "frame": 7,
+    "part": "foot.R",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 870.52,
+     "foot.L": -0.22,
+     "foot.R": -2.0,
+     "forearm.L": 978.78,
+     "forearm.R": 967.84,
+     "hand.L": 1213.11,
+     "hand.R": 1152.06,
+     "head": 1303.93,
+     "seat": 692.48,
+     "shin.L": 94.32,
+     "shin.R": 113.2,
+     "thigh.L": 505.17,
+     "thigh.R": 354.7,
+     "upper-arm.L": 979.01,
+     "upper-arm.R": 974.79
+    }
+   }
+  },
+  "return": {
+   "clip": "7259e0c2ff61ea69963cb8857bc27cf5eb793ea42c5e25d2580765e0876296da",
+   "arms": {
+    "L": {
+     "bend": 20,
+     "bendFrame": 1,
+     "turn": -68,
+     "turnFrame": 5,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 40,
+     "bendFrame": 18,
+     "turn": 3,
+     "turnFrame": 1,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 2,
+    "bend": 5,
+    "swing": 2
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -0.23,
+    "frame": 5,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 870.27,
+     "foot.L": -0.23,
+     "foot.R": 2.1,
+     "forearm.L": 1078.92,
+     "forearm.R": 949.64,
+     "hand.L": 1070.19,
+     "hand.R": 870.39,
+     "head": 1312.87,
+     "seat": 687.32,
+     "shin.L": 94.49,
+     "shin.R": 135.3,
+     "thigh.L": 505.15,
+     "thigh.R": 408.47,
+     "upper-arm.L": 1099.1,
+     "upper-arm.R": 1064.86
+    }
+   }
+  },
+  "skill": {
+   "clip": "ce8189b4b1bcc7f598b400e03ec8aa3cb054afb30951c1bf2124494013c722bf",
+   "arms": {
+    "L": {
+     "bend": 25,
+     "bendFrame": 1,
+     "turn": -70,
+     "turnFrame": 7,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 40,
+     "bendFrame": 25,
+     "turn": -35,
+     "turnFrame": 17,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 18,
+    "bend": 5,
+    "swing": 6
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -0.21,
+    "frame": 9,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 869.66,
+     "foot.L": -0.21,
+     "foot.R": 0.82,
+     "forearm.L": 1085.23,
+     "forearm.R": 947.22,
+     "hand.L": 1057.58,
+     "hand.R": 874.36,
+     "head": 1311.24,
+     "seat": 687.07,
+     "shin.L": 94.78,
+     "shin.R": 135.76,
+     "thigh.L": 506.29,
+     "thigh.R": 413.75,
+     "upper-arm.L": 1096.75,
+     "upper-arm.R": 1043.31
+    }
+   }
+  },
+  "stab": {
+   "clip": "2243048208c9f8000866a3bffb10a2a0be0f76ca46eb77a3d02600af333b4413",
+   "arms": {
+    "L": {
+     "bend": 17,
+     "bendFrame": 1,
+     "turn": -72,
+     "turnFrame": 5,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 57,
+     "bendFrame": 16,
+     "turn": 15,
+     "turnFrame": 1,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 7,
+    "bend": 21,
+    "swing": 2
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -1.15,
+    "frame": 7,
+    "part": "foot.R",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 847.04,
+     "foot.L": -0.18,
+     "foot.R": -1.15,
+     "forearm.L": 941.17,
+     "forearm.R": 897.81,
+     "hand.L": 900.31,
+     "hand.R": 844.36,
+     "head": 1270.16,
+     "seat": 669.51,
+     "shin.L": 94.32,
+     "shin.R": 113.62,
+     "thigh.L": 505.69,
+     "thigh.R": 347.04,
+     "upper-arm.L": 1046.47,
+     "upper-arm.R": 950.96
+    }
+   }
+  },
+  "stand": {
+   "clip": "52430e548aeb5e1dad9d7aa25739a3225af784c5b7ff765ffb86886f496fafee",
+   "arms": {},
+   "jumps": [],
+   "largestJump": {
+    "turn": 0,
+    "bend": 0,
+    "swing": 0
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -0.34,
+    "frame": 123,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.14,
+    "lastPart": "foot.R",
+    "under": 0,
+    "parts": {
+     "back": 1030.04,
+     "foot.L": -0.34,
+     "foot.R": -0.24,
+     "forearm.L": 908.91,
+     "forearm.R": 891.0,
+     "hand.L": 776.47,
+     "hand.R": 736.33,
+     "head": 1519.54,
+     "seat": 870.12,
+     "shin.L": 92.16,
+     "shin.R": 87.19,
+     "thigh.L": 527.95,
+     "thigh.R": 529.68,
+     "upper-arm.L": 1117.36,
+     "upper-arm.R": 1146.58
+    }
+   }
+  },
+  "strike": {
+   "clip": "1b09f0ff61fe6157337dc6df68b4f0653847953e7a8e22886a31c64056f592bd",
+   "arms": {
+    "L": {
+     "bend": 12,
+     "bendFrame": 0,
+     "turn": -77,
+     "turnFrame": 8,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 58,
+     "bendFrame": 29,
+     "turn": 125,
+     "turnFrame": 7,
+     "past": [
+      23,
+      5,
+      27
+     ]
+    }
+   },
+   "jumps": [
+    {
+     "turn": 28,
+     "bend": -11,
+     "swing": -17,
+     "side": "R",
+     "at": [
+      2,
+      3
+     ]
+    },
+    {
+     "turn": 28,
+     "bend": -19,
+     "swing": -18,
+     "side": "R",
+     "at": [
+      3,
+      4
+     ]
+    }
+   ],
+   "largestJump": {
+    "turn": 28,
+    "bend": 19,
+    "swing": 18
+   },
+   "short": {
+    "R": {
+     "frames": 5,
+     "first": 14,
+     "last": 19,
+     "worst": 0.035
+    }
+   },
+   "trunk": {},
+   "ground": {
+    "lowest": -2.0,
+    "frame": 10,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 841.4,
+     "foot.L": -2.0,
+     "foot.R": 0.7,
+     "forearm.L": 737.68,
+     "forearm.R": 860.69,
+     "hand.L": 598.88,
+     "hand.R": 779.59,
+     "head": 1244.27,
+     "seat": 670.29,
+     "shin.L": 94.23,
+     "shin.R": 104.76,
+     "thigh.L": 501.94,
+     "thigh.R": 338.48,
+     "upper-arm.L": 980.43,
+     "upper-arm.R": 967.13
+    }
+   }
+  },
+  "stumble": {
+   "clip": "967b91f7c926372d754348fb5ca2dc0fa51610fb4aa70bc4ceca8aab2b9f4e90",
+   "arms": {
+    "L": {
+     "bend": 43,
+     "bendFrame": 4,
+     "turn": -66,
+     "turnFrame": 6,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 35,
+     "bendFrame": 30,
+     "turn": 64,
+     "turnFrame": 7,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 4,
+    "bend": 15,
+    "swing": 1
+   },
+   "short": {
+    "L": {
+     "frames": 4,
+     "first": 1,
+     "last": 4,
+     "worst": 0.101
+    },
+    "R": {
+     "frames": 3,
+     "first": 1,
+     "last": 3,
+     "worst": 0.038
+    }
+   },
+   "trunk": {},
+   "ground": {
+    "lowest": -0.21,
+    "frame": 16,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 799.78,
+     "foot.L": -0.21,
+     "foot.R": 0.6,
+     "forearm.L": 871.29,
+     "forearm.R": 805.26,
+     "hand.L": 831.9,
+     "hand.R": 727.69,
+     "head": 1170.85,
+     "seat": 628.29,
+     "shin.L": 94.41,
+     "shin.R": 135.4,
+     "thigh.L": 469.48,
+     "thigh.R": 334.29,
+     "upper-arm.L": 967.84,
+     "upper-arm.R": 958.75
+    }
+   }
+  },
+  "stunned": {
+   "clip": "332cfcb4c4dfe60375a9cf084e6b82833048537bc9d3febd860e94df0494dc9e",
+   "arms": {
+    "L": {
+     "bend": 11,
+     "bendFrame": 67,
+     "turn": -32,
+     "turnFrame": 22,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 56,
+     "bendFrame": 67,
+     "turn": 19,
+     "turnFrame": 67,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 0,
+    "bend": 0,
+    "swing": 0
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -1.53,
+    "frame": 37,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.18,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 901.68,
+     "foot.L": -1.53,
+     "foot.R": 0.11,
+     "forearm.L": 830.14,
+     "forearm.R": 780.69,
+     "hand.L": 757.29,
+     "hand.R": 688.64,
+     "head": 1328.94,
+     "seat": 722.03,
+     "shin.L": 93.88,
+     "shin.R": 135.59,
+     "thigh.L": 511.53,
+     "thigh.R": 425.32,
+     "upper-arm.L": 1001.6,
+     "upper-arm.R": 999.27
+    }
+   }
+  },
+  "swing": {
+   "clip": "68fca6890858d8957ffc3beb6672d4e210932e0749ce2d2ce7613ae937f87eb2",
+   "arms": {
+    "L": {
+     "bend": 8,
+     "bendFrame": 1,
+     "turn": -73,
+     "turnFrame": 8,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 49,
+     "bendFrame": 28,
+     "turn": 108,
+     "turnFrame": 16,
+     "past": [
+      13,
+      1,
+      17
+     ]
+    }
+   },
+   "jumps": [
+    {
+     "turn": -26,
+     "bend": 5,
+     "swing": 0,
+     "side": "R",
+     "at": [
+      27,
+      28
+     ]
+    }
+   ],
+   "largestJump": {
+    "turn": 26,
+    "bend": 15,
+    "swing": 8
+   },
+   "short": {
+    "R": {
+     "frames": 4,
+     "first": 14,
+     "last": 18,
+     "worst": 0.026
+    }
+   },
+   "trunk": {},
+   "ground": {
+    "lowest": -2.0,
+    "frame": 5,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 829.03,
+     "foot.L": -2.0,
+     "foot.R": 0.7,
+     "forearm.L": 896.69,
+     "forearm.R": 765.79,
+     "hand.L": 852.63,
+     "hand.R": 693.64,
+     "head": 1230.9,
+     "seat": 659.99,
+     "shin.L": 94.11,
+     "shin.R": 104.92,
+     "thigh.L": 499.42,
+     "thigh.R": 321.98,
+     "upper-arm.L": 1027.45,
+     "upper-arm.R": 914.95
+    }
+   }
+  },
+  "swing-off-hand": {
+   "clip": "62737e10364297d0ff4a2956e99fb03d8242b645efd49be71631cc00cefcab7d",
+   "arms": {
+    "L": {
+     "bend": 44,
+     "bendFrame": 13,
+     "turn": -93,
+     "turnFrame": 7,
+     "past": [
+      9,
+      1,
+      9
+     ]
+    },
+    "R": {
+     "bend": 36,
+     "bendFrame": 14,
+     "turn": 4,
+     "turnFrame": 3,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 17,
+    "bend": 19,
+    "swing": 5
+   },
+   "short": {
+    "L": {
+     "frames": 3,
+     "first": 12,
+     "last": 14,
+     "worst": 0.037
+    }
+   },
+   "trunk": {},
+   "ground": {
+    "lowest": -0.23,
+    "frame": 16,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 850.32,
+     "foot.L": -0.23,
+     "foot.R": 0.85,
+     "forearm.L": 803.29,
+     "forearm.R": 928.15,
+     "hand.L": 722.6,
+     "hand.R": 855.07,
+     "head": 1271.76,
+     "seat": 673.43,
+     "shin.L": 93.77,
+     "shin.R": 113.2,
+     "thigh.L": 499.8,
+     "thigh.R": 359.54,
+     "upper-arm.L": 954.71,
+     "upper-arm.R": 1044.96
+    }
+   }
+  },
+  "swing-two-handed": {
+   "clip": "8bc0d71510e43c5fa1271f73b7194b6f88db04472c53e301257874c55c6d0974",
+   "arms": {
+    "L": {
+     "bend": 34,
+     "bendFrame": 19,
+     "turn": -128,
+     "turnFrame": 13,
+     "past": [
+      10,
+      8,
+      22
+     ]
+    },
+    "R": {
+     "bend": 61,
+     "bendFrame": 7,
+     "turn": -91,
+     "turnFrame": 23,
+     "past": [
+      5,
+      21,
+      25
+     ]
+    }
+   },
+   "jumps": [
+    {
+     "turn": 33,
+     "bend": 20,
+     "swing": -47,
+     "side": "L",
+     "at": [
+      15,
+      16
+     ]
+    },
+    {
+     "turn": -26,
+     "bend": -4,
+     "swing": 6,
+     "side": "R",
+     "at": [
+      11,
+      12
+     ]
+    }
+   ],
+   "largestJump": {
+    "turn": 33,
+    "bend": 20,
+    "swing": 47
+   },
+   "short": {
+    "R": {
+     "frames": 3,
+     "first": 14,
+     "last": 17,
+     "worst": 0.019
+    }
+   },
+   "trunk": {},
+   "ground": {
+    "lowest": -2.0,
+    "frame": 8,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 817.2,
+     "foot.L": -2.0,
+     "foot.R": 0.7,
+     "forearm.L": 723.49,
+     "forearm.R": 717.8,
+     "hand.L": 645.81,
+     "hand.R": 623.28,
+     "head": 1216.7,
+     "seat": 648.68,
+     "shin.L": 92.88,
+     "shin.R": 104.63,
+     "thigh.L": 493.7,
+     "thigh.R": 309.54,
+     "upper-arm.L": 904.1,
+     "upper-arm.R": 920.54
+    }
+   }
+  },
+  "thrust": {
+   "clip": "00564fd7ce920ad8e5cee250f394f4cae973bfac3b9e66a939e7a75f01966687",
+   "arms": {
+    "L": {
+     "bend": 16,
+     "bendFrame": 1,
+     "turn": -73,
+     "turnFrame": 7,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 67,
+     "bendFrame": 22,
+     "turn": 16,
+     "turnFrame": 1,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 2,
+    "bend": 9,
+    "swing": 2
+   },
+   "short": {
+    "R": {
+     "frames": 2,
+     "first": 13,
+     "last": 14,
+     "worst": 0.028
+    }
+   },
+   "trunk": {},
+   "ground": {
+    "lowest": -2.0,
+    "frame": 4,
+    "part": "foot.L",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 828.29,
+     "foot.L": -2.0,
+     "foot.R": 0.48,
+     "forearm.L": 905.4,
+     "forearm.R": 809.33,
+     "hand.L": 861.53,
+     "hand.R": 728.06,
+     "head": 1234.66,
+     "seat": 657.56,
+     "shin.L": 94.23,
+     "shin.R": 105.1,
+     "thigh.L": 502.55,
+     "thigh.R": 321.94,
+     "upper-arm.L": 1021.49,
+     "upper-arm.R": 926.72
+    }
+   }
+  },
+  "victory": {
+   "clip": "f313c76d69a8b2b499d1abcccd5c2008eb82032c7b821900765090b3e02173db",
+   "arms": {
+    "L": {
+     "bend": 19,
+     "bendFrame": 1,
+     "turn": -70,
+     "turnFrame": 6,
+     "past": [
+      0
+     ]
+    },
+    "R": {
+     "bend": 40,
+     "bendFrame": 43,
+     "turn": -37,
+     "turnFrame": 14,
+     "past": [
+      0
+     ]
+    }
+   },
+   "jumps": [],
+   "largestJump": {
+    "turn": 18,
+    "bend": 4,
+    "swing": 3
+   },
+   "short": {},
+   "trunk": {},
+   "ground": {
+    "lowest": -2.0,
+    "frame": 8,
+    "part": "foot.R",
+    "piece": "boots",
+    "last": -0.13,
+    "lastPart": "foot.L",
+    "under": 0,
+    "parts": {
+     "back": 880.77,
+     "foot.L": -2.0,
+     "foot.R": -2.0,
+     "forearm.L": 1041.49,
+     "forearm.R": 961.33,
+     "hand.L": 1004.8,
+     "hand.R": 888.46,
+     "head": 1328.7,
+     "seat": 697.61,
+     "shin.L": 92.03,
+     "shin.R": 98.27,
+     "thigh.L": 508.8,
+     "thigh.R": 418.77,
+     "upper-arm.L": 1112.36,
+     "upper-arm.R": 1063.76
+    }
+   }
+  }
+ }
+}

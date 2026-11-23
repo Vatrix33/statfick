@@ -159,7 +159,11 @@ largest included, plays the clips by this rule; the user sees them on the hobbit
 
 **GM2-P23, the keying scripts into the repo later (the manager, 2026-11-18; recorded by step 4b):** the manager's keying
 scripts (`claude-work/gm2/step4/handover-clips/kit/`) go into the repo in a task of their own after step 4b, so a clip can
-be keyed again there; until then the data in `Tools/Models/humanoid/clips/` is the clips.
+be keyed again there; until then the data in `Tools/Models/humanoid/clips/` is the clips. **Done 2026-11-23** (a worker,
+the branch `gm2-keying-kit`; "How it works", "The keying kit"): the kit in `Tools/Models/humanoid/clips/kit/`
+(`make-humanoid.sh keys`, `measure`, `clip-video`), its figure the family's own man (his skeleton and boots bit for bit the
+scratch figure's), the 34 committed clips its output byte for byte and held to it, the manager's measures as tools with
+the family's bounds (the worst the 34 measure) for every new clip.
 
 **Two things the clips' pictures did that the game must do (the manager, 2026-11-18; recorded by step 4b, with their
 milestones in `Docs/Game-Plan.md`):** GM5: `evade` has no root motion; the battle moves the figure back between the markers
@@ -2016,6 +2020,11 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
      the man's poses and references unchanged to the bit, the woman's 35 evaluations made again by the rule (her lowest
      point now at most 2.43 mm under her ground, death's end 2.48 mm over it; before, 24.11 mm under), the ground test
      bounding both bodies; figures standing by their soles in the game's builder, the figure mode and Blender's renders.
+   - **GM2-P23's task done (2026-11-23, a worker, the branch `gm2-keying-kit`; "How it works", "The keying kit"):** the
+     manager's keying scripts as the repo's kit (`Tools/Models/humanoid/clips/kit/`, `make-humanoid.sh keys`, `measure`,
+     `clip-video`), keyed on the man built by the family's builders, the 34 clips its output byte for byte (`keyed.json`,
+     `keys --check`), measured (`measures.json`) and held to the family's bounds (`bounds.json`, the worst the 34 measure)
+     by `HumanoidKeyingKitTests`. Its choices: "How it works", "The keying kit" ("Choices made").
 5. **The game's look in the engine and figures built from looks** (engine and game; the PC for the Blender side). After 3's
    look and 4's skeleton.
    - Owns: `render.style` in the engine's `Render3D/` with its tests and the game's entry in `data.pak` (Q12, GM2-P11);
@@ -5374,6 +5383,244 @@ race's pack; GM2-P44's reverse edge order (measured to keep the committed bytes;
 names in the mounted packs, no two byte-identical records); the hand-over's `forms.py` with `kit.extrude_edges` at its two
 extrusions.
 
+### The keying kit: the clips keyed, baked, measured and shown from the repo (2026-11-22/23, the branch `gm2-keying-kit`)
+
+GM2-P23's task: the manager's keying scripts (`claude-work/gm2/step4/`, the hand-over's `kit/`) as repo code, so a clip can
+be keyed again, measured and baked from the repo alone. The kit is `Tools/Models/humanoid/clips/kit/`, driven by
+`Tools/Scripts/make-humanoid.sh keys`, `measure` and `clip-video`; its keying figure is built by the family's own builders;
+it gives the 34 committed `clips/<name>.json` byte for byte; the measures the manager's rule asks of a clip before anyone
+sees it are its tools, with the bounds the 34 meet today. No engine or game code changed; every choice internal (below).
+
+**The layout** (each module's header says what it holds; plain Python unless named Blender's):
+- *The sources:* `poses.py` (the angles' conventions, the ready stance `READY`, `key`, `dense` and `curve` (a key's every
+  number along a monotone cubic, the overlap's `LAG`), `source`: a clip's keying source), `grips.py` (an arm's grip from
+  its directions: `arm`, `by_ways`, `two_hands`, `sword_arm`, `shield_arm`, the weapon stances `STANCES` of Q56),
+  `idle.py`, and the clip modules by the clip table's families: `standing.py` (idle, stunned, stand, the five stance
+  loops), `moving.py` (advance, return, flee, guard, guard-hold, evade, evade-hold), `reacting.py` (hurt, critical-hurt,
+  stumble, death), `melee.py` (the seven attacks), `acting.py` (bow, crossbow, cast, skill, item, drink, meditate,
+  victory); each module's `sources()` gives its clips' sources. `sources.py` writes them and keeps `keyed.json`.
+- *The figure and the bake* (Blender 5.2, headless, 8 threads): `figure.py` (the keying figure), `solver.py` (an arm solved
+  for a grip), `bake.py` (`Keyer`: a source posed key by key on the figure and read back as the clip's data; the clip keyed
+  on the figure as `library.py` keys it and played against the ground; `held`, a stance loop laid over a clip for a
+  picture; `Frames`, a frame's posed figure exported), `props.py` (the pictures' stand-in weapons), `run.py` (the entry:
+  `bake`, `measure`, `frames`).
+- *The checks:* `measure.py` (the arms, the jumps, the ground; `measures.json`, `bounds.json`), `video.py` (the clip on a
+  floor).
+
+**A clip's keying source** (JSON, `poses.source`; what `bake.py` reads): `name`, `frames` (at 60 fps), `loop`, `markers`
+`{event: frame}`, `ease` (`"linear"` for a clip keyed at every frame, else `"bezier"`: the manager's choice of 2026-11-18,
+"Decisions") and `keys`, each `{"frame", "pose": {bone: [x, y, z]}, "hips": [left, back, up], "feet": {"L"|"R": [left,
+back, up, toe pitch, turn(, heading)]}, "hands": {"L"|"R": {...}}}`: a bone's XYZ Euler degrees in its own axes from rest
+(spine to head X+ leans back, Y+ turns to the figure's left; an upper arm X− swings forward; a forearm X− bends the
+elbow), the hips' move in metres, where each foot's ankle stands from its rest place with its pitch and turn, and where
+each hand grips (`solver.py`'s header: `at` the grip's place, `aim` the weapon's way, `edge` the knuckles' way, `elbow`
+its hint, `twist` the forearm's share of the turn, `blend` between the pose's own arm and the solved one; `on` a second
+hand on the other's weapon; `at_head`/`tip_head` a place in the head's frame, the bowstring's and the flask's). Then
+optionally `only` (a stance loop's bones by the start of their names: the clip holds those alone, GM2-P21) and three
+fields for the pictures alone: `gear` (what the hands hold, "sword,shield" when not said; "dagger@hand.L,sword" puts the
+dagger in the left hand), `travel` ([frame, metres back]: how the battle moves the figure, `evade`'s leap) and `string`
+([frame, 0..1]: while 1 the bow's string follows the string hand and carries an arrow). The manager's sources carried two
+more hints his pictures' camera read (`wide`, `tall`); the kit frames every clip by its reach and has dropped them.
+
+**How a clip is keyed** (`bake.Keyer.bake`): every key on the figure reset to rest: the pose's angles set as quaternions;
+the hips moved; each leg solved two-bone for its foot's ankle (the knee looking the leg's way), the foot pitched and
+turned; **the boots kept on the ground**: a boot more than 2 mm under the ground (where the boots' soles are at rest,
+−24.0 mm under the origin's plane) raises its foot's key by what it dips and the leg is solved again, up to four times
+(the manager's re-bake of 2026-11-18); each hand solved (a grip's own first, then a hand on the other's weapon): the
+upper arm, the forearm (taking half the wrist's turn) and the hand placed for the grip, a hand without an `edge` or `roll`
+turned about its weapon and its elbow swung to leave the wrist straightest without wringing the forearm, clear of the
+trunk and near the key before (`solver.LAST`, emptied at each clip's start); a `blend` under 1 mixes the arm back toward
+the pose's own. Read back: every bone a key moved as XYZ Euler degrees to three places (a solved leg or arm from its
+pose's basis, a keyed bone as keyed), the hips' place to five; a bone some key moves is keyed at rest where another key
+leaves it; a stance loop keeps its `only` bones; a loop's last key is its first to the digit (refused when more than 1° or
+1 mm apart). The data is `library.py`'s form, written as the manager wrote it (JSON, one space a level), so the same
+source gives the same bytes. All 34 clips in one Blender session: the figure built once (about 4 s), each clip from the
+same start (the solver's memory of the key before emptied; a clip keyed on the figure before may stay assigned: Blender
+plays an action only when the frame changes, and every key is posed by hand, which the kit's breaks showed).
+
+**The keying figure** (`figure.keying_figure`): the human man, average build, at the full level, by `bodies.build`
+(`clips/library.py`'s `SKELETON`: every clip is authored on him), his plain outfit with it. The keying reads his skeleton
+at rest and his boots (`outfit.boots`; the ground is their soles at rest). Dressed `"parts"` (the measure's) he wears his
+face `human-male-1` and hair `swept-back` (built on his skeleton and bound to `head`, as the face and hair models are);
+`"geared"` (the pictures') the chain shirt over them (`gear.chain_shirt`) and the sample sword and shield and the stand-ins
+(`props.py`: a greatsword, a spear, a staff, a dagger, a bow, a crossbow, a flask, pictures only) ready to be put in his
+hands. **Proven against the figures the clips were keyed on** (`claude-work/gm2/step4/cache/man-full.blend`, every clip but
+`stand`, and `man-plain.blend`, `stand`'s: the manager's of 2026-11-16/17; `claude-work/gm2/keying-kit/inspect_*.py`): the
+30 bones' rest matrices and lengths and the boots' 2,070 vertices with every weight, bit for bit the same.
+
+**The proof: 34 of 34 byte for byte.** First the manager's kit as it was (copied into `claude-work/gm2/keying-kit/
+baseline/`, run on his cached figure): his sources the same and his 34 clips the committed ones (34 s, a Blender run a
+clip). Then the repo's kit: its sources the manager's (but for the two dropped hints), and its 34 baked clips the committed
+files byte for byte (their sha256 the hand-over's `checksums.txt`), in **about 9 s** (`make-humanoid.sh keys --check`, 11 s
+with the sources); again on 2026-11-23 after a cut-off, on `main`'s `8e583b6` (with "contacts kept", which changed
+`library.py` and not the clips' files). `keyed.json` records each clip's source and data by their sha256.
+
+**The measures** (`measure.py`; `make-humanoid.sh measure`; run on the figure dressed `"parts"`, 30 s for all 34): from
+the solver at every key that solves an arm, as the manager's `twist.sh` and `series.sh` read its notes: each arm's worst
+**wrist bend** (degrees between the forearm and the hand) and **forearm turn** (the hand's turn about the forearm from the
+elbow's plane; the user sees one past about 90° as a twist; the frames past 85 counted), whole degrees; the **jumps**
+between neighbouring keys (two frames apart at most) of the turn, the bend and the elbow's swing (one of the turn or the
+bend past 25° or of the swing past 30° listed: an arm snapping for a frame), and each clip's largest; a grip **out of
+reach** (`short`, metres) and an arm **in the trunk** (the solver's crowding past 0.02); and as `ground.sh` measured,
+**every frame against the ground** as Blender plays the baked clip keyed as the library keys it: the lowest point over the
+ground (mm), its part (the bone its vertex follows most) and piece, the last frame's, the frames more than 2.5 mm under,
+and every part's lowest over the clip (`--parts` prints them at chosen frames). `measures.json` holds every clip's summary
+with its data's sha256 (`measure --record`; `measure --check` proves it is what is measured now and every clip within the
+bounds; `measure <clip>` reports and fails a clip past them; `--series <clip> <L|R> <from> <to>` an arm key by key).
+**Against the hand-over** (`claude-work/gm2/step4/handover-clips/`): the arms of 32 clips agree line for line with its
+`twist-before-snaps.txt` and `twist-strike-offhand.txt`; `death` (the right forearm's worst turn −34° at frame 34, not
+−37°) and `meditate` (the wrists 26° and 50°, not 25° and 49°) differ because that file was measured at 22:16, before
+both were keyed again for the ground (22:43): the manager's own `twist.sh` run on the final data gives the kit's numbers.
+The ground of the 29 whole-body clips agrees line for line with its `ground.txt` (to its 0.1 mm, frame, part and piece).
+
+**The family's bounds** (`bounds.json`, pinned by `HumanoidKeyingKitTests`): the worst the 34 approved clips measure, so a
+new clip has something to be held to (a clip past one is shown to the manager with its reason, not committed silently):
+
+| Measure | Bound | The clip at it |
+|---|---|---|
+| Wrist bend | 74° | `crossbow`, the right (the stock to the shoulder) |
+| Forearm turn, either way | 128° | `swing-two-handed`, the left (frames past 85: 10) |
+| Jump of the turn between neighbouring keys | 33° | `swing-two-handed`, the left, frames 15-16 |
+| Jump of the bend | 23° | `punch`, the right, frames 7-8 |
+| Jump of the elbow's swing | 47° | `swing-two-handed`, the left, frames 15-16 |
+| A grip out of reach | 0.101 m | `stumble`, the left (the arms thrown wide) |
+| An arm in the trunk | 0.04 | `bow`, the right (one key, frame 19) |
+| Under the ground | 2.21 mm | `meditate`, the kneeling right shin, frame 22 |
+
+Every clip as the kit measures it (2026-11-22; the arms only where a key solves them, the jumps only where keys lie two
+frames apart at most; a stance loop moves no leg, so its figure stands at rest):
+
+| Clip | Wrist bend L / R | Forearm turn L / R (frames past 85) | Largest jump: turn / bend / swing | Short (m) | In the trunk | Lowest (mm, part) | Last frame (mm) |
+|---|---|---|---|---|---|---|---|
+| `idle` | – / – | – / – | – | – | – | −0.28 (foot.L) | −0.14 |
+| `stunned` | 11 / 56 | −32 / +19 | 0 / 0 / 0 | – | – | −1.53 (foot.L) | −0.18 |
+| `advance` | 16 / 42 | −70 / −6 | 4 / 6 / 0 | – | – | −2.00 (foot.L) | −0.13 |
+| `return` | 20 / 40 | −68 / +3 | 2 / 5 / 2 | – | – | −0.23 (foot.L) | −0.13 |
+| `flee` | – / – | – / – | – | – | – | −2.01 (foot.R) | +11.93 |
+| `stand` | – / – | – / – | – | – | – | −0.34 (foot.L) | −0.14 |
+| `hurt` | 8 / 36 | −69 / +20 | 7 / 5 / 13 | – | – | −0.15 (foot.L) | −0.13 |
+| `critical-hurt` | 42 / 35 | −68 / +55 | 7 / 22 / 22 | – | – | −2.00 (foot.R) | −0.13 |
+| `stumble` | 43 / 35 | −66 / +64 | 4 / 15 / 1 | L 0.101, R 0.038 | – | −0.21 (foot.L) | −0.13 |
+| `death` | 3 / 23 | −62 / −34 | 0 / 0 / 0 | – | – | −1.98 (foot.L) | −1.92 |
+| `swing` | 8 / 49 | −73 / +108 (13) | 26 / 15 / 8 | R 0.026 | – | −2.00 (foot.L) | −0.13 |
+| `thrust` | 16 / 67 | −73 / +16 | 2 / 9 / 2 | R 0.028 | – | −2.00 (foot.L) | −0.13 |
+| `stab` | 17 / 57 | −72 / +15 | 7 / 21 / 2 | – | – | −1.15 (foot.R) | −0.13 |
+| `strike` | 12 / 58 | −77 / +125 (23) | 28 / 19 / 18 | R 0.035 | – | −2.00 (foot.L) | −0.13 |
+| `punch` | 10 / 27 | +24 / −40 | 15 / 23 / 4 | R 0.037 | – | −2.00 (foot.R) | −0.13 |
+| `swing-off-hand` | 44 / 36 | −93 (9) / +4 | 17 / 19 / 5 | L 0.037 | – | −0.23 (foot.L) | −0.13 |
+| `swing-two-handed` | 34 / 61 | −128 (10) / −91 (5) | 33 / 20 / 47 | R 0.019 | – | −2.00 (foot.L) | −0.13 |
+| `bow` | 53 / 36 | −47 / −83 | 14 / 16 / 7 | – | R 0.04 | −0.14 (foot.L) | −0.13 |
+| `crossbow` | 4 / 74 | +62 / +69 | 10 / 12 / 12 | – | – | −0.14 (foot.L) | −0.13 |
+| `cast` | 10 / 56 | −72 / +16 | 9 / 11 / 10 | R 0.014 | – | −0.17 (foot.L) | −0.13 |
+| `skill` | 25 / 40 | −70 / −35 | 18 / 5 / 6 | – | – | −0.21 (foot.L) | −0.13 |
+| `item` | 21 / 35 | −55 / +3 | 12 / 5 / 4 | – | – | −0.21 (foot.L) | −0.13 |
+| `drink` | 44 / 40 | −56 / +3 | 23 / 15 / 11 | – | – | −0.14 (foot.L) | −0.13 |
+| `meditate` | 26 / 50 | −66 / +8 | 3 / 4 / 3 | – | – | −2.21 (shin.R) | −0.13 |
+| `guard` | 12 / 40 | −58 / +2 | 3 / 3 / 2 | – | – | −0.14 (foot.L) | −0.06 |
+| `guard-hold` | 5 / 40 | −53 / +2 | 0 / 0 / 0 | – | – | −0.08 (foot.L) | −0.06 |
+| `evade` | 25 / 38 | −70 / +37 | 8 / 7 / 1 | – | – | −2.00 (foot.L) | +1.40 |
+| `evade-hold` | 3 / 30 | −64 / +16 | 0 / 0 / 0 | – | – | +1.07 (foot.R) | +1.40 |
+| `victory` | 19 / 40 | −70 / −37 | 18 / 4 / 3 | – | – | −2.00 (foot.R) | −0.13 |
+| `hold-two-handed` | 3 / 52 | −70 / −30 | 0 / 0 / 0 | – | – | 0.00 (foot.R) | 0.00 |
+| `hold-staff` | 16 / 36 | −73 / +9 | 0 / 0 / 0 | – | – | 0.00 (foot.R) | 0.00 |
+| `hold-unarmed` | 7 / 7 | +15 / −16 | 0 / 0 / 0 | – | – | 0.00 (foot.R) | 0.00 |
+| `hold-bow` | 38 / 22 | −47 / −76 | 0 / 0 / 0 | – | – | 0.00 (foot.R) | 0.00 |
+| `hold-crossbow` | 1 / 35 | +62 / −3 | 0 / 0 / 0 | – | – | 0.00 (foot.R) | 0.00 |
+
+(The flagged jumps, as the manager's tool lists them: `swing` the right at frames 27-28, turn −26; `strike` the right at
+2-3 and 3-4, turn +28 each; `swing-two-handed` the left at 15-16, turn +33, bend +20, swing −47, and the right at 11-12,
+turn −26: all in the clips the user approved, so within the bounds.) Beside the engine's own ground test
+(`HumanoidClipTests.BothBodiesStayOnTheGround`: the man skinned on the CPU, at most 2.21 mm under, bound 3 mm), the kit
+measures Blender's evaluation, the same 2.21 mm.
+
+**A clip seen on a floor** (`video.py`; `make-humanoid.sh clip-video --out <folder> <clip> [--every N] [--hold <stance
+clip>] [--gear <list>] [--plain] [--views side,three-quarter] [--size WxH]`): every Nth frame (2 by default; the last
+too) of the man geared (`--plain`: his plain outfit) exported as a posed figure with what the source's `gear` (or `--gear`;
+under `--hold`, the stance's) puts in his hands, moved back by its `travel`, the bow's string drawn by its `string`, on a
+floor whose top is the ground; rendered from each view (the figure turned under a fixed camera and sun, as `render`'s
+views are, framed alike in every frame by the figure's reach over the clip) in the game's look by `render.py --scene`, the
+ink over the shading as the engine lays it; each frame's views side by side with the clip's name and frame,
+`<clip>.mp4` (played at the clip's speed, a loop for about four seconds and a one-shot clip about three, ffmpeg),
+`<clip>-strip.png` (seven frames of the first view) and the frames.
+`death` every sixth frame: 11 frames, two views, 55 s.
+
+**How to key a clip.** A new clip: a function in the module of its family giving its keys (`poses.key` on the ready stance,
+`grips` for the hands; a whole-body clip keeps the stance's feet planted unless it moves them, so every key moves the hips
+and solves both legs), its entry in that module's `sources()` (`poses.source`: its frames, loop, markers, `fine=1` and
+`lag=LAG` for a clip keyed at every frame with the overlap, `gear` for its pictures); then `make-humanoid.sh keys --out
+<scratch> <clip>` to try it, `measure <clip>` (within the bounds, or shown to the manager with its reason) and
+`clip-video` (the user's manner, 2026-11-17: ready to fight, the whole body moving, nothing held still), and when it is
+approved `keys <clip>` (its data into `clips/<clip>.json`, its hashes into `keyed.json`) and `measure --record`. Then
+what the data feeds: the clip in `HumanoidClipTests`' list (`HumanoidClipList`), `make-humanoid.sh build clips`
+(`clips.glb`), `make-models-pack.sh`, its evaluations against Blender (`AnimationScenes`' `humanoid-<clip>-male|female`,
+`make-blender-references.sh`) and whatever plays it (the machines). **A marker:** the clip's `markers` in its `source`
+(an event at a frame), then the same (the list names its markers). **A stance loop** (GM2-P21): a weapon kind in
+`grips.STANCES` (`hands(frame)`: the grips at a frame, drifting late after the idle's breath; `pose`: the fingers; `gear`),
+which `standing.py` writes as `hold-<kind>` on the idle's body (`idle.keys`, the arms alone, `only=ARMS`); its attack
+starts and ends in its first frame (`STANCES[kind]["hands"](0)`). **What "contacts kept" (GM2-P37) needs of a new clip**
+("Contacts kept" above): `clips/library.py` names a clip's contacts by itself on every clip that keys the hips' place, with
+each chain (a leg, an arm) whose three joints the clip turns, keyed on the man; a clip of the kit keys the hips and solves
+both legs at every key, so it has both legs' chains. What touches the ground on the man is held where it touches on every
+body, what is above it scaled, fading out by 150 mm: so a planted foot is keyed on the ground (the kit keeps a boot from
+dipping more than 2 mm under it; one keyed floating more than 2 mm over it is in the air for the rule and rises with a
+taller body), a kneeling knee or a lying body set onto the ground as `meditate` and `death` are (their parts within a few
+millimetres of it: `measure --parts`), and a new clip's bodies held by `ContactsKeptTests` and
+`HumanoidClipTests.BothBodiesStayOnTheGround`, which run every clip of the library.
+
+**Tests** (`Tests/Statventure.Tests/Humanoid/HumanoidKeyingKitTests.cs`, 4, no Blender): `keyed.json` and `measures.json`
+name exactly the list's clips, as the folder does; every committed clip's sha256 the one `keyed.json` records as baked from
+its source and `measures.json` as measured (a source's a hash too); `bounds.json`'s numbers the pinned ones; every clip's
+measures within them (each arm's bend and turn either way, the largest jumps, short, in the trunk, the lowest point).
+Without Blender also `python3 -I Tools/Models/humanoid/clips/kit/sources.py check`: the sources the modules write now the
+ones the committed clips were baked from. With Blender, `make-humanoid.sh check` (with no names) runs `keys --check` and
+`measure --check` after the models.
+
+**Shown able to fail.** *The kit's rules* (a runner of the worker's, `claude-work/gm2/keying-kit/breaks.py`: each rule
+broken in the worktree, the checks that must notice it run, the file put back; every check passing unbroken first):
+**35 breaks, 32 killed**: the sources (the overlap's lag, the second hand's place on a grip, a marker a frame late, a dense
+clip not linear, a source's file indented otherwise: `sources.py check` and `keys --check` both), the solver (the
+forearm's share of the turn, a free hand's cost of staying near the key before and of the trunk, a free hand forgetting
+the key before), the bake (the ground's slack, the boots not kept on the ground, the solver's memory kept across clips, a
+loop not closed, a stance loop holding every bone, the angles or the hips' place to four places, a solved foot read as
+keyed), the figure (at the battle's level, the ground taken from the boots' cuffs), the records (a committed clip a digit
+off, a source's recorded hash, a stray clip in the folder), the measures (`measure --check`: a turn counted past 80,
+neighbours ten frames apart, a jump listed past 26°, an arm in the trunk past 0.05, the bend truncated, the ground's heights
+not over the ground, the ground measured without the head, a recorded measure) and the bounds (the bend's under the worst,
+a bound met counted past: `measure --check` and `measure crossbow`). The three left can't differ on the 34 clips: a free
+hand's cost of falling short weighed a tenth or nothing (no free hand's grip, a hand on the other's weapon or the fallen
+fist, is out of reach: every grip that falls short is keyed with its edge), and neighbours one frame apart instead of two
+(every clip whose keys lie that close is keyed at every frame; ten apart is killed). One line the first run showed
+unneeded went: emptying the rig's animation before a bake (a clip left assigned changes no pose set by hand). *The test*
+(`mutate.py` under the shared lock; `claude-work/gm2/keying-kit/mutations.json`, made by `make-mutations.py` beside it):
+**29 mutations, 29 killed**: a committed clip a digit off; `keyed.json`'s clip hash, a source's hash not a hash, a clip
+dropped; `measures.json`'s clip hash and a clip dropped; each of `bounds.json`'s eight numbers loosened; each pinned bound
+set just under what its worst clip measures (`EveryClipIsWithinTheFamilysBounds` alone); a recorded measure past each bound
+(the bend, the left turn of `swing-two-handed` past it the other way, the right turn of `strike`, a jump of the swing, the
+short, the trunk, the lowest point). Nothing written to the player's real folders.
+
+**Runs** (headless, each under the shared lock in a cage of its own, a scratch per-user folder, sound to the null device;
+`claude-work/gm2/keying-kit/full-*.log`): on the branch rebased onto `main`'s `76f64a22` (step 11), **5395 + 1131 = 6526
+tests on the GPU and on lavapipe** (`main`: 5391 + 1131 = 6522; 4 new, the engine's), none held; before step 11's merge,
+on `8e583b6`, 5393 + 1086 = 6479 on the GPU. On both bases: `keys --check` 34 of 34 byte for byte, `measure --check` as
+recorded and within the bounds, `sources.py check`, `make-humanoid.sh check clips test-clips` 2 of 2 the same bytes. The
+player's real folders the same before and after every run.
+
+**Choices made (internal, recorded here):** the kit under `clips/kit/`, its clip modules by the clip table's families (the
+manager's batches regrouped; the same functions, the same sources); the sources an intermediate written into scratch at
+every run (2 s), never committed, held by their sha256 in `keyed.json`; all clips in one Blender session; `keys` writing
+into `clips/` and `keyed.json` (`--out` to try, `--check` to prove); the source's picture-only hints `wide` and `tall` dropped
+(the frames framed by the figure's reach); the measures in the manager's terms (the solver's notes at the keys, whole
+degrees as his tool read them; the ground as Blender plays the baked clip) and recorded with the clip's hash; the ground
+measured on the man with his face and hair but not the chain shirt (the ground and the contacts are his outfit's; the
+repo's chain shirt lies 12 mm in the ground at death's end, "Contacts kept"); the bounds the worst of the 34, in one file
+both the tool and the test read, pinned in the test; `measure <clip>` failing past them; the pictures in the game's look
+through `render.py --scene`, the stand-ins as the manager's; `check` with no names running the kit's two checks.
+
+**For later steps.** *A new clip or a re-keyed one:* the steps above ("How to key a clip"), measured and seen on a floor
+before the user sees it; a clip past a bound goes to the manager. *GM3:* the real weapons in the pictures (the stand-ins
+are `props.py`'s), the bow's string as `bake.Frames.drawn_bow` draws it. *Any later family:* a kit of its own beside its
+clips (this one keys on the human man's skeleton and boots only).
+
 ## Status
 
 - **2026-11-15:** written on the user's go for GM2 (docs only, the branch `gm2-design` from `8c7d07d`), after the user's
@@ -5599,3 +5846,13 @@ extrusions.
   the band's edge joined Q70's engine task). 5391 + 1131 = 6522 tests on the GPU and on lavapipe (`main` `8e583b6`: 5389 +
   1086 = 6475; 47 new: 2 the engine's, 45 the game's), none held; mutations: the first list 78 (77 killed, one that can't
   differ), again after 9a 81 (80), the second round 29 (29), the last rebase 1 (1); `assemble.py`'s list rules 4 of 4.
+- **2026-11-23, GM2-P23's task "the keying kit" done** (a worker, the branch `gm2-keying-kit`; "How it works", "The keying
+  kit"): the manager's keying scripts as the repo's kit, `Tools/Models/humanoid/clips/kit/`, through `make-humanoid.sh
+  keys` (sources written in plain Python, baked in Blender on the man built by the family's builders: his skeleton and
+  boots bit for bit the scratch figure's), `measure` (the arms, the jumps, the ground, as the manager's tools measured
+  them) and `clip-video` (a clip on a floor in the game's look). The 34 approved clips its output byte for byte (all in
+  about 9 s), held by their sha256; their measures recorded and the family's bounds the worst they measure (wrist bend
+  74°, forearm turn 128°, jumps 33° / 23° / 47°, short 0.101 m, trunk 0.04, 2.21 mm under the ground), every committed
+  clip held to them by `HumanoidKeyingKitTests` (4 tests, no Blender). No question for the user. Breaks of the kit's rules
+  35, 32 killed, 3 unable to differ; the test's mutations 29 of 29. 5395 + 1131 = 6526 tests on the GPU and on lavapipe
+  (`main` `76f64a22`: 5391 + 1131 = 6522; 4 new, the engine's), none held; the real folders untouched.

@@ -1,0 +1,141 @@
+{
+ "comment": "Each clip's keying source (sources.py write) and its data (clips/<name>.json, baked by bake.py) by their sha256: written by make-humanoid.sh keys, held by sources.py check, keys --check and the engine's HumanoidKeyingKitTests (Docs/Game/Hero.md, \"How it works\", \"The keying kit\").",
+ "clips": {
+  "advance": {
+   "source": "9ba5b5c31bf95e437cc38946cd21b6252a2b87c97d92c8626e80937138555aa8",
+   "clip": "04a95cd3f52be825707316b45bf79da2e51953e2ed36dda476283cf20071373b"
+  },
+  "bow": {
+   "source": "7c64805c27d50fcaff0139fde8070eb36c37cb0b7d362ff33b343c5bcd049469",
+   "clip": "d2ac4f5002a93d9bbe0f109252f99001e372279d50ff671c6b48c2bd42c5e089"
+  },
+  "cast": {
+   "source": "433e27c00e358a96c5e4a6f6e093a9197fd8fe9a21c66fdf1c98b34ab7a71af9",
+   "clip": "62b7f8f9ce2864a0d42a1976a536575a9e87da5f750d6581f6a571e67ca25f91"
+  },
+  "critical-hurt": {
+   "source": "d32145e9284aaf14e23d8f489527eb4278a1297df12fabd7d40ee324dc23332a",
+   "clip": "25697cc994c4d11718e944aaeb5d73ab2bc79f6862ea7b0d762eadf31df4c028"
+  },
+  "crossbow": {
+   "source": "924db592f095093cad0c8ca730b76ceef9dabe09d77d81ab6be52e18ceb5555a",
+   "clip": "2e603d9671b4ecb6d1ff7013b8e5cef94e747391c4bd6dc353b3161b88dadd9f"
+  },
+  "death": {
+   "source": "2f1bd8de5b5bc258a5bbcb6a28425b6a0b0999bc2ec15aac2ee9ae9e53caca99",
+   "clip": "d3a87c30a433fc8da16941746e437dfefda9ffc142c4450486f916353a526526"
+  },
+  "drink": {
+   "source": "da3ce33ab4db69abf6f42bd98eae196fa0b0ab315c668067724d20941a8ec75d",
+   "clip": "550b79a882d7e07e0fc2bb1d0b43e4938712db49a0ece4acf1e48a67918ed6f9"
+  },
+  "evade": {
+   "source": "dd7c060bf745ea34ba0fa0683c040987ec560a6e55115bdd0d5dc813dcc1e148",
+   "clip": "858076f5d33da89f03f59b5fab95f8abb3153479d52777d4bd175507339bdcf0"
+  },
+  "evade-hold": {
+   "source": "588cd9ddd1b806cfb4e948f72b69da29934971e0b81d8b208601383960730fb2",
+   "clip": "4bc8db58225ef45ebd992aed500a19ca384650ca5b22b81f80e7fda006fecec6"
+  },
+  "flee": {
+   "source": "351a00ccd46a500dbed84275fee88024206847f73c98fa1ed459f5df34d40333",
+   "clip": "a99953e435b056fda990cbed9deea5bc23bb272800852a07b889524abf0678da"
+  },
+  "guard": {
+   "source": "723aef752fb2413f1c2f8598074292fd38db85d32baf9b9b13458d1c7b224017",
+   "clip": "73c532140a1f46cc4d0f8eaa90be31314e5986d46ff48bc158011ee19b167e5c"
+  },
+  "guard-hold": {
+   "source": "4b92808d1aecbc8da2114bef6e6e1c3ff4e35e7fb137ba35147e2586330c8b7b",
+   "clip": "13ce8ac15535ce9505c1daa2fffb7f5fcce9538a8f134564cb8f02b95bcc9335"
+  },
+  "hold-bow": {
+   "source": "cf3f64f48bc14d81c652b19474b77fd034b7ab50cc4f70e8a73fa8a43e0fcfac",
+   "clip": "826e05de49992c9ea06bb4b5b87bc8a9109b679bee5bc8045ae1a28e380ad005"
+  },
+  "hold-crossbow": {
+   "source": "ca1a676d2a121ca2c1565016215e3673a343e31c3cd4fa8b989f44726a061a50",
+   "clip": "05399b978eb15eb84bef2fabb9251e153576eec1405555f09f7e14bb42aedc14"
+  },
+  "hold-staff": {
+   "source": "e4bc1404afb426a989efbce9cdc7d4c03738c2ab141920ea4dfb57b946b728e6",
+   "clip": "4e77d06f9ba1f904b71ea2ac21723484f4d61886a11c0f0d31265ac5b6b1d329"
+  },
+  "hold-two-handed": {
+   "source": "f9540248daabc253e6690937049a538565cc2b8195682869d32ed6d2eb42c445",
+   "clip": "53d062602d4df979735b26f1ffd675776f50214da553b210467ef6da84532d20"
+  },
+  "hold-unarmed": {
+   "source": "b113a05560ef1ccef9b6e51e40807209de1d8760834ea9d6f6d5742aff90f388",
+   "clip": "927ae6c86df996ffeae6cf91ef54558299493f347019744a1df40f568c390103"
+  },
+  "hurt": {
+   "source": "3b90c710f2e415a6dfcdf5a425db39b28aec8cff302e8ed0a7a56527f2e2f39f",
+   "clip": "2801ac7ae69b8c7b232d13b81206cdaa7f63c3fab71558e525bb8c8d2c3f82bc"
+  },
+  "idle": {
+   "source": "d7495ba4a572182af4d905dc3a22f511b66801c4d37d5e7c5e65a1d14956c248",
+   "clip": "100de40a2d16d64e7f8636cb9e1b23cca830feda141d6818eb05f95ff75290a9"
+  },
+  "item": {
+   "source": "bb88bf070df915e0396e057bca1c5bf35525a3390d84c47359811d22f2e47bf5",
+   "clip": "b50f140d330eca408298786b48c43ff19737b7cba74411b76b4fdc00cbab249f"
+  },
+  "meditate": {
+   "source": "469e7d63e3e162458238703567c3e00da32192b883571c5e6098eef441c5a9c3",
+   "clip": "cbef0d06660f5e08630d9f9fb94ce4f6003bc979ef8886d6ab5d9ffa9c34259c"
+  },
+  "punch": {
+   "source": "29a3d669c22409878f64d3dc4a7dd5547ad3d366adc5a7555bd70334d69bee10",
+   "clip": "0a12dd450559fa2d61ad6827f3556d1ff4a1ff456a8fb02d54f7b72e3afff094"
+  },
+  "return": {
+   "source": "5f596af73354aa24bc3ddee9a63f1f548ea3f19a693ca14a2df32f7abcfeee29",
+   "clip": "7259e0c2ff61ea69963cb8857bc27cf5eb793ea42c5e25d2580765e0876296da"
+  },
+  "skill": {
+   "source": "11c9a67938a10b510082b182c926677f7f9e978d615597dbc28c11cff1bdca9e",
+   "clip": "ce8189b4b1bcc7f598b400e03ec8aa3cb054afb30951c1bf2124494013c722bf"
+  },
+  "stab": {
+   "source": "90e703b274caf55304d48121924b6857db00cd59014cd013ba36a07485e5ad40",
+   "clip": "2243048208c9f8000866a3bffb10a2a0be0f76ca46eb77a3d02600af333b4413"
+  },
+  "stand": {
+   "source": "ece08d3c3b49f943450bd52c4a76a973068c2bdfaddc4c490a25c0abeb9d0270",
+   "clip": "52430e548aeb5e1dad9d7aa25739a3225af784c5b7ff765ffb86886f496fafee"
+  },
+  "strike": {
+   "source": "b16b24ac85d1bd96e83d43ffdb58c9258d6e28a91974df8545737b0cd1d074a1",
+   "clip": "1b09f0ff61fe6157337dc6df68b4f0653847953e7a8e22886a31c64056f592bd"
+  },
+  "stumble": {
+   "source": "44786d520330f8935d3111573f2d3af5770304bdb27a0d81d3132e604fbbc8f9",
+   "clip": "967b91f7c926372d754348fb5ca2dc0fa51610fb4aa70bc4ceca8aab2b9f4e90"
+  },
+  "stunned": {
+   "source": "7c6cdf4374cc3a2ca45500909f5e1137d36f21de4a66d64a50c5460f4aabf97b",
+   "clip": "332cfcb4c4dfe60375a9cf084e6b82833048537bc9d3febd860e94df0494dc9e"
+  },
+  "swing": {
+   "source": "b9f9806d3b4375888d0cc8d89fa0c738c56ce10a3ee3ef02627918cfaea86df3",
+   "clip": "68fca6890858d8957ffc3beb6672d4e210932e0749ce2d2ce7613ae937f87eb2"
+  },
+  "swing-off-hand": {
+   "source": "e8b0dcb9a1441cadaefa862fa14265cce231de5943684d2d40b8cd36b15a16ba",
+   "clip": "62737e10364297d0ff4a2956e99fb03d8242b645efd49be71631cc00cefcab7d"
+  },
+  "swing-two-handed": {
+   "source": "2d6ba5a8af5c0109c7e28b7e19711928d92a8988a9ae20b281ea9bef80457c0b",
+   "clip": "8bc0d71510e43c5fa1271f73b7194b6f88db04472c53e301257874c55c6d0974"
+  },
+  "thrust": {
+   "source": "daf3cbf719d265f534bfcf4c5ae2abc52d43ebbe80efcdfe6314f8f72abd3b56",
+   "clip": "00564fd7ce920ad8e5cee250f394f4cae973bfac3b9e66a939e7a75f01966687"
+  },
+  "victory": {
+   "source": "c487567bbd0cad76b433c251f7c55619f93ab3f3079ff9c14d459ffaa5f41039",
+   "clip": "f313c76d69a8b2b499d1abcccd5c2008eb82032c7b821900765090b3e02173db"
+  }
+ }
+}

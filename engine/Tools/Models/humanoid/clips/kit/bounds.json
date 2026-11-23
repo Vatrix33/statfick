@@ -1,0 +1,9 @@
+{
+ "comment": "The family's bounds (GM2-P23): the worst the 34 approved clips measure (measure.py, 2026-11-22), so a new clip has something to be held to; measure.py's report says which a clip passes, and the engine's HumanoidKeyingKitTests holds every committed clip to them (Docs/Game/Hero.md, \"How it works\", \"The keying kit\"). bend: a solved arm's wrist bend (whole degrees; crossbow's right); turn: its forearm's turn either way (swing-two-handed's left); jump: the largest change of the turn, the bend and the elbow's swing between neighbouring keys (swing-two-handed's left at frames 15-16, punch's right at 7-8, swing-two-handed's left at 15-16); short: metres a grip lies out of reach (stumble's left); trunk: how deep an arm lies in the trunk (bow's right, the string hand); under: mm the lowest point goes under the ground (meditate's kneeling shin).",
+ "bend": 74,
+ "turn": 128,
+ "jump": {"turn": 33, "bend": 23, "swing": 47},
+ "short": 0.101,
+ "trunk": 0.04,
+ "under": 2.21
+}

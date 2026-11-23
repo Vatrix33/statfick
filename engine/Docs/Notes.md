@@ -714,6 +714,18 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   in the same data (or beside the library file) when the library is loaded. A library without them plays as before (GM2-P22's
   measure alone); a new clip keyed on another body names that body; a new body needs no data of its own (its groups come
   from its skin and the chains' joints' names), only a place in the ground tests' lists.
+- 2026-11-22 (the PC, GM2-P23's task "the keying kit" on the branch `gm2-keying-kit`): **the clips keyed, baked, measured
+  and shown from the repo** (`Tools/Models/humanoid/clips/kit/`, `make-humanoid.sh keys|measure|clip-video`; `Docs/Game/
+  Hero.md`, "How it works", "The keying kit"). Gotchas: Blender 5.2's actions have no `fcurves` (layered actions): reach
+  them through `make_models.curves(action)` (the manager's scratch set its picture clips linear through `action.fcurves`,
+  which did nothing; at whole frames a clip keyed at every frame plays the same either way); keying many clips in one
+  Blender session needs the arms' solver's memory of the key before emptied at each clip (`solver.LAST`, a free hand's
+  answer follows it), while an action left assigned to the rig changes nothing (Blender plays it only on a frame change:
+  a pose set by hand and `view_layer.update()` stay); a figure for keying is proven by its skeleton's rest and its
+  boots' vertices and weights (what the bake reads), not by its pictures; the hand-over's `twist-before-snaps.txt`
+  predates `death`'s and `meditate`'s last re-key (re-measure, don't compare with it); a Python attribute named like a
+  method of the same class (`ground`) hides the method. To try a clip without touching the approved data:
+  `make-humanoid.sh keys --out <scratch> <clip>`; every approved clip is held by its sha256 (`clips/kit/keyed.json`).
 - 2026-11-21 (the PC, GM2 step 9a's worker on the branch `gm2-step9a`, 5266 + 1000 = 6266 tests on the GPU and lavapipe): **the shared
   sets and the human in the repo** (`Docs/Game/Hero.md`, "How it works", step 9a). Gotchas: a material's name may hold a
   dot (`eye.white`, `hair.tie`, `cloth.trim`): strip only Blender's `.001` suffix, never at the first dot; a part with no
