@@ -288,6 +288,15 @@ widened; (4) agreed as the worker's: the weight (1 at a keyed clearance of 0 or 
 turning about its own hinge and always flexing, the pop bounds (one tied to the motion, one absolute and measured);
 (5) a lying body's trunk held up by thick thighs stays as it is (no trunk turned), reported per body. **Done 2026-11-22**
 (a worker, the branch `gm2-contact`; "How it works", "Contacts kept"): every number, choice and measurement there.
+**The manager's decisions with the races' art (GM2-P38–GM2-P43, 2026-11-21; from his hand-over of steps 9b–9e,
+`claude-work/gm2/step9a/handover-races/HANDOVER.md`; each recorded by the step it concerns):**
+- **GM2-P38 (step 9b):** a race's `size` in the builders is chosen so that the race stands at Q74's share of the human's
+  height: the elf and the dark elf 1.04 (the old number), the dwarf 0.871, the hobbit 0.773, the Goliath 1.162 (the old
+  0.86, 0.74 and 1.18 gave shorter small races and a taller Goliath: a body's legs are a larger share of it than an old
+  sprite's were). The models carry their size (`bodies.export_sized`: the body and every part made on it built as
+  proportioned and scaled as a whole when exported, so every measure in the builders holds); nothing scales a figure at
+  run time for its race. So a figure's ground is its own body's soles: the elves' 24.96 mm under the origin (the human's
+  24.0 times 1.04).
 
 **The manager's decisions on the races' packs and builds (GM2-P44–GM2-P46, 2026-11-21 and 22; GM2-P44 from his hand-over of
 9b–9e, `claude-work/gm2/step9a/handover-races/HANDOVER.md`, the others on the races' worker's report of the pack's size;
@@ -308,7 +317,7 @@ recorded by the race packs' task, "How it works", "The race packs"):**
   arrays, 14 % smaller; 16-bit positions, normals and weights, 44 %; the skeleton every part carries, about 3 KB a model)
   wait for GM3's armour fitted to every body (`Docs/Game-Plan.md`, "Engine items the port will meet").
 
-### Questions from the steps (Q43–Q73 and Q77–Q81, the user, 2026-11-15 to 2026-11-22)
+### Questions from the steps (Q43–Q74 and Q76–Q81, the user, 2026-11-15 to 2026-11-22)
 
 Q43 and Q44 raised by step 1 (the `race` kind's fields; the docs didn't answer them) and asked by the manager with the
 question tool the same day; both the recommended option. Q45 asked by the manager on 2026-11-16 for step 6 (step 2 had
@@ -496,6 +505,17 @@ the sheets the user saw: `claude-work/gm2/step9a/approval/` `builds-faces/`, `se
   hidden** ("Hide the row"): a colour row is shown only when its slot has two or more swatches; the human's brows and eye
   whites disappear from the maker, and a race or a mod that gives them more swatches gets the row. The look still holds the
   swatch (step 6's check). Built by step 9a (`LookMaker.OfferedSlots`, "How it works", step 9a).
+Q74–Q76 and the approvals of steps 9b–9e came with the other races' art (the manager's, asked with the question tool,
+2026-11-21; recorded from his hand-over, `claude-work/gm2/step9a/handover-races/HANDOVER.md`, by the step each concerns;
+the sheets the user saw: `claude-work/gm2/step9a/approval/races/`).
+- **Q74 (2026-11-21): the races' sizes, "Yes, the old sizes"** (not "less far apart"): each race stands as tall beside a
+  human as in the old game's battles: with the human man at 1.81 m, the elf and the dark elf 1.95 m (1.08), the dwarf 1.33 m
+  (0.73), the hobbit 1.01 m (0.56), the Goliath 1.23 of the human; the women likewise beside the human woman; the
+  lizardman, the Half-Beast and the Merfolk the human's size. In the builders: the manager's GM2-P38.
+- **Q76 (2026-11-21): beards, "Every race but lizardmen"**: all twelve beards are offered to the men of every race that has
+  hair; the presets stay as the old looks (made to each race's widest jaw, GM2-P26).
+- **The approvals of step 9b (2026-11-21), each "Yes" as shown:** the elf and the dark elf: their bodies, outfit and
+  twelve faces; their colours (67 and 65 swatches); their eight presets each.
 - **Q77 (2026-11-22, the question tool, asked by the manager on the races' worker's measure of the pack's size): "A pack
   per race"** (the user told the numbers: the eight races as step 9a's method one `models.pak` of about 84 MB, 1,592
   entries, against GitHub's 100 MB a file; not "build the pack, don't commit it", not "one pack, stored smaller").
@@ -2121,6 +2141,13 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
      manager's GM2-P35 (two close-ups owed to an engine task), GM2-P36 (`look.part`'s `order`) and the user's Q73 (a colour
      of one swatch shows no row). Its choices:
      "How it works", step 9a ("Choices made"). What a race of 9b–9e now needs: there, "For later steps".
+   - **9b done (2026-11-23, the races' worker, the branch `gm2-races`; "How it works", step 9b):** the races' tools for
+     all eight in the repo (180 committed models the same bytes), the elf (158 models, `models-elf.pak`) and the dark elf
+     (102 models, `models-dark-elf.pak`; its hair and head pieces the elf's, GM2-P45), their swatches, faces, bodies and
+     eight presets each in `data.pak`, both playable in the maker, their live figures in the carousel and the maker
+     (step 11's views); held to the old looks and to Blender (the carousel's live figure of each too). With the user's
+     Q74, Q76 and the approvals of 9b, the manager's GM2-P38. Its choices: "How it works", step 9b ("Choices made"); what
+     9c–9e need: there, "For 9c–9e".
    - **Before 9b–9e, the race packs' engine task done (2026-11-22, the races' worker, the branch `gm2-race-packs`; "How it
      works", "The race packs"):** the user's Q77 (a pack per race) in the mounts, the editor, `make-models-pack.sh` and the
      tests, and GM2-P44's deterministic builds; GM2-P45 and GM2-P46 recorded. Its choices: there ("Choices made"). What
@@ -5620,6 +5647,186 @@ through `render.py --scene`, the stand-ins as the manager's; `check` with no nam
 before the user sees it; a clip past a bound goes to the manager. *GM3:* the real weapons in the pictures (the stand-ins
 are `props.py`'s), the bow's string as `bake.Frames.drawn_bow` draws it. *Any later family:* a kit of its own beside its
 clips (this one keys on the human man's skeleton and boots only).
+### Step 9b: the races' tools, the elf and the dark elf in the repo (2026-11-22/23, the branch `gm2-races`)
+
+The manager's approved art of steps 9b–9e (made in his scratch mirror of the family's scripts, every stop approved by the
+user; the hand-over `claude-work/gm2/step9a/handover-races/`: `HANDOVER.md` with its "Since this was written",
+`parts-by-race.md`, `races_data.py`, the tools) brought into the repo for its first two races, as step 9a brought the human:
+the races' tools for all eight, the elf's and the dark elf's models, packs and data, the tests per race. The plan's four
+steps come as four commits (the manager, 2026-11-22): 9b the elves, 9c the dwarf and the hobbit, 9d the lizardman and the
+Merfolk, 9e the Half-Beast and the Goliath; each brings the forms' new things its races need first. The elves need none.
+Decided on the way: the user's Q74 and Q76 and the approvals of 9b, the manager's GM2-P38 ("Decisions"); GM2-P45 as built
+here for the first race that shares (the manager, 2026-11-22: the dark elf's hair and head pieces are the elf's).
+Rebased on "contacts kept" (2026-11-22), on step 11 (2026-11-23, `76f64a22`; the manager: each race's live figure in
+the carousel and the maker on the shipped data, and one Blender comparison of the carousel's live figure per race) and
+on the keying kit (`50a749fb`: nothing of the bodies, parts or packs).
+
+**The tools** (`Tools/Models/humanoid/`): the hand-over's files over main's as they are (`bodies/__init__.py` with
+`proportioned`, `export_sized` and the races' sizes, the eight races' `bodies/<race>.py`, `forms.py`, `outfit.py` with the
+races' outfits, `gear.py`, `materials.py` with the new slots' materials, `parts/face.py` with the races' faces,
+`parts/hair.py`, `parts/beard.py`, `parts/headpiece.py`, `parts/mark.py` with the runes and scales, and the new
+`parts/crest.py`, `parts/ears.py`, `parts/tail.py`: what each change does, the hand-over's "What the tools' changes do"),
+but two places, both the manager's word: `look.py` stays main's (step 10 added `EMBLEM_SLOTS` there) with the hand-over's
+four slots added to `SLOTS` (`skin.belly` after `skin`, `shirt` after `cloth.trim`, `fur` and `fur.tip` after `crest`),
+and `forms.py`'s two extrusions take main's `kit.extrude_edges` (GM2-P44; no shape changes). With them all 180 committed
+models build the same bytes (`make-humanoid.sh check`, 2026-11-22; the hand-over's own proof was against `c043ad3`, before
+9a). `look.py check`: the looks unchanged. On the keying kit (2026-11-23): `make-humanoid.sh keys --check` (the 34 clips
+baked on the man the races' builders build: all the same) and `measure --check` (all as recorded, within the bounds).
+
+**The models** (the manifest's entries per race in 9a's form and order after the human's: its six bodies, twelve faces, per
+sex on the average body with its first face the hair styles, the men's beards, the head pieces, a model of each mark per
+face; written by `claude-work/gm2/races-repo/tools/race_manifest.py`, which knows each race's lists from
+`parts-by-race.md`):
+- **The elf:** 158 models (6 bodies, 12 faces, 40 hair styles, 12 beards, 16 head pieces, 72 marks), built in 367 s (8
+  threads), 21.8 MB of `.glb`; its bodies, faces and the two hair styles the manager built in the mirror the same bytes as
+  his approved builds.
+- **The dark elf:** 102 models (6 bodies, 12 faces, 12 beards, 72 marks). **GM2-P45:** its 40 hair styles and 16 head
+  pieces, built once in the repo and compared (`claude-work/gm2/races-repo/tools/same_model.py`: the binary chunk byte for
+  byte, the JSON equal once the race's name is the other's), are the elf's but for the names (the same skull: its bodies are
+  the elf's proportions), so they aren't built: its data names the elf's (below); its 12 beards are its own (made to its own
+  widest jaw, GM2-P26, and its faces are its own). The 158 built in 399 s.
+- `make-humanoid.sh check` over the elf's 158 and the dark elf's 102: all equal.
+
+**The packs** (Q77): `models-elf.pak` 9,560,378 bytes, 158 entries (the bodies 2.85 MB, faces 1.69, hair 3.96, beards
+0.47, head pieces 0.25, marks 0.31; the size measure before had 9.53 MB); `models-dark-elf.pak` 5,289,569 bytes, 102
+entries (bodies 2.80 MB, faces 1.70, beards 0.48, marks 0.31); `models.pak` unchanged. The game's package listings name
+both (`Tools/Packaging/listings/stat-fick-linux.txt`, `-windows.txt`).
+
+**The data** (written by `claude-work/gm2/races-repo/tools/write_race_data.py` from `races_data.py` and `parts-by-race.md`,
+then the race converter and the look writer, `STATVENTURE_RACE_DATA` and `STATVENTURE_LOOK_DATA=write`, then
+`make-data-pack.sh`: `data.pak` 29,642 → 47,520 bytes, 125 → 177 entries):
+- `data/races/elf.json`, `dark-elf.json`: their 67 and 65 swatches (each slot's in `races_data.py`'s order, the slots in
+  the human's file's order; brows and eye whites one each, Q73's hidden rows).
+- `data/looks/parts/`: each race's twelve faces, `face-<race>-<sex>-<n>`, "Face 1"–"Face 6" at 10–60, a model each worn on
+  its sex's three bodies; the shared parts (hair 41, beards 13, head pieces 9, marks 7, each with "None") take the race and
+  its models for its bodies (the marks a model per face, naming it, Q65). **A model two races share** (GM2-P45) is one model
+  entry with both races' bodies: the elf's hair and head pieces each list the elf's three bodies and the dark elf's three.
+- `data/looks/bodies/`: the six of each (the writer's); `data/looks/presets/`: the eight of each, the old looks' labels and
+  places (the catalogue's), their parts and colours as `races_data.py` gives them, every slot coloured (a slot a preset
+  doesn't name its race's default).
+
+**The maker and the carousel:** no code changed: both races are playable (the carousel takes them, the maker opens on their
+presets, their lists the human's names in the human's order with their own faces, a roll a valid look).
+
+**The live figures** (step 11's views, data only): on the shipped data the carousel shows each elf's first preset (the
+elf's Sentinel, the dark elf's Shade) standing on its own body from its race's pack, and the maker the same look once the
+race is taken. The live views' test data (`LiveViewData`, step 11's: `data.pak` without its presets, every models pack, the
+overlay `Reference/live-view-data/`) holds each race with a body of its own besides the human
+(`LiveViewData.Races`, grown by each step): its race file and a copy of its first man's preset (`live-<race>-male-1`,
+"Live Sentinel", "Live Shade"), written from the shipped data by step 11's test with its write switch
+(`STATVENTURE_LIVE_VIEWS=write`, `TheLiveViewsDataIsUpToDate`), so a later change of the shipped races doesn't move them.
+So the carousel's figure of each is a sample of `LiveViewReferenceTests` at scale 1 (`live-races-elf-1`,
+`live-races-dark-elf-1`: in `live-view-looks.json`, assembled into `live-view-scenes.json` and rendered by
+`make-blender-references.sh live-races-elf-1 live-races-dark-elf-1`; the six earlier scenes unchanged). Two of step 11's
+tests stood on "the elf has no figure": the carousel's ("a race with no look shows no figure") and the memory test's
+("stepping to a race without looks and back makes the views again") take a race of the test's own for it now ("Unmade":
+the elf's race renamed, no body, no preset), the carousel's showing the elf's figure on the elf's body besides. (Stepping
+from one race with a figure to another keeps the view and builds the new figure into it, step 11's rule, so the memory
+test's equality didn't hold through the elf: scratch probes measured 2,365,568 bytes more held after the trip to the elf
+and back and a render, the same after each of three more trips, and nothing left once the carousel was left. Not a leak:
+the view lives on, and its renderer skins in an arena per frame in flight, so a view rendered in a second frame holds a
+second arena (the human's figure's 1,458,176 bytes, 2,916,352 for the two); the human's view alone, rendered in two
+frames, holds the same 2.4 MB more.)
+
+**Tests** (6440 + 1177 = 7617 tests on the GPU and lavapipe (`main` `50a749fb`: 5395 + 1131 = 6526; 1091 new: the engine's 1045, each new model's skeleton, rest and weights (780) and each new part of the head following the head alone (248), a build's bones per race and sex (4), each race's body's contacts (12), GM2-P45's (1); the game's 46, the races' Blender samples shaded and inked (40), the live figures against Blender (2) and on the shipped data (3), the maker (1))): `LookMakerTests.EveryRaceOfTheGamesDataIsPlayableInTheMaker` (new: each race's eight presets in
+order, each with each sex and build a look that passes every check, the lists per sex the human's, 200 rolls valid and
+more than 190 of them different); `RacesScreenTests` (the shipped races that can be taken: the human and the elves);
+`AssemblyTests` (each race's eight presets at three-quarter and its two average bodies plain, the first face and the first
+humanoid's hair in its first preset's colours, against Blender; the samples checked per race);
+`HeroFigureTests.AGameFigureStandsByItsSoles` (a figure's ground its own body's soles; −24.0 mm held for the human, the
+elves' 24.96 mm under their origin by their size, GM2-P38); `HumanoidModelTests` (each race's six bodies; a build's bones
+its average body's for each race and sex; every new model's skeleton, weights, materials and pieces as 9a's);
+`HumanoidPackTests.NoTwoRacesStoreTheSameModel` (new, GM2-P45: no two entries of the models packs the same record, no two
+races' models of one part the same meshes and binds under other names); `HumanoidClipTests.BothBodiesStayOnTheGround` and
+`ContactsKeptTests.EveryRacesBodyKeepsItsContacts` (new; every race's body under the man's bounds, GM2-P37);
+`BrowserTests` (the races' packs among the dev packs);
+`LiveViewsTests.EachRaceWithLooksShowsItsFigureInTheCarouselAndTheMakerOnTheShippedData` (new, a case per race with looks,
+the human's too: on `data.pak` with its presets and every models pack as the game mounts them, the carousel shows the
+race's first preset and the maker, once it is taken, the same look, each a figure on the race's own body drawn into the
+panel: its pixels at least a twentieth of the picture, from its top tenth to its bottom tenth, on the panel's ground; the
+playable races with bodies in the shipped data exactly the human and `LiveViewData.Races`);
+`LiveViewsTests.TheCarouselShowsTheRacesFigureAndItsEmblemAndLetsThemGo` and
+`EachScreenKeepsOnlyTheViewsItShowsAndTheirMemoryIsGivenBack` (above: the elf's figure, and "Unmade" for a race without
+looks); `TheLiveViewsDataIsUpToDate` (the overlay with the races); `LiveViewReferenceTests` (the two races' carousel
+figures in the list, the assembly and against Blender, below). The walk, the presets against the old looks (through the oracle's catalogue: every elf and dark elf preset's hair,
+beard, marks and tie the old look's), the shipped looks' checks and the model tests take the races with no change.
+
+**Against Blender** (GM2-P30's way, `ReferenceLimits.DetailedFigure`, not touched; GPU / lavapipe; the limits for 172,800
+pixels 41 inside and 157 edge pixels, edges' mean 4, missed 2 %, extra 3 %, unlike 8.3 %, coverage 0.12):
+
+| Sample | Inside | Edge | Edges' mean | Missed | Extra | Unlike | Coverage |
+|---|---|---|---|---|---|---|---|
+| preset-elf-male-1 | 12 / 15 | 35 / 30 | 2.2 | 0.05 % | 0.03 % | 0.17 % | 0.067 |
+| preset-elf-male-2 | 8 / 9 | 46 / 45 | 2.4 | 0.00 % | 0.00 % | 0.49 % | 0.068 |
+| preset-elf-male-3 | 2 / 6 | 31 / 28 | 2.0 | 0.00 % | 0.18 % / 0.19 % | 0.35 % | 0.068 |
+| preset-elf-male-4 | 3 / 4 | 38 | 2.2 / 2.3 | 0.00 % | 0.11 % / 0.12 % | 0.31 % | 0.067 |
+| preset-elf-female-1 | 11 / 12 | 23 | 2.9 / 3.1 | 0.01 % | 0.06 % / 0.07 % | 0.08 % | 0.069 |
+| preset-elf-female-2 | 3 / 2 | 19 | 2.4 / 2.5 | 0.01 % | 0.35 % / 0.37 % | 0.39 % | 0.072 |
+| preset-elf-female-3 | 2 | 18 / 17 | 2.3 | 0.00 % | 0.16 % / 0.18 % | 0.21 % / 0.19 % | 0.070 |
+| preset-elf-female-4 | 3 / 5 | 23 / 25 | 2.1 / 2.2 | 0.01 % | 0.18 % / 0.19 % | 0.41 % | 0.070 |
+| preset-dark-elf-male-1 | 13 / 17 | 30 / 27 | 2.3 / 2.2 | 0.05 % | 0.00 % | 0.45 % | 0.067 |
+| preset-dark-elf-male-2 | 6 | 32 / 37 | 1.9 | 0.00 % | 0.00 % | 0.75 % | 0.069 |
+| preset-dark-elf-male-3 | 2 / 5 | 38 / 40 | 2.3 / 2.2 | 0.00 % | 0.15 % / 0.16 % | 0.42 % | 0.068 |
+| preset-dark-elf-male-4 | 3 / 4 | 34 / 36 | 1.7 | 0.00 % | 0.11 % | 0.57 % | 0.068 |
+| preset-dark-elf-female-1 | 11 | 22 / 26 | 2.3 / 2.2 | 0.01 % | 0.04 % | 0.05 % | 0.067 |
+| preset-dark-elf-female-2 | 3 / 2 | 28 / 30 | 2.2 | 0.01 % | 0.24 % / 0.26 % | 0.31 % | 0.070 |
+| preset-dark-elf-female-3 | 0 | 21 | 2.0 / 1.9 | 0.01 % | 0.18 % / 0.19 % | 0.24 % | 0.068 |
+| preset-dark-elf-female-4 | 11 / 18 | 34 / 32 | 2.2 / 2.1 | 0.00 % | 0.08 % | 0.13 % | 0.069 |
+| elf-male-average | 8 / 7 | 14 / 12 | 2.3 / 2.2 | 0.00 % | 0.17 % / 0.19 % | 0.22 % | 0.069 |
+| elf-female-average | 32 / 29 | 48 / 51 | 3.3 | 0.00 % | 0.27 % / 0.28 % | 0.14 % | 0.069 |
+| dark-elf-male-average | 1 | 19 | 2.3 / 2.2 | 0.00 % | 0.14 % / 0.15 % | 0.23 % | 0.069 |
+| dark-elf-female-average | 4 | 18 / 23 | 2.3 | 0.00 % | 0.26 % / 0.28 % | 0.08 % | 0.069 |
+
+The nearest to its limits: the plain elf woman (her edges' mean 3.3 of 4, her inside pixels 32 / 29 of 41, on the
+boundary of light and shade on top of her left shoulder, a few pixels off Blender's); every other sample under 3.1 and
+18. The plain woman's dark spot on her chest is in Blender's render too (the bust's shade), as in every sheet approved.
+
+**The live figures against Blender** (step 11's way, `LiveViewReferenceTests.TheLiveFigureDrawsAsBlendersAssembly`, the
+same `DetailedFigure`: for 113,424 pixels 27 inside and 103 edge pixels; measured with a scratch probe,
+`claude-work/gm2/races-repo/tools/ZzScratchMeasureLive.cs`, GPU / lavapipe):
+
+| Sample | Size | Inside | Edge | Edges' mean | Missed | Extra | Unlike | Coverage |
+|---|---|---|---|---|---|---|---|---|
+| carousel, the elf (Live Sentinel), 1 | 278 × 408 | 2 / 1 | 4 | 2.6 / 2.5 | 0.04 % | 0 | 0.29 % | 0.069 |
+| carousel, the dark elf (Live Shade), 1 | 278 × 408 | 3 | 4 | 2.6 / 2.5 | 0 | 0.09 % / 0.10 % | 0.24 % | 0.069 |
+
+**The ground** (rebased on "contacts kept", GM2-P37, `8e583b6`: each new body bound under the man's own bounds in
+`HumanoidClipTests.BothBodiesStayOnTheGround` and `ContactsKeptTests.EveryRacesBodyKeepsItsContacts`; every body's numbers
+in `claude-work/gm2/races-repo/ground-9b.log`): the twelve elves' bodies' soles rest 24.95–24.96 mm under their origin (the
+human's 24.0 times 1.04); at worst 2.21–2.22 mm under the ground (meditate's kneeling knee, as the man's 2.21), death's end
+1.92 mm under as the man's; planted feet within 0.006 mm of the man's and 2.01 mm of the ground. Before the contacts were
+kept (GM2-P22's scaling alone) the same bodies lay up to 21.01 mm under at death's end (the slender man), meditate 9.81
+(the strong woman's knee): "contacts kept" closed it with no bound widened.
+
+**Shown able to fail** (`claude-work/gm2/races-repo/packs-task/mutations-9b.json`, made by `tools/make-mutations-9b.py`;
+`mutate.py` under the shared lock in a headless cage): **10 of 10 killed**: in the game's code the maker's presets taken from the human's, a part offered to any race, the carousel enabling every race by the human's looks, a part's first model whatever the body (the races' Blender comparisons and the walk find it); in the races' data the Huntress's wavy hair made long, the Archer's green tie gold, a dark elf given a beard, the dark elf's scar taken off, a dark elf's bob made a pixie crop (the presets against the old looks); the manifest without a committed race body. The first run found the maker's new test taking ten minutes, past `mutate.py`'s ten-minute limit, which reads as survivors: the checks' reference lookup made once a test, the run made again. And two model breaks (`tools/model-breaks-9b.py`, a committed model changed, the tests run, everything put back): the elf's crop hair packed again as the dark elf's own (GM2-P45's test), the dark elf's slender man made his average one (the builds' bones): **2 of 2 killed**. **On step 11** (`mutations-9b-live.json`, made by
+`tools/make-mutations-9b-live.py`): **7 of 7 killed**: the live views' models-pack list (`models.pak` alone, the
+manager's: step 11's "can't differ while only `models.pak` is committed", now killed, 7 of the live views' tests failing),
+the carousel's figure and the maker's the human's only, another race's figure drawn into nothing (an empty panel), a
+race left out of `LiveViewData.Races` (each by the shipped-data test alone), the live elf's tunic and the live dark
+elf's hair in other swatches than Blender's (each by its comparison alone). The player's real folders unchanged.
+
+**Runs:** each full run under the shared lock in a headless cage, a scratch per-user folder, sound to the null device (`claude-work/gm2/races-repo/packs-task/full-gpu-9b.log`, `full-lavapipe-9b.log`), on the branch rebased on `50a749fb` (the keying kit, on step 11): 6440 + 1177 = 7617 tests on the GPU and lavapipe (`main` `50a749fb`: 5395 + 1131 = 6526; 1091 new: the engine's 1045, each new model's skeleton, rest and weights (780) and each new part of the head following the head alone (248), a build's bones per race and sex (4), each race's body's contacts (12), GM2-P45's (1); the game's 46, the races' Blender samples shaded and inked (40), the live figures against Blender (2) and on the shipped data (3), the maker (1)). The first GPU run on it failed one test, `HeroFlowTests.TheFlowsDataIsTheRacesInTheirOrderAndTheMakersRecords` (the shipped races with looks held as the human's alone: now the human and the elves), fixed, both runs made again (`full-gpu-9b-first.log`). `models.pak` the committed bytes (`main`'s); `make-humanoid.sh keys --check` and `measure --check` on the races' tools: the 34 clips the same, their measures as recorded. The player's real folders the same before and after every run.
+
+**Choices made (internal, recorded here):** the races' tools in with 9b, for all eight; a race's manifest entries after the
+human's in 9a's order; the data written by a script from the hand-over's files, then the converter and the writer; a race's
+swatches in the human's file's slot order; GM2-P45's comparison (the binary chunk byte for byte, the JSON equal once the race
+is renamed) and a shared model as one model entry with both races' bodies; a race's plain sample the first face and the
+first humanoid's hair in its first preset's colours; every race's body in the ground tests under the man's bounds, its
+soles' rest its own (by its size); the checks' reference lookup made once a test (it reads every record of the packs: the
+maker's test over the races took ten minutes with one a check); the lists of the races in the tests (`Races`, `Shipped`,
+`BodyRaces`, `LiveViewData.Races`), grown by each step; in the live views' data a race's first man's preset (`<race>-male-1`,
+the carousel's first) and its race file; a race's live comparison at scale 1 only (one per race, the manager's word);
+the shipped-data test's "drawn" as a twentieth of the picture and the top and bottom tenths (measured: the figures cover
+18.4–22.8 % of the carousel's and the maker's pictures, from 6 % of the height to 96 %); a race of the test's own for "no
+look" (no game race keeps that state past 9e).
+
+**For 9c–9e:** `race_manifest.py <race> [--skip …]`, `write_race_data.py <race> [--share kind=race,…]`,
+`same_model.py`, `drop_shared.py` in `claude-work/gm2/races-repo/tools/` (each step adds its races to the tests' lists, the
+listings and `BrowserTests`; to `LiveViewData.Races`, then the live views' data and list written again,
+`STATVENTURE_LIVE_VIEWS=write`, and `make-blender-references.sh live-races-<race>-1`); the forms' new things with the first race that needs them: the slots `shirt` (9c),
+`skin.belly` (9d), `fur`, `fur.tip` (9e) in `LookPart.Slots`' and the swatch's choices and `LookNames.Slots` (`crest` and
+`claws` are there already); a category without "None" and a race without a category (9d, 9e); the rows' titles (9c on).
 
 ## Status
 
@@ -5856,3 +6063,12 @@ clips (this one keys on the human man's skeleton and boots only).
   clip held to them by `HumanoidKeyingKitTests` (4 tests, no Blender). No question for the user. Breaks of the kit's rules
   35, 32 killed, 3 unable to differ; the test's mutations 29 of 29. 5395 + 1131 = 6526 tests on the GPU and on lavapipe
   (`main` `76f64a22`: 5391 + 1131 = 6522; 4 new, the engine's), none held; the real folders untouched.
+- **2026-11-23, step 9b done** (the races' worker, the branch `gm2-races`; "How it works", step 9b): the races' tools for
+  all eight in the repo (every committed model the same bytes), the elf's 158 models (`models-elf.pak`, 9,560,378 bytes) and
+  the dark elf's 102 (`models-dark-elf.pak`, 5,289,569 bytes: its hair and head pieces the elf's, GM2-P45), their swatches,
+  faces, bodies and presets in `data.pak`; both playable in the maker; their presets held to the old looks and to Blender
+  (each race's eight and its two plain average bodies). Recorded: the user's Q74, Q76 and the approvals of 9b, the
+  manager's GM2-P38. 6440 + 1177 = 7617 tests on the GPU and lavapipe (`main` `50a749fb`: 5395 + 1131 = 6526; 1091 new: the engine's 1045, each new model's skeleton, rest and weights (780) and each new part of the head following the head alone (248), a build's bones per race and sex (4), each race's body's contacts (12), GM2-P45's (1); the game's 46, the races' Blender samples shaded and inked (40), the live figures against Blender (2) and on the shipped data (3), the maker (1)). Rebased on "contacts kept": the elves' bodies within the man's ground bounds. Rebased on
+  step 11 (2026-11-23): each elf's figure live in the carousel and the maker on the shipped data, the carousel's held to
+  Blender.
+

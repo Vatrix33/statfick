@@ -1,0 +1,34 @@
+{
+  "$types": {
+    "look.preset": 1,
+    "look.hero": 1
+  },
+  "label": "Wildheart",
+  "order": 70,
+  "look": {
+    "race": "elf",
+    "sex": "female",
+    "body": "elf-female-average",
+    "parts": {
+      "face": "face-elf-female-5",
+      "hair": "hair-braid",
+      "marks": "marks-none",
+      "head-piece": "head-piece-flower"
+    },
+    "colours": {
+      "skin": "Fair",
+      "hair": "Copper",
+      "eyes": "Leaf",
+      "lips": "Natural",
+      "cloth": "Sage",
+      "cloth.trim": "Gold",
+      "trousers": "Olive",
+      "leather": "Brown",
+      "buckle": "Brass",
+      "hair.tie": "Leaf",
+      "marking": "Brown",
+      "brows": "Dark",
+      "eye.white": "Ivory"
+    }
+  }
+}

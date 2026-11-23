@@ -6,7 +6,9 @@
   "category": "marks",
   "name": "Scar over the brow",
   "races": [
-    "human"
+    "human",
+    "elf",
+    "dark-elf"
   ],
   "sexes": [
     "male",
@@ -143,6 +145,270 @@
       ],
       "faces": [
         "face-human-female-6"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/elf-male-1/elf-male-average",
+      "bodies": [
+        "elf-male-slender",
+        "elf-male-average",
+        "elf-male-strong"
+      ],
+      "faces": [
+        "face-elf-male-1"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/elf-male-2/elf-male-average",
+      "bodies": [
+        "elf-male-slender",
+        "elf-male-average",
+        "elf-male-strong"
+      ],
+      "faces": [
+        "face-elf-male-2"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/elf-male-3/elf-male-average",
+      "bodies": [
+        "elf-male-slender",
+        "elf-male-average",
+        "elf-male-strong"
+      ],
+      "faces": [
+        "face-elf-male-3"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/elf-male-4/elf-male-average",
+      "bodies": [
+        "elf-male-slender",
+        "elf-male-average",
+        "elf-male-strong"
+      ],
+      "faces": [
+        "face-elf-male-4"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/elf-male-5/elf-male-average",
+      "bodies": [
+        "elf-male-slender",
+        "elf-male-average",
+        "elf-male-strong"
+      ],
+      "faces": [
+        "face-elf-male-5"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/elf-male-6/elf-male-average",
+      "bodies": [
+        "elf-male-slender",
+        "elf-male-average",
+        "elf-male-strong"
+      ],
+      "faces": [
+        "face-elf-male-6"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/elf-female-1/elf-female-average",
+      "bodies": [
+        "elf-female-slender",
+        "elf-female-average",
+        "elf-female-strong"
+      ],
+      "faces": [
+        "face-elf-female-1"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/elf-female-2/elf-female-average",
+      "bodies": [
+        "elf-female-slender",
+        "elf-female-average",
+        "elf-female-strong"
+      ],
+      "faces": [
+        "face-elf-female-2"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/elf-female-3/elf-female-average",
+      "bodies": [
+        "elf-female-slender",
+        "elf-female-average",
+        "elf-female-strong"
+      ],
+      "faces": [
+        "face-elf-female-3"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/elf-female-4/elf-female-average",
+      "bodies": [
+        "elf-female-slender",
+        "elf-female-average",
+        "elf-female-strong"
+      ],
+      "faces": [
+        "face-elf-female-4"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/elf-female-5/elf-female-average",
+      "bodies": [
+        "elf-female-slender",
+        "elf-female-average",
+        "elf-female-strong"
+      ],
+      "faces": [
+        "face-elf-female-5"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/elf-female-6/elf-female-average",
+      "bodies": [
+        "elf-female-slender",
+        "elf-female-average",
+        "elf-female-strong"
+      ],
+      "faces": [
+        "face-elf-female-6"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/dark-elf-male-1/dark-elf-male-average",
+      "bodies": [
+        "dark-elf-male-slender",
+        "dark-elf-male-average",
+        "dark-elf-male-strong"
+      ],
+      "faces": [
+        "face-dark-elf-male-1"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/dark-elf-male-2/dark-elf-male-average",
+      "bodies": [
+        "dark-elf-male-slender",
+        "dark-elf-male-average",
+        "dark-elf-male-strong"
+      ],
+      "faces": [
+        "face-dark-elf-male-2"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/dark-elf-male-3/dark-elf-male-average",
+      "bodies": [
+        "dark-elf-male-slender",
+        "dark-elf-male-average",
+        "dark-elf-male-strong"
+      ],
+      "faces": [
+        "face-dark-elf-male-3"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/dark-elf-male-4/dark-elf-male-average",
+      "bodies": [
+        "dark-elf-male-slender",
+        "dark-elf-male-average",
+        "dark-elf-male-strong"
+      ],
+      "faces": [
+        "face-dark-elf-male-4"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/dark-elf-male-5/dark-elf-male-average",
+      "bodies": [
+        "dark-elf-male-slender",
+        "dark-elf-male-average",
+        "dark-elf-male-strong"
+      ],
+      "faces": [
+        "face-dark-elf-male-5"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/dark-elf-male-6/dark-elf-male-average",
+      "bodies": [
+        "dark-elf-male-slender",
+        "dark-elf-male-average",
+        "dark-elf-male-strong"
+      ],
+      "faces": [
+        "face-dark-elf-male-6"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/dark-elf-female-1/dark-elf-female-average",
+      "bodies": [
+        "dark-elf-female-slender",
+        "dark-elf-female-average",
+        "dark-elf-female-strong"
+      ],
+      "faces": [
+        "face-dark-elf-female-1"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/dark-elf-female-2/dark-elf-female-average",
+      "bodies": [
+        "dark-elf-female-slender",
+        "dark-elf-female-average",
+        "dark-elf-female-strong"
+      ],
+      "faces": [
+        "face-dark-elf-female-2"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/dark-elf-female-3/dark-elf-female-average",
+      "bodies": [
+        "dark-elf-female-slender",
+        "dark-elf-female-average",
+        "dark-elf-female-strong"
+      ],
+      "faces": [
+        "face-dark-elf-female-3"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/dark-elf-female-4/dark-elf-female-average",
+      "bodies": [
+        "dark-elf-female-slender",
+        "dark-elf-female-average",
+        "dark-elf-female-strong"
+      ],
+      "faces": [
+        "face-dark-elf-female-4"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/dark-elf-female-5/dark-elf-female-average",
+      "bodies": [
+        "dark-elf-female-slender",
+        "dark-elf-female-average",
+        "dark-elf-female-strong"
+      ],
+      "faces": [
+        "face-dark-elf-female-5"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-brow/dark-elf-female-6/dark-elf-female-average",
+      "bodies": [
+        "dark-elf-female-slender",
+        "dark-elf-female-average",
+        "dark-elf-female-strong"
+      ],
+      "faces": [
+        "face-dark-elf-female-6"
       ]
     }
   ],

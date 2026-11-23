@@ -2875,3 +2875,7 @@ GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detai
   the repo (`Tools/Models/humanoid/clips/kit/`; `make-humanoid.sh keys`, `measure`, `clip-video`), the 34 approved clips
   its output byte for byte, every clip measured before it is shown and held to the family's bounds (the worst the 34
   measure) (`Docs/Game/Hero.md`, "How it works", "The keying kit"). 5395 + 1131 = 6526 tests on the GPU and lavapipe (4 new).
+- **2026-11-23, GM2 step 9b (the elf and the dark elf, the branch `gm2-races`):** the races' tools for all eight, the elf's
+  and the dark elf's models, packs and data in the repo, both playable in the maker and live in the carousel and the
+  maker; the user's Q74, Q76 and the
+  approvals of 9b, the manager's GM2-P38 recorded ("GM2's detail round"; `Docs/Game/Hero.md`, "How it works", step 9b).

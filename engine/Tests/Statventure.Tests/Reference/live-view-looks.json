@@ -281,6 +281,98 @@
       "clips": "../../../Assets/Models/humanoid/clips.glb",
       "background": "#0f0a07",
       "scale": 1.65
+    },
+    {
+      "name": "live-races-elf-1",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "elf",
+        "sex": "male",
+        "body": "elf-male-average",
+        "parts": {
+          "face": "face-elf-male-1",
+          "hair": "hair-long-male",
+          "beard": "beard-none",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Moonlit",
+          "hair": "Silver",
+          "eyes": "Sea",
+          "lips": "Natural",
+          "cloth": "Forest",
+          "cloth.trim": "Gold",
+          "trousers": "Moss",
+          "leather": "Brown",
+          "buckle": "Brass",
+          "hair.tie": "Leaf",
+          "marking": "Brown",
+          "brows": "Dark",
+          "eye.white": "Ivory"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "-45",
+      "width": 278,
+      "height": 408,
+      "clip": "stand",
+      "time": 1,
+      "clips": "../../../Assets/Models/humanoid/clips.glb",
+      "background": "#0f0a07",
+      "scale": 1
+    },
+    {
+      "name": "live-races-dark-elf-1",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "dark-elf",
+        "sex": "male",
+        "body": "dark-elf-male-average",
+        "parts": {
+          "face": "face-dark-elf-male-1",
+          "hair": "hair-long-male",
+          "beard": "beard-none",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Ash",
+          "hair": "White",
+          "eyes": "Blood",
+          "lips": "Natural",
+          "cloth": "Deep violet",
+          "cloth.trim": "Silver",
+          "trousers": "Plum black",
+          "leather": "Black",
+          "buckle": "Steel",
+          "hair.tie": "Crimson",
+          "marking": "Pale",
+          "brows": "Dark",
+          "eye.white": "Ivory"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "-45",
+      "width": 278,
+      "height": 408,
+      "clip": "stand",
+      "time": 1,
+      "clips": "../../../Assets/Models/humanoid/clips.glb",
+      "background": "#0f0a07",
+      "scale": 1
     }
   ]
 }

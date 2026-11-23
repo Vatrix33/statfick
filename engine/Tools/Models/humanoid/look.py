@@ -31,8 +31,8 @@ VERSION = 1
 # outfit's leather (boots, belt) and the belt's buckle; the sample gear's metals (base, trim, the shade of its drawn
 # lines), the shield's wood and the sword's grip.
 SLOTS = [
-    "skin", "hair", "hair.tie", "eyes", "brows", "lips", "cloth", "cloth.trim", "trousers", "crest", "marking", "claws",
-    "eye.white", "leather", "buckle",
+    "skin", "skin.belly", "hair", "hair.tie", "eyes", "brows", "lips", "cloth", "cloth.trim", "shirt", "trousers", "crest",
+    "fur", "fur.tip", "marking", "claws", "eye.white", "leather", "buckle",
 ]
 GEAR_SLOTS = ["metal.base", "metal.trim", "metal.shade", "wood", "grip"]
 # The race emblems' six (GM2 step 10, the manager's GM2-P31): a medallion's rim and beads, its field, the motif's light

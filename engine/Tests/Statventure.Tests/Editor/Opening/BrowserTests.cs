@@ -119,7 +119,8 @@ public class BrowserTests
         Assert.True(dialog.PlaceButtons[0].HasClass("current"));
         editor.Click(dialog.PlaceButtons[1]);
         Assert.Equal(editor.Session.Game.PacksFolder, dialog.Folder);
-        Assert.Equal(["audio.pak", "data.pak", "models.pak", "ui.pak"], Names(dialog));
+        // The committed packs (since GM2 steps 9b–9e a race's models pack beside models.pak, the user's Q77).
+        Assert.Equal(["audio.pak", "data.pak", "models-dark-elf.pak", "models-elf.pak", "models.pak", "ui.pak"], Names(dialog));
         Assert.Equal("Game packs", editor.Q(".browser-where").TextContent);
         Assert.True(dialog.PlaceButtons[1].HasClass("current"));
         Assert.False(dialog.PlaceButtons[0].HasClass("current"));

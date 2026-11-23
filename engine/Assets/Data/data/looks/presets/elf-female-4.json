@@ -1,0 +1,34 @@
+{
+  "$types": {
+    "look.preset": 1,
+    "look.hero": 1
+  },
+  "label": "Moonblade",
+  "order": 80,
+  "look": {
+    "race": "elf",
+    "sex": "female",
+    "body": "elf-female-average",
+    "parts": {
+      "face": "face-elf-female-6",
+      "hair": "hair-high-ponytail",
+      "marks": "marks-none",
+      "head-piece": "head-piece-none"
+    },
+    "colours": {
+      "skin": "Ivory",
+      "hair": "Night teal",
+      "eyes": "Violet",
+      "lips": "Natural",
+      "cloth": "Slate blue",
+      "cloth.trim": "Gold",
+      "trousers": "Slate",
+      "leather": "Brown",
+      "buckle": "Brass",
+      "hair.tie": "Sky",
+      "marking": "Brown",
+      "brows": "Dark",
+      "eye.white": "Ivory"
+    }
+  }
+}

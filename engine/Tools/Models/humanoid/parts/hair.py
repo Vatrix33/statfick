@@ -5,6 +5,7 @@
 # Besides its locks a style gives the cap's lift (cap), the hairline over the brow and at the nape (brow, nape) and how
 # much a lock thins toward its end (taper). The two sample styles of the first humanoid (the user's approval of the
 # refined pair, 2026-11-16).
+import bodies
 import forms
 import kit as k
 import materials
@@ -704,4 +705,4 @@ def hair_model(path, style, body, face, level):
     for part in parts:
         r.bind_rigid(rig, part, "head")
     k.join_by_ink(parts, f"{body}-{style}")
-    export(path, export_skins=True)
+    bodies.export_sized(path, p, export_skins=True)

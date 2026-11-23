@@ -146,6 +146,11 @@ def body_forms(p):
         thumb = [root + front * (W * 0.55), root + front * (W * 1.16) + along * (0.15 * L) + flat * (T * 0.3),
                  root + front * (W * 1.36) + along * (0.36 * L) + flat * (T * 0.9)]
         forms.append(k.tube("thumb" + tag, thumb, [T * 0.95, T * 0.85, T * 0.62], side=flat, n=10, bulge=(0.0, 0.006)))
+        if p.get("webbed"):
+            # a web between the thumb and the fingers' block (the Merfolk's webbed hands, T3)
+            web = [root + front * (W * 0.62) + along * (0.12 * L), root + front * (W * 0.98) + along * (0.32 * L) + flat * (T * 0.5),
+                   root + front * (W * 0.90) + along * (0.56 * L) + flat * (T * 0.75)]
+            forms.append(k.tube("web" + tag, web, [(T * 0.55, T * 0.90), (T * 0.48, T * 0.85), (T * 0.36, T * 0.60)], side=flat, n=10, bulge=(0.0, 0.004)))
         joints["hand" + tag] = wr + along * (0.5 * L)
     return forms, joints
 
@@ -167,50 +172,60 @@ def build_ratios(b):
     return [b.get(key, 1.0) for key in ("muscle", "w", "d", "a", "l", "bust", "seat")]
 
 
+def build_lengths(b):
+    """A body's lengths to the human's (bodies.proportioned with masses; all 1 otherwise): the legs', the arms' and the
+    trunk's. A mass reaches along its limb by this much: on short legs the thigh's and the calf's would else pile up at
+    the knee."""
+    b = b or {}
+    return [b.get(key, 1.0) for key in ("ll", "al", "tl")]
+
+
 def shape_man(m, j, b=None):
     """The man's masses: named by what they stand for, placed from the joints, as strong and as far out as the build is."""
     s, w, d, a, l, _, seat = build_ratios(b)
+    ll, al, tl = build_lengths(b)
     sh, el, wr = j["shoulderL"], j["elbowL"], j["wristL"]
     hip, kn, an = j["hipL"], j["kneeL"], j["ankleL"]
     chest, waist, pelvis, clav = j["chest"], j["waist"], j["pelvis"], j["clavicle"]
     # (the pectorals and the belly's middle no fuller than a third over the average's: fuller, the cleft between them
     # draws a line and a shadow through the cloth laid over it)
-    mass(m, (0.080 * w, chest.y - 0.100 * d, chest.z + 0.012), (0.105 * w, 0.075, 0.090), 0.017 * min(s, 1.3), (0, -1, 0.15))      # pectorals
+    mass(m, (0.080 * w, chest.y - 0.100 * d, chest.z + 0.012), (0.105 * w, 0.075, 0.090 * tl), 0.017 * min(s, 1.3), (0, -1, 0.15))      # pectorals
     mass(m, (0.090 * w, clav.y - 0.070 * d, clav.z + 0.030), (0.090, 0.040, 0.018), 0.004 * s, (0, -1, 0.3))          # collarbones
-    mass(m, (0.0, waist.y - 0.094 * d, waist.z + 0.010), (0.014, 0.030, 0.120), -0.003 * min(s, 1.0), (0, -1, 0), mirror=False)  # the belly's middle
-    mass(m, (0.150 * w, chest.y + 0.030 * d, chest.z - 0.060), (0.075, 0.110, 0.150), 0.012 * s, (1, 0.3, 0))        # lats
-    mass(m, (0.064 * w, chest.y + 0.105 * d, chest.z + 0.020), (0.110, 0.060, 0.140), 0.010 * s, (0, 1, 0))          # shoulder blades
-    mass(m, (0.0, waist.y + 0.092 * d, waist.z + 0.070), (0.036, 0.050, 0.240), -0.006 * s, (0, 1, 0))           # the spine's groove
+    mass(m, (0.0, waist.y - 0.094 * d, waist.z + 0.010), (0.014, 0.030, 0.120 * tl), -0.003 * min(s, 1.0), (0, -1, 0), mirror=False)  # the belly's middle
+    mass(m, (0.150 * w, chest.y + 0.030 * d, chest.z - 0.060), (0.075, 0.110, 0.150 * tl), 0.012 * s, (1, 0.3, 0))        # lats
+    mass(m, (0.064 * w, chest.y + 0.105 * d, chest.z + 0.020), (0.110, 0.060, 0.140 * tl), 0.010 * s, (0, 1, 0))          # shoulder blades
+    mass(m, (0.0, waist.y + 0.092 * d, waist.z + 0.070), (0.036, 0.050, 0.240 * tl), -0.006 * s, (0, 1, 0))           # the spine's groove
     mass(m, (0.072 * w, clav.y + 0.030 * d, clav.z + 0.052), (0.090, 0.075, 0.060), 0.014 * min(s, 1.3), (0.2, 0.3, 1))        # trapezius
-    mass(m, (0.0, waist.y - 0.088 * d, waist.z - 0.040), (0.105, 0.050, 0.150), 0.005 * s, (0, -1, 0))           # the belly's wall
+    mass(m, (0.0, waist.y - 0.088 * d, waist.z - 0.040), (0.105, 0.050, 0.150 * tl), 0.005 * s, (0, -1, 0))           # the belly's wall
     mid = sh.lerp(el, 0.50)
-    mass(m, mid + V((0, -0.024 * a, 0.004)), (0.080, 0.052, 0.110), 0.008 * s, (0, -1, 0.2))                     # biceps
-    mass(m, mid + V((0, 0.028 * a, 0.0)), (0.080, 0.052, 0.120), 0.006 * s, (0, 1, 0))                           # triceps
-    mass(m, el.lerp(wr, 0.26), (0.075, 0.060, 0.085), 0.007 * s)                                             # the forearm's belly
+    mass(m, mid + V((0, -0.024 * a, 0.004)), (0.080 * al, 0.052, 0.110 * al), 0.008 * s, (0, -1, 0.2))                     # biceps
+    mass(m, mid + V((0, 0.028 * a, 0.0)), (0.080 * al, 0.052, 0.120 * al), 0.006 * s, (0, 1, 0))                           # triceps
+    mass(m, el.lerp(wr, 0.26), (0.075 * al, 0.060, 0.085 * al), 0.007 * s)                                             # the forearm's belly
     mass(m, (hip.x + 0.008, pelvis.y + 0.090 * d, hip.z + 0.030), (0.105, 0.075, 0.105), 0.018 * seat, (0, 1, 0.1)) # glutes
-    mass(m, hip.lerp(kn, 0.40) + V((0.004, -0.044 * l, 0)), (0.088, 0.066, 0.200), 0.010 * s, (0, -1, 0))        # quadriceps
-    mass(m, hip.lerp(kn, 0.55) + V((0, 0.042 * l, 0)), (0.082, 0.060, 0.180), 0.006 * s, (0, 1, 0))              # hamstrings
-    mass(m, kn + V((0, -0.044 * l, 0.004)), (0.050, 0.035, 0.050), 0.006, (0, -1, 0))                        # the kneecap
-    mass(m, kn.lerp(an, 0.30) + V((0.004, 0.040 * l, 0)), (0.066, 0.056, 0.130), 0.014 * s, (0.15, 1, 0))        # the calf
+    mass(m, hip.lerp(kn, 0.40) + V((0.004, -0.044 * l, 0)), (0.088, 0.066, 0.200 * ll), 0.010 * s, (0, -1, 0))        # quadriceps
+    mass(m, hip.lerp(kn, 0.55) + V((0, 0.042 * l, 0)), (0.082, 0.060, 0.180 * ll), 0.006 * s, (0, 1, 0))              # hamstrings
+    mass(m, kn + V((0, -0.044 * l, 0.004)), (0.050, 0.035, 0.050 * ll), 0.006, (0, -1, 0))                        # the kneecap
+    mass(m, kn.lerp(an, 0.30) + V((0.004, 0.040 * l, 0)), (0.066, 0.056, 0.130 * ll), 0.014 * s, (0.15, 1, 0))        # the calf
 
 
 def shape_woman(m, j, b=None):
     """The woman's masses."""
     s, w, d, a, l, bust, seat = build_ratios(b)
+    ll, al, tl = build_lengths(b)
     el, wr = j["elbowL"], j["wristL"]
     hip, kn, an = j["hipL"], j["kneeL"], j["ankleL"]
     chest, waist, pelvis, clav = j["chest"], j["waist"], j["pelvis"], j["clavicle"]
     mass(m, (0.066 * w, chest.y - 0.088 * d, chest.z - 0.022), (0.072, 0.072, 0.076), 0.030 * bust, (0.1, -1, -0.1))    # the bust
-    mass(m, (0.052 * w, chest.y + 0.090 * d, chest.z + 0.020), (0.095, 0.055, 0.130), 0.006 * s, (0, 1, 0))          # shoulder blades
-    mass(m, (0.0, waist.y + 0.078 * d, waist.z + 0.070), (0.030, 0.045, 0.220), -0.005 * s, (0, 1, 0))           # the spine's groove
+    mass(m, (0.052 * w, chest.y + 0.090 * d, chest.z + 0.020), (0.095, 0.055, 0.130 * tl), 0.006 * s, (0, 1, 0))          # shoulder blades
+    mass(m, (0.0, waist.y + 0.078 * d, waist.z + 0.070), (0.030, 0.045, 0.220 * tl), -0.005 * s, (0, 1, 0))           # the spine's groove
     mass(m, (0.056 * w, clav.y + 0.025 * d, clav.z + 0.042), (0.072, 0.062, 0.050), 0.007 * s, (0.2, 0.3, 1))        # trapezius
-    mass(m, el.lerp(wr, 0.26), (0.060, 0.048, 0.075), 0.004 * s)                                             # the forearm's belly
+    mass(m, el.lerp(wr, 0.26), (0.060 * al, 0.048, 0.075 * al), 0.004 * s)                                             # the forearm's belly
     mass(m, (hip.x + 0.012, pelvis.y + 0.090 * d, hip.z + 0.025), (0.105, 0.078, 0.110), 0.022 * seat, (0, 1, 0.1)) # glutes
     mass(m, (hip.x + 0.052, pelvis.y + 0.004, hip.z + 0.040), (0.075, 0.105, 0.115), 0.012 * seat, (1, 0, 0))   # the hips' breadth
-    mass(m, hip.lerp(kn, 0.40) + V((0.004, -0.040 * l, 0)), (0.082, 0.060, 0.200), 0.006 * s, (0, -1, 0))        # quadriceps
-    mass(m, hip.lerp(kn, 0.55) + V((0, 0.040 * l, 0)), (0.076, 0.056, 0.180), 0.005 * s, (0, 1, 0))              # hamstrings
-    mass(m, kn + V((0, -0.040 * l, 0.004)), (0.045, 0.032, 0.045), 0.004, (0, -1, 0))                        # the kneecap
-    mass(m, kn.lerp(an, 0.30) + V((0.004, 0.036 * l, 0)), (0.058, 0.050, 0.125), 0.010 * s, (0.15, 1, 0))        # the calf
+    mass(m, hip.lerp(kn, 0.40) + V((0.004, -0.040 * l, 0)), (0.082, 0.060, 0.200 * ll), 0.006 * s, (0, -1, 0))        # quadriceps
+    mass(m, hip.lerp(kn, 0.55) + V((0, 0.040 * l, 0)), (0.076, 0.056, 0.180 * ll), 0.005 * s, (0, 1, 0))              # hamstrings
+    mass(m, kn + V((0, -0.040 * l, 0.004)), (0.045, 0.032, 0.045 * ll), 0.004, (0, -1, 0))                        # the kneecap
+    mass(m, kn.lerp(an, 0.30) + V((0.004, 0.036 * l, 0)), (0.058, 0.050, 0.125 * ll), 0.010 * s, (0.15, 1, 0))        # the calf
 
 
 MASSES = {"man": shape_man, "woman": shape_woman}
@@ -268,7 +283,18 @@ def head_shape(h):
         if r > 1e-6:
             boost = 1.0 / (((abs(x) / r) ** n + (abs(y) / r) ** n) ** (1.0 / n))
             x, y = x * boost, y * boost
-        return centre + V((x * sx * wx, y * sy * wy, z * sz * wz))
+        point = centre + V((x * sx * wx, y * sy * wy, z * sz * wz))
+        snout = h.get("snout")
+        if snout and d.y < 0:
+            # a muzzle (the lizardmen's): the face drawn forward about a middle pitch, narrower toward its tip;
+            # `snout`: its length, its half width (degrees of yaw), its middle pitch, its half height, its droop
+            length, half_yaw, middle, half_pitch, droop = snout
+            u = abs(math.degrees(math.atan2(d.x, -d.y))) / half_yaw
+            v = abs(math.degrees(math.asin(max(-1.0, min(1.0, d.z)))) - middle) / half_pitch
+            if u < 1.0 and v < 1.0:
+                w = (1.0 - u ** 2.2) * (1.0 - v ** 2.2)
+                point = V((point.x * (1.0 - 0.30 * w), point.y - length * w, point.z + droop * length * w))
+        return point
     return shape
 
 
@@ -290,6 +316,28 @@ def build_head(p, m, voxel=0.0032):
     e = h["ear"]
     for side in (-1, 1):
         ear = on(side * 90, -5)
+        if h.get("ear_none"):
+            continue                    # (the Half-Beast's and the lizardman's heads: no ears of the head's own)
+        if "ear_long" in h:
+            # a long, pointed ear (the elves'): the ear drawn out to a point up, back and a little out; `ear_long`: the
+            # point's length and its way (out, back, up)
+            reach, out_, back_, up_ = h["ear_long"]
+            axis = V((side * out_, back_, up_)).normalized()
+
+            def long_ear(d, c=ear, s=side, axis=axis, reach=reach):
+                t = max(0.0, d.dot(axis))
+                # (the point narrows in height and depth but keeps most of its thickness: thinner than two of the fuse's
+                # voxels, it came out of the remesh as a sliver QuadriFlow refuses)
+                narrow = 1.0 - 0.45 * t * t
+                base = V((d.x * 0.009 * e * (1.0 - 0.12 * t * t), d.y * 0.015 * e * narrow, d.z * 0.029 * e * narrow))
+                return c + V((s * 0.004, 0.006, 0.0)) + base + axis * (reach * t ** 2.2)
+
+            forms.append(k.shaped_sphere(f"ear{side}", long_ear, cuts=5))
+            continue
+        if "ear_fin" in h:
+            # the Merfolk's fin ears: only the ear's root is the head's own; the fin is made apart (ear_fins)
+            forms.append(k.shaped_sphere(f"ear{side}", lambda d, c=ear, s=side: c + V((d.x * 0.006 + s * 0.002, d.y * 0.010 + 0.006, d.z * 0.014)), cuts=3))
+            continue
         forms.append(k.shaped_sphere(f"ear{side}", lambda d, c=ear, s=side: c + V((d.x * 0.009 * e + s * 0.004, d.y * 0.015 * e + 0.006, d.z * 0.029 * e)), cuts=3))
     head = fuse(forms, p["name"] + "-head", voxel, smoothing=round(16 * 0.0026 / voxel))
     mesh = head.data
@@ -311,8 +359,16 @@ def build_head(p, m, voxel=0.0032):
         if u < 1.0:
             v.co += V((0, -1, 0.10)) * (nose_out * rise * math.cos(u * math.pi / 2) ** 1.3)
     mass(mesh, on(6.2, -14.6, 0.004), (0.0075, 0.012, 0.0065), h.get("nostril", 0.003), (0.5, -1, 0))   # the nostril's wing
-    mass(mesh, on(21, 9.5, -0.004), (0.034, 0.030, 0.014), h["brow"], (0, -1, 0))                       # the brow's ridge
-    mass(mesh, on(16, 0.0, -0.002), (0.020, 0.026, 0.012), -0.0040, (0, -1, 0))                         # the eye's hollow
+    if "snout" in h:
+        ridge = k.direction(h["eye"]["yaw"], h["eye"]["pitch"] + 8.0)
+        mass(mesh, on(h["eye"]["yaw"], h["eye"]["pitch"] + 8.0, -0.003), (0.030, 0.034, 0.014), h["brow"], ridge)      # the ridge over a muzzled head's eye
+    else:
+        mass(mesh, on(21, 9.5, -0.004), (0.034, 0.030, 0.014), h["brow"], (0, -1, 0))                   # the brow's ridge
+    if "snout" in h:
+        hollow = k.direction(h["eye"]["yaw"], h["eye"]["pitch"])
+        mass(mesh, on(h["eye"]["yaw"], h["eye"]["pitch"], -0.002), (0.022, 0.026, 0.014), -0.0030, -hollow)   # the eye's hollow, where a muzzled head has its eyes
+    else:
+        mass(mesh, on(16, 0.0, -0.002), (0.020, 0.026, 0.012), -0.0040, (0, -1, 0))                     # the eye's hollow
     mass(mesh, on(31, -12, -0.004), (0.026, 0.030, 0.024), h["cheek"], (0.5, -1, 0))                    # the cheekbone
     mass(mesh, on(0, -45, -0.004), (0.026, 0.030, 0.020), h["chin"], (0, -1, -0.2), mirror=False)       # the chin
     mass(mesh, on(0, -29.0, -0.003), (0.020, 0.020, 0.007), h.get("lips", 0.0022), (0, -1, 0), mirror=False)   # the upper lip
@@ -322,6 +378,15 @@ def build_head(p, m, voxel=0.0032):
     detail = p["detail"]
     lighten.light_head(head, detail["head"], centre, face=detail["face"], limit=detail.get("face_limit", 0.003))
     head.data.materials.append(m["skin"])
+    if h.get("throat"):
+        # a paler lower jaw and throat (the lizardmen's, the slot `skin.belly`): the head's faces under the mouth's line
+        head.data.materials.append(m["skin.belly"])
+        under = h["mouth"]["pitch"] - 3.0
+        for polygon in head.data.polygons:
+            d = (V(polygon.center) - centre).normalized()
+            if d.y < 0 and math.degrees(math.asin(max(-1.0, min(1.0, d.z)))) < under + 9.0 * (abs(math.degrees(math.atan2(d.x, -d.y))) / 60.0) ** 2 \
+                    and abs(math.degrees(math.atan2(d.x, -d.y))) < 60.0:
+                polygon.material_index = 1
     parts = [head]
     # the flat pieces, laid on the finished surface by rays from the head's centre
     tree = BVHTree.FromObject(head, bpy.context.evaluated_depsgraph_get())
@@ -345,8 +410,9 @@ def build_head(p, m, voxel=0.0032):
             bm.faces.new(verts)
         parts.append(k.new_object(name, bm, material, smooth=True))
 
-    def almond(yaw, pitch, a, b, power=1.5, n=16):
-        return [(yaw + px, pitch + py) for px, py in k.superellipse(n, a, b, power)]
+    def almond(yaw, pitch, a, b, power=1.5, n=16, turn=0.0):
+        c, s_ = math.cos(math.radians(turn)), math.sin(math.radians(turn))
+        return [(yaw + px * c - py * s_, pitch + px * s_ + py * c) for px, py in k.superellipse(n, a, b, power)]
 
     def band(points, thickness):
         return [(y, q + thickness * s) for y, q, s in points] + [(y, q - thickness * s) for y, q, s in reversed(points)]
@@ -355,25 +421,101 @@ def build_head(p, m, voxel=0.0032):
     brow = h["browline"]
     for side in (-1, 1):
         ey, ep = side * eye["yaw"], eye["pitch"]
-        lay(f"eye-white{side}", almond(ey, ep, eye["wide"], eye["high"]), 0.0010, m["eye.white"], hub=(ey, ep))
-        iy, ip = ey - side * 0.3, ep + 0.25
-        lay(f"eye-iris{side}", almond(iy, ip, eye["iris"], eye["iris"] * 1.06, power=2.0), 0.0016, m["eyes"], hub=(iy, ip))
-        lay(f"eye-pupil{side}", almond(iy, ip, eye["iris"] * 0.50, eye["iris"] * 0.53, power=2.0, n=10), 0.0020, m["pupil"], hub=(iy, ip))
-        lay(f"eye-glint{side}", almond(iy - 0.36 * eye["iris"], ip + 0.38 * eye["iris"], eye["iris"] * 0.20, eye["iris"] * 0.22, power=2.0, n=8),
-            0.0023, m["glint"], hub=(iy - 0.36 * eye["iris"], ip + 0.38 * eye["iris"]))
+        tilt = side * eye.get("tilt", 0.0)          # the outer corner raised by so many degrees (the elves' eyes)
+        if eye.get("slit"):
+            # a slit eye (the lizardmen's): the whole eye in the eyes' colour, a pupil as an upright slit
+            lay(f"eye-white{side}", almond(ey, ep, eye["wide"], eye["high"], turn=tilt), 0.0010, m["eyes"], hub=(ey, ep))
+            lay(f"eye-pupil{side}", almond(ey, ep, eye["wide"] * 0.15, eye["high"] * 0.90, power=2.0, n=10), 0.0018, m["pupil"], hub=(ey, ep))
+            lay(f"eye-glint{side}", almond(ey - 0.30 * eye["wide"], ep + 0.36 * eye["high"], eye["wide"] * 0.11, eye["high"] * 0.17, power=2.0, n=8),
+                0.0022, m["glint"], hub=(ey - 0.30 * eye["wide"], ep + 0.36 * eye["high"]))
+        else:
+            lay(f"eye-white{side}", almond(ey, ep, eye["wide"], eye["high"], turn=tilt), 0.0010, m["eye.white"], hub=(ey, ep))
+            iy, ip = ey - side * 0.3, ep + 0.25
+            lay(f"eye-iris{side}", almond(iy, ip, eye["iris"], eye["iris"] * 1.06, power=2.0), 0.0016, m["eyes"], hub=(iy, ip))
+            lay(f"eye-pupil{side}", almond(iy, ip, eye["iris"] * 0.50, eye["iris"] * 0.53, power=2.0, n=10), 0.0020, m["pupil"], hub=(iy, ip))
+            lay(f"eye-glint{side}", almond(iy - 0.36 * eye["iris"], ip + 0.38 * eye["iris"], eye["iris"] * 0.20, eye["iris"] * 0.22, power=2.0, n=8),
+                0.0023, m["glint"], hub=(iy - 0.36 * eye["iris"], ip + 0.38 * eye["iris"]))
         lash = [(ey - side * eye["wide"] * 1.08, ep + 0.2, 0.5), (ey - side * eye["wide"] * 0.5, ep + eye["high"] * 0.92, 1.0),
                 (ey, ep + eye["high"] * 1.10, 1.0), (ey + side * eye["wide"] * 0.5, ep + eye["high"] * 0.92, 1.0),
                 (ey + side * eye["wide"] * 1.14, ep + 0.7, 0.5)]
+        if tilt:
+            c, s_ = math.cos(math.radians(tilt)), math.sin(math.radians(tilt))
+            lash = [(ey + (y - ey) * c - (q - ep) * s_, ep + (y - ey) * s_ + (q - ep) * c, w) for y, q, w in lash]
         lay(f"lash{side}", band(lash, 0.55), 0.0022, m["brows"])
-        lay(f"brow{side}", band([(side * y, q, s) for y, q, s in brow], h["browthick"]), 0.0028, m["brows"])
+        if h.get("brows", True):
+            lay(f"brow{side}", band([(side * y, q, s) for y, q, s in brow], h["browthick"]), 0.0028, m["brows"])
     mouth = h["mouth"]
+    if "snout" in h:
+        # a muzzle's mouth runs round it: a strip of many short pieces (one flat piece would cut through the muzzle),
+        # and the nostrils as two small dark spots
+        bm = bmesh.new()
+        pairs = []
+        for i in range(33):
+            t = -1.0 + i / 16.0
+            yaw, pitch = mouth["wide"] * t, mouth["pitch"] + mouth["curve"] * abs(t) ** 2
+            half = mouth["thick"] * (1.0 - 0.6 * abs(t) ** 3)
+            a, b = k.direction(yaw, pitch + half), k.direction(yaw, pitch - half)
+            pairs.append((bm.verts.new(surface(a) + a * 0.0016), bm.verts.new(surface(b) + b * 0.0016)))
+        for (a0, a1), (b0, b1) in zip(pairs, pairs[1:]):
+            bm.faces.new((a0, b0, b1, a1))
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+        parts.append(k.new_object("mouth", bm, m["brows"], smooth=True))
+        for yaw, pitch, size in h.get("nostrils", ()):
+            for side in (-1, 1):
+                lay(f"nostril{side}", almond(side * yaw, pitch, size * 0.55, size, power=2.0, n=8, turn=side * 24.0), 0.0016, m["brows"], hub=(side * yaw, pitch))
+        return parts, shape
     line = [(mouth["wide"] * t, mouth["pitch"] + mouth["curve"] * (abs(t) ** 2), 1.0 - 0.6 * abs(t) ** 3) for t in (-1, -0.6, -0.25, 0, 0.25, 0.6, 1)]
     lay("mouth", band(line, mouth["thick"]), 0.0016, m["brows"])
     if mouth["lip"] > 0:
         lay("lip-lower", almond(0, mouth["pitch"] - 1.9, mouth["wide"] * 0.66, 1.5 * mouth["lip"], power=1.7), 0.0012, m["lips"], hub=(0, mouth["pitch"] - 1.9))
         upper = [(mouth["wide"] * 0.78 * t, mouth["pitch"] + 0.95 * mouth["lip"] * (1 - abs(t) ** 1.5) + (0.35 if abs(t) < 0.3 else 0.0), 1.0) for t in (-1, -0.5, -0.2, 0, 0.2, 0.5, 1)]
         lay("lip-upper", [(y, q) for y, q, _ in upper] + [(mouth["wide"] * 0.78 * t, mouth["pitch"] + 0.3) for t in (1, 0, -1)], 0.0012, m["lips"])
+    if "ear_fin" in h:
+        fins = ear_fins(p, on, m)
+        k.apply_modifiers(fins)
+        parts += fins
     return parts, shape
+
+
+def ear_fins(p, on, m, ribs=((-40.0, 0.050), (0.0, 0.080), (38.0, 0.088), (72.0, 0.062))):
+    """The Merfolk's fin ears (T3): on each side a fan of ribs in the skin's colour with a membrane between them (the slot
+    `crest`: the fins' colour is a choice), standing out of the ear's root and back. `ear_fin` of the face: its size and
+    how far back it sweeps (degrees); `ribs`: each rib's angle up from level and its length."""
+    size, sweep = p["head"]["ear_fin"]
+    pieces = []
+    for side in (-1, 1):
+        root = on(side * 90, -5) + V((side * 0.002, 0.006, 0.0))
+        out = V((side * math.cos(math.radians(sweep)), math.sin(math.radians(sweep)), 0.0))        # out of the head and back
+        up = V((side * 0.10, 0.06, 1.0))
+        up = (up - out * up.dot(out)).normalized()
+        normal = out.cross(up).normalized()
+
+        def at(angle, length, root=root, out=out, up=up):
+            return root + (out * math.cos(math.radians(angle)) + up * math.sin(math.radians(angle))) * (length * size)
+
+        tips = [at(angle, length) for angle, length in ribs]
+        outline = [root - up * (0.013 * size) - out * 0.004]
+        for i, tip in enumerate(tips):
+            outline.append(tip)
+            if i + 1 < len(tips):
+                (a0, l0), (a1, l1) = ribs[i], ribs[i + 1]
+                for share in (0.3, 0.5, 0.7):                 # the membrane's edge dips between two ribs
+                    dip = 1.0 - 0.22 * math.sin(math.pi * share)
+                    outline.append(at(a0 + (a1 - a0) * share, (l0 + (l1 - l0) * share) * dip))
+        outline.append(root + up * (0.017 * size) - out * 0.004)
+        bm = bmesh.new()
+        hub = bm.verts.new(root - out * 0.007)
+        rim = [bm.verts.new(q) for q in outline]
+        for q0, q1 in zip(rim, rim[1:]):
+            bm.faces.new((hub, q0, q1))
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+        web = k.new_object(f"{p['name']}-fin{side}", bm, m["crest"], smooth=False)
+        k.solidify(web, 0.0030, offset=0.0)
+        pieces.append(web)
+        for i, tip in enumerate(tips):
+            pieces.append(k.tube(f"{p['name']}-fin{side}-rib{i}", [root - out * 0.008, root.lerp(tip, 0.5), tip],
+                                 [0.0038 * size, 0.0030 * size, 0.0013 * size], side=normal, n=6, material=m["skin"]))
+    return pieces
 
 
 # ---- hair: sculpted masses (Q3) ---------------------------------------------------------------------------------------

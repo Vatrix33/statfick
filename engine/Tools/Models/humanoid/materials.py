@@ -21,6 +21,7 @@ def make():
     return {
         # the figure
         "skin": k.lit_material("skin", (0.62, 0.42, 0.30)),
+        "skin.belly": k.lit_material("skin.belly", (0.62, 0.58, 0.40)),
         "lips": k.lit_material("lips", (0.45, 0.25, 0.2)),
         "brows": k.lit_material("brows", (0.14, 0.09, 0.06), hatch=False),
         "eye.white": k.unlit_material("eye.white", (0.80, 0.78, 0.70)),
@@ -30,8 +31,13 @@ def make():
         "hair": k.lit_material("hair", (0.2, 0.12, 0.07)),
         "hair.tie": k.lit_material("hair.tie", (0.35, 0.1, 0.08)),
         "marking": k.lit_material("marking", (0.30, 0.17, 0.11), hatch=False),
+        "crest": k.lit_material("crest", (0.12, 0.35, 0.42)),
+        "fur": k.lit_material("fur", (0.25, 0.16, 0.09)),
+        "fur.tip": k.lit_material("fur.tip", (0.70, 0.66, 0.58)),
+        "claws": k.lit_material("claws", (0.10, 0.08, 0.07)),
         "cloth": k.lit_material("cloth", (0.35, 0.1, 0.08)),
         "cloth.trim": k.lit_material("cloth.trim", (0.6, 0.45, 0.2)),
+        "shirt": k.lit_material("shirt", (0.62, 0.56, 0.44)),
         "trousers": k.lit_material("trousers", (0.15, 0.13, 0.12)),
         "leather": k.lit_material("leather", (0.2, 0.13, 0.08)),
         "buckle": k.lit_material("buckle", (0.6, 0.45, 0.2)),

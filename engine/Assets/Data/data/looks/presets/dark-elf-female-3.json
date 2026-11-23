@@ -1,0 +1,34 @@
+{
+  "$types": {
+    "look.preset": 1,
+    "look.hero": 1
+  },
+  "label": "Night Archer",
+  "order": 70,
+  "look": {
+    "race": "dark-elf",
+    "sex": "female",
+    "body": "dark-elf-female-average",
+    "parts": {
+      "face": "face-dark-elf-female-2",
+      "hair": "hair-high-ponytail",
+      "marks": "marks-none",
+      "head-piece": "head-piece-none"
+    },
+    "colours": {
+      "skin": "Pale ash",
+      "hair": "Black",
+      "eyes": "Gold",
+      "lips": "Natural",
+      "cloth": "Slate",
+      "cloth.trim": "Silver",
+      "trousers": "Night",
+      "leather": "Black",
+      "buckle": "Steel",
+      "hair.tie": "Violet",
+      "marking": "Pale",
+      "brows": "Dark",
+      "eye.white": "Ivory"
+    }
+  }
+}

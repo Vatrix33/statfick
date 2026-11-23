@@ -350,23 +350,28 @@ public class HumanoidClipTests(ITestOutputHelper output)
     /// four builds too, the slender and strong man and woman (their average body's skeleton and legs: the same ratios), on
     /// the same bounds since the clips keep their contacts (GM2-P37, <see cref="ClipBinding.Contacts"/>; Docs/Game/Hero.md,
     /// "How it works", "Contacts kept": before, the strong man's thighs lay 14.77 mm under in death and his knee 7.43 in
-    /// meditate).
+    /// meditate). Since GM2 steps 9b–9e every other race's bodies too, made at their race's size (GM2-P38: their soles
+    /// rest at their own depth), on the same bounds.
     /// </summary>
     [Fact]
     public void BothBodiesStayOnTheGround()
     {
         var (lines, problems) = (new List<string>(), new List<string>());
-        // Every human body: each sex's average one and its slender and strong builds (GM2 step 9a: the average's skeleton and
-        // legs, other girths), all bounded since the contacts are kept (GM2-P37).
-        foreach (var sex in from s in new[] { "male", "female" } from build in new[] { "average", "slender", "strong" } select $"{s}-{build}")
+        // Every body: the human's, each sex's average one and its slender and strong builds (GM2 step 9a: the average's skeleton
+        // and legs, other girths), and since steps 9b–9e every other race's six (GM2-P38: made at their race's size, their
+        // soles' rest their own), all bounded since the contacts are kept (GM2-P37).
+        var others = HumanoidFiles.Names().Where(n => n.StartsWith("bodies/", StringComparison.Ordinal) && !n.StartsWith("bodies/human-", StringComparison.Ordinal))
+            .Select(n => n["bodies/".Length..]);
+        foreach (var sex in (from s in new[] { "male", "female" } from build in new[] { "average", "slender", "strong" } select $"human-{s}-{build}").Concat(others))
         {
-            var body = HumanoidFiles.Load($"bodies/human-{sex}");
+            var human = sex.StartsWith("human-", StringComparison.Ordinal);
+            var body = HumanoidFiles.Load($"bodies/{sex}");
             var skin = new Skinner(body);
             var ground = (double)Statventure.Scene.Actor.GroundOf(body, []);
             lines.Add($"{sex}: the soles at rest {ground * 1000:F2} mm (the ground)");
             if (Math.Abs(ground - skin.LowestWhere(body.WorldMatrices()).Y) >= 0.000001)
                 problems.Add($"{sex}: the ground isn't the body's lowest point at rest");
-            if (Math.Abs(ground + 0.024) >= 0.0005)
+            if (human && Math.Abs(ground + 0.024) >= 0.0005)
                 problems.Add($"the {sex} body's soles rest at {ground * 1000:F2} mm, not -24.0");
             var skeleton = new Skeleton(body);
             foreach (var entry in HumanoidClipList.All.Where(e => !e.Stance))

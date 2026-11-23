@@ -687,6 +687,19 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   views seam and a `SurfaceViews` with the painter's `SurfaceTexture` (`claude-work/gm2/step8/capture/`); the old game's
   picker in any state through its test client (`claude-work/gm2/step8/old-picker/`). This session's sandbox refuses a
   shell heredoc with quotes and `cd` with `git` in one command: write the script to a file and run it.
+- 2026-11-23 (the PC, GM2's races' worker, step 9b on the branch `gm2-races`, 6440 + 1177 = 7617 tests on the GPU and lavapipe (`main` `50a749fb`: 5395 + 1131 = 6526; 1091 new: the engine's 1045, each new model's skeleton, rest and weights (780) and each new part of the head following the head alone (248), a build's bones per race and sex (4), each race's body's contacts (12), GM2-P45's (1); the game's 46, the races' Blender samples shaded and inked (40), the live figures against Blender (2) and on the shipped data (3), the maker (1))): **the races' tools, the elf
+  and the dark elf** (`Docs/Game/Hero.md`, "How it works", step 9b). Gotchas: a race's models carry its size (GM2-P38),
+  so its figure's ground is its own body's soles (the elves' 24.96 mm under the origin), not the human's 24.0; a shared
+  model (GM2-P45) is proven by building both once and comparing the files but for the race's name, then dropped from the
+  manifest (`claude-work/gm2/races-repo/tools/same_model.py`, `drop_shared.py`); the tests' race lists (`Races`, `Shipped`,
+  `BodyRaces`), `BrowserTests`' pack names and the packages' listings grow with each race; the editor's `preview-cutscene`
+  fixture lists every model of the packs (its Chromium golden is a closed list: captured again, the same); step 11's
+  live views' tests used the elf as "a race with no look" (now a race of the test's own, "Unmade", the elf's race
+  renamed in the test's scratch records), and its memory test's equality held only because stepping to a race without a
+  figure lets the view go: between two races with figures the view is kept and holds more after its next render (all
+  given back when the screen goes). Recipes: a race's live figure in the tests' data and against Blender
+  (`LiveViewData.Races`, `STATVENTURE_LIVE_VIEWS=write`, `make-blender-references.sh live-races-<race>-1`), measured by
+  `claude-work/gm2/races-repo/tools/ZzScratchMeasureLive.cs` copied into the game's tests for the run.
 - 2026-11-22 (the PC, GM2's races' worker, the engine task "the race packs" on the branch `gm2-race-packs`, 5289 + 1084 = 6373 tests on the GPU and lavapipe (`main` `b8b2e28`: 5285 + 1084 = 6369; 4 new, the engine's)):
   **a pack per race and builds that give the same bytes** (`Docs/Game/Hero.md`, "How it works", "The race packs"; the
   user's Q77, the manager's GM2-P44). Gotchas: Blender's `bmesh.ops.extrude_edge_only` makes its faces in the order of a

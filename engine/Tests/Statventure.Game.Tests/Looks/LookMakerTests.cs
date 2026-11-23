@@ -317,6 +317,65 @@ public class LookMakerTests : IDisposable
         Assert.Empty(RecordChecks.Check(maker.Look, data, TestLooks.Lookup(data)));
     }
 
+    /// <summary>The races of the game's data beside the human (GM2 steps 9b–9e), each brought in with its lists and presets.</summary>
+    static readonly string[] Races = ["elf", "dark-elf"];
+
+    /// <summary>
+    /// Every race of the game's own data is playable in the maker (steps 9b–9e, the hand-over's point 4): its eight presets
+    /// in their order, each, with each sex and build, a look that passes every check; its lists per sex in the approved
+    /// order (parts-by-race.md: the elf's every shared list, as the human's); 200 rolls each a valid look, many different.
+    /// </summary>
+    [Fact]
+    public void EveryRaceOfTheGamesDataIsPlayableInTheMaker()
+    {
+        using var folder = new ScratchFolder();
+        var (data, hero) = GameData(folder);
+        using var _ = data;
+        var human = new LookMaker("human", hero.Race("human")!, hero.Looks, null, hero.SlotsOfBody);
+        var random = new GameRandom(9);
+        // The references' lookup made once (it reads every record of the packs, every race's models among them).
+        var lookup = TestLooks.Lookup(data);
+        foreach (var race in Races)
+        {
+            var maker = new LookMaker(race, hero.Race(race)!, hero.Looks, null, hero.SlotsOfBody);
+            List<string> Problems(LookHero look) => [.. RecordChecks.Check(look, data, lookup).Select(p => p.ToString())];
+            Assert.Equal([.. new[] { "male", "female" }.SelectMany(s => Enumerable.Range(1, 4).Select(n => $"{race}-{s}-{n}"))], maker.Presets);
+            Assert.Equal($"{race}-male-1", maker.Look!.Preset);
+            foreach (var preset in maker.Presets)
+            {
+                maker.UsePreset(preset);
+                Assert.True(Problems(maker.Look!) is [], $"{preset}: {string.Join("; ", Problems(maker.Look!))}");
+                foreach (var sex in maker.Sexes)
+                {
+                    maker.SetSex(sex);
+                    foreach (var build in maker.BuildsOf(sex))
+                    {
+                        maker.SetBuild(build);
+                        Assert.True(Problems(maker.Look!) is [], $"{preset} as {sex} {build}: {string.Join("; ", Problems(maker.Look!))}");
+                    }
+                }
+            }
+            // The lists of each sex: the same names in the same order as the human's (faces their own: Face 1–6).
+            foreach (var sex in new[] { "male", "female" })
+            {
+                maker.UsePreset($"{race}-{sex}-1");
+                human.UsePreset($"human-{sex}-1");
+                Assert.Equal(human.Categories.Keys.Order(StringComparer.Ordinal), maker.Categories.Keys.Order(StringComparer.Ordinal));
+                foreach (var (category, options) in human.Categories)
+                    Assert.Equal(options.Select(p => human.Part(p).Name), maker.Categories[category].Select(p => maker.Part(p).Name));
+                Assert.All(maker.Categories["face"], p => Assert.StartsWith($"face-{race}-{sex}-", p, StringComparison.Ordinal));
+            }
+            var looks = new HashSet<string>();
+            for (var i = 0; i < 200; i++)
+            {
+                maker.Roll(random);
+                Assert.True(Problems(maker.Look!) is [], $"{race} roll {i}: {string.Join("; ", Problems(maker.Look!))}");
+                looks.Add(RecordSerializer.ToJson(maker.Look!));
+            }
+            Assert.True(looks.Count > 190, $"{race}: {looks.Count} different looks in 200 rolls");
+        }
+    }
+
     /// <summary>
     /// The marks are made for each face (Q65, on the game's human): the maker offers a mark with the chosen face, keeps it
     /// when the face changes (every human face has every mark) and draws it by the face's model; the roll draws the face
@@ -351,13 +410,14 @@ public class LookMakerTests : IDisposable
             Assert.DoesNotContain("marks-scar-brow", withMod.Categories["marks"]);
             Assert.Empty(RecordChecks.Check(withMod.Look, modded, TestLooks.Lookup(modded)));
         }
-        // Every rolled look's marks fit its face.
+        // Every rolled look's marks fit its face (the references' lookup made once: it reads every record of the packs).
         var random = new GameRandom(9);
+        var lookup = TestLooks.Lookup(data);
         for (var i = 0; i < 100; i++)
         {
             maker.Roll(random);
             var look = maker.Look!;
-            Assert.Empty(RecordChecks.Check(look, data, TestLooks.Lookup(data)));
+            Assert.Empty(RecordChecks.Check(look, data, lookup));
             if (look.Parts["marks"] != "marks-none")
                 Assert.Contains($"/{look.Parts["face"]["face-".Length..]}/", Figures.HeroFigure.Resolve(data, look).Parts.Single(p => p.Category == "marks").Model);
         }

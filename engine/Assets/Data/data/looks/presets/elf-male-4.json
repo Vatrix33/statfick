@@ -1,0 +1,35 @@
+{
+  "$types": {
+    "look.preset": 1,
+    "look.hero": 1
+  },
+  "label": "Bladedancer",
+  "order": 40,
+  "look": {
+    "race": "elf",
+    "sex": "male",
+    "body": "elf-male-average",
+    "parts": {
+      "face": "face-elf-male-3",
+      "hair": "hair-crop",
+      "beard": "beard-none",
+      "marks": "marks-none",
+      "head-piece": "head-piece-none"
+    },
+    "colours": {
+      "skin": "Moonlit",
+      "hair": "Dusk violet",
+      "eyes": "Violet",
+      "lips": "Natural",
+      "cloth": "Moss",
+      "cloth.trim": "Gold",
+      "trousers": "Bark",
+      "leather": "Brown",
+      "buckle": "Brass",
+      "hair.tie": "Leaf",
+      "marking": "Brown",
+      "brows": "Dark",
+      "eye.white": "Ivory"
+    }
+  }
+}

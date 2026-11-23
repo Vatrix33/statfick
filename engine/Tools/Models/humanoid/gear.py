@@ -210,4 +210,4 @@ def chain_shirt_on(path, body, level):
     pieces = chain_shirt(figure["maker"])
     bodies.keep_only(figure, pieces)
     k.join_by_ink(pieces, f"{body}-chain-shirt")
-    export(path)
+    bodies.export_sized(path, figure["p"])

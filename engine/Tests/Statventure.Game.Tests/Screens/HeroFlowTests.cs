@@ -116,10 +116,11 @@ public class HeroFlowTests
         var none = HeroData.Of(null);
         Assert.Empty(none.Races);
         Assert.Empty(none.Looks.Bodies);
-        // The game's data: the human's looks since GM2 step 5, the test data's none of them (HeroTestData leaves them out).
+        // The game's data: the human's looks since GM2 step 5, the elf's and the dark elf's since step 9b (each race's step
+        // adds its own), the test data's none of them (HeroTestData leaves them out).
         using var shipped = new VirtualFileSystem([Mount.Pack(Path.Combine(TestPaths.Packs, "data.pak"))]);
         var game = HeroData.Of(shipped);
-        Assert.Equal(["human"], game.Races.Where(r => game.HasLooks(r.Id)).Select(r => r.Id));
+        Assert.Equal(["human", "elf", "dark-elf"], game.Races.Where(r => game.HasLooks(r.Id)).Select(r => r.Id));
         Assert.NotEmpty(game.Looks.Presets);
         Assert.All(data.Looks.Presets.Keys.Concat(data.Looks.Parts.Keys), name => Assert.StartsWith("test-", name));
     }

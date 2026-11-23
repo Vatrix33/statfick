@@ -18,6 +18,9 @@ public class RacesScreenTests
 {
     static readonly string[] Playable = ["human", "elf", "dark-elf", "dwarf", "hobbit", "lizardman", "half-beast", "goliath", "merfolk"];
 
+    /// <summary>The races the game's data has looks for: the human (GM2 step 9a) and each race steps 9b–9e have brought in.</summary>
+    static readonly string[] Shipped = ["human", "elf", "dark-elf"];
+
     static HeroScreensHarness Opened(Action<HeroScreensHarness>? before = null, string? race = null, bool shipped = false)
     {
         var s = new HeroScreensHarness(shipped: shipped);
@@ -196,15 +199,15 @@ public class RacesScreenTests
         Assert.True(s.Races.Showing);
         Assert.False(s.Maker.Showing);
         Assert.Empty(s.Ran);
-        // The game's data since GM2 step 5 has looks for the human only: every playable race is shown, the human alone can
-        // be taken, and the maker opens on its presets.
+        // The game's data since GM2 step 5 has looks for the human, since steps 9b–9e for each race made (Shipped): every
+        // playable race is shown, those alone can be taken, and the maker opens on the human's presets.
         using var shipped = Opened(shipped: true);
         Assert.Equal(Playable, shipped.Races.List);
         foreach (var id in Playable)
         {
             Assert.Equal(id, shipped.Races.Shown);
-            Assert.Equal(id == "human", shipped.Carousel().Enabled);
-            Assert.Equal(id == "human" ? "" : $"No looks for the {shipped.Carousel().Name} yet", shipped.Carousel().Status);
+            Assert.Equal(Shipped.Contains(id), shipped.Carousel().Enabled);
+            Assert.Equal(Shipped.Contains(id) ? "" : $"No looks for the {shipped.Carousel().Name} yet", shipped.Carousel().Status);
             shipped.Key("ArrowRight");
         }
         shipped.Click(shipped.Q("#races-choose"));

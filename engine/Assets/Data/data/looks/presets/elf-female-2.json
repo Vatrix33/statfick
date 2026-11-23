@@ -1,0 +1,34 @@
+{
+  "$types": {
+    "look.preset": 1,
+    "look.hero": 1
+  },
+  "label": "Huntress",
+  "order": 60,
+  "look": {
+    "race": "elf",
+    "sex": "female",
+    "body": "elf-female-average",
+    "parts": {
+      "face": "face-elf-female-1",
+      "hair": "hair-wavy",
+      "marks": "marks-none",
+      "head-piece": "head-piece-none"
+    },
+    "colours": {
+      "skin": "Ivory",
+      "hair": "Gold",
+      "eyes": "Leaf",
+      "lips": "Natural",
+      "cloth": "Moss",
+      "cloth.trim": "Gold",
+      "trousers": "Bark",
+      "leather": "Brown",
+      "buckle": "Brass",
+      "hair.tie": "Leaf",
+      "marking": "Brown",
+      "brows": "Dark",
+      "eye.white": "Ivory"
+    }
+  }
+}

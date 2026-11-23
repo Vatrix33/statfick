@@ -171,4 +171,4 @@ def beard_model(path, style, body, face, level):
     for part in parts:
         r.bind_rigid(rig, part, "head")
     k.join_by_ink(parts, f"{body}-beard-{style}")
-    export(path, export_skins=True)
+    bodies.export_sized(path, p, export_skins=True)

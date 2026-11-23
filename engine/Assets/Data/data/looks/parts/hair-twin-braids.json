@@ -6,7 +6,9 @@
   "category": "hair",
   "name": "Twin braids",
   "races": [
-    "human"
+    "human",
+    "elf",
+    "dark-elf"
   ],
   "sexes": [
     "female"
@@ -18,6 +20,18 @@
         "human-female-slender",
         "human-female-average",
         "human-female-strong"
+      ],
+      "faces": []
+    },
+    {
+      "model": "models/humanoid/parts/hair/twin-braids/elf-female-average",
+      "bodies": [
+        "elf-female-slender",
+        "elf-female-average",
+        "elf-female-strong",
+        "dark-elf-female-slender",
+        "dark-elf-female-average",
+        "dark-elf-female-strong"
       ],
       "faces": []
     }

@@ -1,0 +1,35 @@
+{
+  "$types": {
+    "look.preset": 1,
+    "look.hero": 1
+  },
+  "label": "Warlock",
+  "order": 30,
+  "look": {
+    "race": "dark-elf",
+    "sex": "male",
+    "body": "dark-elf-male-average",
+    "parts": {
+      "face": "face-dark-elf-male-3",
+      "hair": "hair-spiky",
+      "beard": "beard-none",
+      "marks": "marks-none",
+      "head-piece": "head-piece-none"
+    },
+    "colours": {
+      "skin": "Lilac",
+      "hair": "White",
+      "eyes": "Violet",
+      "lips": "Natural",
+      "cloth": "Plum",
+      "cloth.trim": "Silver",
+      "trousers": "Plum black",
+      "leather": "Black",
+      "buckle": "Steel",
+      "hair.tie": "Crimson",
+      "marking": "Pale",
+      "brows": "Dark",
+      "eye.white": "Ivory"
+    }
+  }
+}

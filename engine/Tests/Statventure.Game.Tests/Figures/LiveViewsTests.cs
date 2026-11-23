@@ -52,6 +52,14 @@ public class LiveViewsTests(GpuFixture gpu)
         Assert.IsType<LiveFigure>(views.ViewIn(surface));
 
     /// <summary>
+    /// A playable race of the test's own with no look (no body, no preset), "unmade": the elf's race renamed, with the
+    /// elf's emblem, at <paramref name="order"/> in the carousel (the game's races get their looks with GM2 step 9's
+    /// steps; this one never does).
+    /// </summary>
+    static Dictionary<string, object> Unmade(int order) =>
+        new() { ["data/races/unmade"] = LiveViewData.ShippedRace("elf") with { Name = "Unmade", Order = order } };
+
+    /// <summary>
     /// The sheet shows the open hero's figure in its portrait panel, standing: its look, the portraits' turn, the game's
     /// style and sun, the panel's ground, framed for the view's size; it moves with the document's frames as the figures'
     /// state machine plays `stand`; it is let go when the character is left.
@@ -197,13 +205,14 @@ public class LiveViewsTests(GpuFixture gpu)
     }
 
     /// <summary>
-    /// The carousel shows the shown race's first preset standing and its emblem rocking (step 10's model); a race with no
-    /// look shows no figure, its emblem all the same; taking a race lets both go and the maker shows the look.
+    /// The carousel shows the shown race's first preset standing and its emblem rocking (step 10's model): the human's, and
+    /// the elf's on its own body (GM2 step 9b, from its race's pack); a race with no look (one of the test's own, with the
+    /// elf's emblem) shows no figure, its emblem all the same; taking a race lets both go and the maker shows the look.
     /// </summary>
     [Fact]
     public void TheCarouselShowsTheRacesFigureAndItsEmblemAndLetsThemGo()
     {
-        using var data = new LiveViewData();
+        using var data = new LiveViewData(extra: Unmade(25));
         using var s = new LiveScreens(gpu.Device, data);
         s.S.NewHero();
         s.H.Frame();
@@ -216,14 +225,25 @@ public class LiveViewsTests(GpuFixture gpu)
         Assert.True(s.H.Q("#races-emblem").HasClass("is-live"));
         // The medallion's view is transparent over its own ground.
         Assert.Null(turning.View.Background);
-        // The elf: no body (its figure comes with its race's step), its emblem live (step 10's).
+        // The elf: its first preset on its own body (the elf's pack), its emblem live (step 10's).
         s.S.Key("ArrowRight");
         Assert.Equal("elf", s.S.Races.Shown);
+        Assert.Equal(["races-emblem-view", "races-figure"], s.Live);
+        var elf = FigureIn(s.Races, races);
+        Assert.Equal(LiveViewData.Presets[LiveViewData.PresetOf("elf")].Look, elf.Look);
+        Assert.Equal("models/humanoid/bodies/elf-male-average", elf.Figure!.Plan.Body);
+        Assert.Equal("elf", Assert.IsType<LiveEmblem>(s.Races.ViewIn(emblem)).Emblem);
+        Assert.True(s.H.Q("#races-emblem").HasClass("is-live"));
+        // A race with no look: no figure, its emblem live all the same.
+        s.S.Key("ArrowRight");
+        Assert.Equal("unmade", s.S.Races.Shown);
         Assert.Equal(["races-emblem-view"], s.Live);
         Assert.Equal("elf", Assert.IsType<LiveEmblem>(s.Races.ViewIn(emblem)).Emblem);
         Assert.True(s.H.Q("#races-emblem").HasClass("is-live"));
         Assert.Null(s.Surfaces.ViewOf(races));
         s.S.Key("ArrowLeft");
+        s.S.Key("ArrowLeft");
+        Assert.Equal("human", s.S.Races.Shown);
         Assert.Equal(["races-emblem-view", "races-figure"], s.Live);
         // Taken: the carousel's let go, the maker's shown.
         s.S.Click(s.H.Q("#races-choose"));
@@ -231,6 +251,66 @@ public class LiveViewsTests(GpuFixture gpu)
         Assert.Null(s.Surfaces.ViewOf(races));
         Assert.Null(s.Surfaces.ViewOf(emblem));
         Assert.Equal(LiveViewData.Presets[LiveViewData.Man].Look, FigureIn(s.Maker, maker).Look);
+    }
+
+    /// <summary>The races with looks in the game's shipped data: the human and each race whose step is in (<see cref="LiveViewData.Races"/>).</summary>
+    public static TheoryData<string> ShippedRaces => new(LiveViewData.Races.Prepend("human"));
+
+    /// <summary>
+    /// On the game's data as it ships (<c>data.pak</c> with its presets and every models pack, as the game mounts them),
+    /// each race with looks shows its first preset standing in the carousel and, taken, the same look in the maker: a figure
+    /// on the race's own body drawn into the panel, not an empty one. The playable races with bodies in the shipped data
+    /// are those and no others.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(ShippedRaces))]
+    public void EachRaceWithLooksShowsItsFigureInTheCarouselAndTheMakerOnTheShippedData(string race)
+    {
+        using var data = new LiveViewData(shipped: true);
+        var looks = LookData.Load(data.Data);
+        Assert.Equal(LiveViewData.Races.Prepend("human"),
+            Statventure.Game.Data.Races.RaceCatalogue.Load(data.Data).Where(r => r.Race.Playable && looks.Bodies.Values.Any(b => b.Race == r.Id)).Select(r => r.Id));
+        using var s = new LiveScreens(gpu.Device, data);
+        s.S.NewHero();
+        s.H.Frame();
+        s.S.Click(s.H.Q($"#races-strip .races-strip-item[data-race=\"{race}\"]"));
+        s.H.Frame();
+        Assert.Equal(race, s.S.Races.Shown);
+        var first = looks.PresetsOf(race)[0];
+        var shown = FigureIn(s.Races, s.Surface.Races);
+        Assert.Equal(looks.Presets[first].Look, shown.Look);
+        AssertDrawn(shown, $"the carousel's {race}");
+        s.S.Click(s.H.Q("#races-choose"));
+        s.H.Frame();
+        Assert.Equal(["maker-figure"], s.Live);
+        var made = FigureIn(s.Maker, s.Surface.Maker);
+        Assert.Equal(looks.Presets[first].Look, made.Look);
+        AssertDrawn(made, $"the maker's {race}");
+    }
+
+    /// <summary>
+    /// A figure of its race's own body drawn into its view's picture: on the panel's ground (its four corners), its pixels a
+    /// twentieth of the picture at least, from the top tenth to the bottom tenth (a standing figure framed with 6 % of room).
+    /// </summary>
+    void AssertDrawn(LiveFigure live, string what)
+    {
+        Assert.StartsWith($"models/humanoid/bodies/{live.Look!.Race}-", live.Figure!.Plan.Body);
+        var (width, height) = live.Size;
+        var picture = LiveViewReferenceTests.Render(gpu.Device, live.View, width, height, 1);
+        var ground = picture[0, 0];
+        Assert.All(new[] { picture[width - 1, 0], picture[0, height - 1], picture[width - 1, height - 1] }, corner => Assert.Equal(ground, corner));
+        var (count, top, bottom) = (0, height, -1);
+        for (var y = 0; y < height; y++)
+            for (var x = 0; x < width; x++)
+            {
+                var p = picture[x, y];
+                if (Math.Abs(p.R - ground.R) + Math.Abs(p.G - ground.G) + Math.Abs(p.B - ground.B) <= 6)
+                    continue;
+                count++;
+                (top, bottom) = (Math.Min(top, y), Math.Max(bottom, y));
+            }
+        Assert.True(count * 20 >= width * height && top < height / 10 && bottom > height * 9 / 10,
+            $"{what}: {count} of {width * height} pixels drawn, rows {top}–{bottom} of {height}");
     }
 
     /// <summary>
@@ -379,7 +459,7 @@ public class LiveViewsTests(GpuFixture gpu)
     [Fact]
     public void EachScreenKeepsOnlyTheViewsItShowsAndTheirMemoryIsGivenBack()
     {
-        using var data = new LiveViewData();
+        using var data = new LiveViewData(extra: Unmade(15));
         using var s = new LiveScreens(gpu.Device, data);
         // Once through first: what a first view leaves behind (the frames' upload buffers, the pipelines) is no view's.
         s.S.NewHero();
@@ -395,8 +475,10 @@ public class LiveViewsTests(GpuFixture gpu)
         // receives shadows: GM2-P33's atlas made only for a shadow pass).
         Assert.True(held > 8L << 20, $"the carousel's two views hold {held >> 20} MiB");
         Assert.All(new[] { s.Surface.Races, s.Surface.Emblem }, surface => Assert.False(s.Races.ViewIn(surface)!.View.Target!.HasShadowMap));
-        // Stepping to a race without looks and back makes the views again: still nothing kept of the first ones.
+        // Stepping to a race without looks (the test's own, next to the human) and back makes the views again: still nothing
+        // kept of the first ones.
         s.S.Key("ArrowRight");
+        Assert.Equal(["races-emblem-view"], s.Live);
         s.S.Key("ArrowLeft");
         s.Render();
         Assert.Equal(held, Allocated() - baseline);

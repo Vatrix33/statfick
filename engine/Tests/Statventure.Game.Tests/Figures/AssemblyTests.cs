@@ -115,6 +115,24 @@ public class AssemblyTests(GpuFixture gpu)
         Colours = new Dictionary<string, string> { ["metal.base"] = "#80848c", ["metal.trim"] = "#bb8d3c", ["metal.shade"] = "#3a3c42", ["wood"] = "#5a2a1e", ["grip"] = "#3a261b" },
     };
 
+    /// <summary>The races of GM2 steps 9b–9e in the samples, each held to Blender as step 9a held the human (GM2-P30): its eight presets and its two average bodies plain.</summary>
+    internal static readonly string[] Races = ["elf", "dark-elf"];
+
+    /// <summary>
+    /// A race's average body plain (steps 9b–9e): the first face and the first humanoid's hair (swept back, long tied),
+    /// nothing else, in the colours of the race's first preset of that sex (a look of its own swatches).
+    /// </summary>
+    static LookHero RacePlain(string race, string sex)
+    {
+        var parts = new Dictionary<string, string>
+        {
+            ["face"] = $"face-{race}-{sex}-1", ["hair"] = sex == "male" ? "hair-swept-back" : "hair-long-tied", ["marks"] = "marks-none", ["head-piece"] = "head-piece-none",
+        };
+        if (sex == "male")
+            parts["beard"] = "beard-none";
+        return Preset($"{race}-{sex}-1") with { Parts = parts };
+    }
+
     // Every sample has colours of the tests' swatches, none the models' own: the game's presets have no colours until the
     // human has swatches (GM2 step 9a), and the models' placeholder colours are no look to hold a picture to. Each takes its
     // parts from the game's preset (the first humanoid's face and hair), so a preset changed by step 9 changes the list.
@@ -165,6 +183,11 @@ public class AssemblyTests(GpuFixture gpu)
         new("assembly-human-female-side-braid", Human("female", "average", "face-human-female-5", "hair-side-braid", null, "marks-scar-cheek", "head-piece-feather",
             ("skin", "Tan"), ("hair", "Chestnut"), ("hair.tie", "Gold"), ("eyes", "Hazel"), ("lips", "Red"), ("marking", "Rose"), ("cloth", "Teal"), ("cloth.trim", "Silver"),
             ("trousers", "Grey"), ("leather", "Black")), new(), "three-quarter", 360, 480, GamesOwn: true),
+        // Steps 9b–9e, each race as the human: its eight presets in the sheet's view, its two average bodies plain from the front.
+        .. Races.SelectMany(r => new[] { "male-1", "male-2", "male-3", "male-4", "female-1", "female-2", "female-3", "female-4" }
+            .Select(p => new Sample($"assembly-preset-{r}-{p}", Preset($"{r}-{p}"), new(), "three-quarter", 360, 480, GamesOwn: true))),
+        .. Races.SelectMany(r => new[] { "male", "female" }
+            .Select(s => new Sample($"assembly-{r}-{s}-average", RacePlain(r, s), new(), "front", 360, 480, GamesOwn: true))),
     ];
 
     /// <summary>
@@ -250,14 +273,20 @@ public class AssemblyTests(GpuFixture gpu)
         using var folder = new ScratchFolder();
         using var data = Data(folder, gamesOwn: true);
         var own = Samples.Where(s => s.GamesOwn).ToList();
-        Assert.Equal(18, own.Count);
+        Assert.Equal(18 + 10 * Races.Length, own.Count);
+        var lookup = TestLooks.Lookup(data);
         foreach (var sample in own)
         {
-            var problems = RecordChecks.Check(sample.Look, data, TestLooks.Lookup(data));
+            var problems = RecordChecks.Check(sample.Look, data, lookup);
             Assert.True(problems.Count == 0, $"{sample.Name}: {string.Join("; ", problems)}");
         }
         var looks = LookData.Load(data);
-        Assert.Equal(looks.PresetsOf("human").Select(p => looks.Presets[p].Look), own.Where(s => s.Name.StartsWith("assembly-preset-")).Select(s => s.Look));
+        // Each race's eight presets as its data holds them (the human's, then steps 9b–9e's), its average bodies plain.
+        foreach (var race in Races.Prepend("human"))
+            Assert.Equal(looks.PresetsOf(race).Select(p => looks.Presets[p].Look), own.Where(s => s.Name.StartsWith($"assembly-preset-{race}-", StringComparison.Ordinal)).Select(s => s.Look));
+        Assert.Equal(own.Count(s => s.Name.StartsWith("assembly-preset-", StringComparison.Ordinal)), 8 * (1 + Races.Length));
+        foreach (var race in Races)
+            Assert.Equal([$"{race}-male-average", $"{race}-female-average"], own.Where(s => s.Name.StartsWith($"assembly-{race}-", StringComparison.Ordinal)).Select(s => s.Look.Body));
         Assert.All(own.Where(s => s.Name.StartsWith("assembly-preset-")), s => Assert.Equal("three-quarter", s.View));
         Assert.Equal(["human-female-slender", "human-female-strong", "human-male-slender", "human-male-strong"],
             own.Where(s => !s.Name.StartsWith("assembly-preset-")).Select(s => s.Look.Body).Where(b => !b.EndsWith("-average")).Distinct().Order(StringComparer.Ordinal));

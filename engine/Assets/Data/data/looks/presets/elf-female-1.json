@@ -1,0 +1,34 @@
+{
+  "$types": {
+    "look.preset": 1,
+    "look.hero": 1
+  },
+  "label": "Oracle",
+  "order": 50,
+  "look": {
+    "race": "elf",
+    "sex": "female",
+    "body": "elf-female-average",
+    "parts": {
+      "face": "face-elf-female-4",
+      "hair": "hair-long-female",
+      "marks": "marks-none",
+      "head-piece": "head-piece-circlet"
+    },
+    "colours": {
+      "skin": "Moonlit",
+      "hair": "White",
+      "eyes": "Ice",
+      "lips": "Natural",
+      "cloth": "Cream",
+      "cloth.trim": "Gold",
+      "trousers": "Grey",
+      "leather": "Brown",
+      "buckle": "Brass",
+      "hair.tie": "Leaf",
+      "marking": "Brown",
+      "brows": "Dark",
+      "eye.white": "Ivory"
+    }
+  }
+}

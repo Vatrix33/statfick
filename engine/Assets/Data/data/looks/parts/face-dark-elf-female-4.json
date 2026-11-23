@@ -1,0 +1,33 @@
+{
+  "$types": {
+    "look.part": 2,
+    "look.part.model": 2
+  },
+  "category": "face",
+  "name": "Face 4",
+  "races": [
+    "dark-elf"
+  ],
+  "sexes": [
+    "female"
+  ],
+  "models": [
+    {
+      "model": "models/humanoid/parts/face/dark-elf-female-4/dark-elf-female-average",
+      "bodies": [
+        "dark-elf-female-slender",
+        "dark-elf-female-average",
+        "dark-elf-female-strong"
+      ],
+      "faces": []
+    }
+  ],
+  "slots": [
+    "skin",
+    "eyes",
+    "brows",
+    "lips",
+    "eye.white"
+  ],
+  "order": 40
+}

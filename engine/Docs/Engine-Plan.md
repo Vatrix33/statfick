@@ -1341,6 +1341,11 @@ the design and the tests):
   and GM2-P47 (the live emblems held to Blender at 640 px, step 10's approved size; their own sizes a measured record);
   **step 11's live figures approved (2026-11-22): "Yes, all three screens"**, and its live emblem under its own light
   (2026-11-22): "Yes, it is right"; in the same two places.
+  **Q74 and Q76 and the approvals of steps 9b–9e (2026-11-21, asked by the manager with the races' art; recorded by the
+  step each concerns, 9b the first):** the races' sizes "Yes, the old sizes" (Q74: each race as tall beside a human as in
+  the old battles; in the builders the manager's GM2-P38), beards "Every race but lizardmen" (Q76), and each race's
+  bodies, outfit, faces, colours and presets approved as shown; in `Docs/Game/Hero.md` ("Questions from the steps",
+  "Decisions").
 - **Decisions for GM3 (2026-11-20, asked early at the user's request, before GM3 starts):** `Docs/Game-Plan.md`, GM3,
   "Decisions for GM3": GM3-1 the item models made for close-up, GM3-2 live 3D item pictures, GM3-3 armour fitted to
   every body, GM3-5 the hintless masterworks and Exotics designed by the port for approval (all as recommended); GM3-4,
@@ -4827,6 +4832,14 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     Blender; `make-humanoid.sh check` runs `keys --check` and `measure --check`. The kit's
     rules broken 35 times, 32 killed, 3 unable to differ; the test's 29 mutations, 29 killed. 5395 + 1131 = 6526 tests on the
     GPU and lavapipe (`main` `76f64a22`: 5391 + 1131 = 6522; 4 new, the engine's).
+  - **GM2 step 9b, the races' tools, the elf and the dark elf in the repo (2026-11-22/23, the races' worker on the branch
+    `gm2-races`; `Docs/Game/Hero.md`, "How it works", step 9b):** the manager's approved art of 9b–9e: the races' tools
+    for all eight (every committed model the same bytes), the elf's 158 models and the dark elf's 102 (its hair and head
+    pieces the elf's, the manager's GM2-P45: compared byte for byte but the race's name, then named by its data) in
+    `models-elf.pak` and `models-dark-elf.pak`, their swatches, faces, bodies and presets in `data.pak`; both playable in
+    the maker, their figures live in the carousel and the maker (step 11's views); the presets and the carousel's live
+    figures held to the old looks and to Blender; the user's Q74, Q76 and the approvals, the manager's GM2-P38 recorded.
+    6440 + 1177 = 7617 tests on the GPU and lavapipe (`main` `50a749fb`: 5395 + 1131 = 6526; 1091 new: the engine's 1045, each new model's skeleton, rest and weights (780) and each new part of the head following the head alone (248), a build's bones per race and sex (4), each race's body's contacts (12), GM2-P45's (1); the game's 46, the races' Blender samples shaded and inked (40), the live figures against Blender (2) and on the shipped data (3), the maker (1)).
 
 ## Milestones
 

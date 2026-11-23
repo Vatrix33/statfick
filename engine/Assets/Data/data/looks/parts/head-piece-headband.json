@@ -6,7 +6,9 @@
   "category": "head-piece",
   "name": "Headband",
   "races": [
-    "human"
+    "human",
+    "elf",
+    "dark-elf"
   ],
   "sexes": [
     "male",
@@ -28,6 +30,30 @@
         "human-female-slender",
         "human-female-average",
         "human-female-strong"
+      ],
+      "faces": []
+    },
+    {
+      "model": "models/humanoid/parts/head-piece/headband/elf-male-average",
+      "bodies": [
+        "elf-male-slender",
+        "elf-male-average",
+        "elf-male-strong",
+        "dark-elf-male-slender",
+        "dark-elf-male-average",
+        "dark-elf-male-strong"
+      ],
+      "faces": []
+    },
+    {
+      "model": "models/humanoid/parts/head-piece/headband/elf-female-average",
+      "bodies": [
+        "elf-female-slender",
+        "elf-female-average",
+        "elf-female-strong",
+        "dark-elf-female-slender",
+        "dark-elf-female-average",
+        "dark-elf-female-strong"
       ],
       "faces": []
     }

@@ -14,6 +14,7 @@ import math
 
 from mathutils import Vector
 
+import bodies
 import forms
 import kit as k
 import materials
@@ -190,4 +191,4 @@ def headpiece_model(path, piece, body, face, level):
         part.data.shade_smooth()
         r.bind_rigid(rig, part, "head")
     k.join_by_ink(parts, f"{body}-{piece}")
-    export(path, export_skins=True)
+    bodies.export_sized(path, p, export_skins=True)

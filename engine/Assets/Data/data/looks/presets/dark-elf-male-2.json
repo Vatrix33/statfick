@@ -1,0 +1,35 @@
+{
+  "$types": {
+    "look.preset": 1,
+    "look.hero": 1
+  },
+  "label": "Blademaster",
+  "order": 20,
+  "look": {
+    "race": "dark-elf",
+    "sex": "male",
+    "body": "dark-elf-male-average",
+    "parts": {
+      "face": "face-dark-elf-male-5",
+      "hair": "hair-ponytail",
+      "beard": "beard-none",
+      "marks": "marks-none",
+      "head-piece": "head-piece-none"
+    },
+    "colours": {
+      "skin": "Dusk",
+      "hair": "Pale lilac",
+      "eyes": "Ember",
+      "lips": "Natural",
+      "cloth": "Night",
+      "cloth.trim": "Silver",
+      "trousers": "Night",
+      "leather": "Black",
+      "buckle": "Steel",
+      "hair.tie": "Crimson",
+      "marking": "Pale",
+      "brows": "Dark",
+      "eye.white": "Ivory"
+    }
+  }
+}

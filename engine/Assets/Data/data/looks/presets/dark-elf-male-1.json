@@ -1,0 +1,35 @@
+{
+  "$types": {
+    "look.preset": 1,
+    "look.hero": 1
+  },
+  "label": "Shade",
+  "order": 10,
+  "look": {
+    "race": "dark-elf",
+    "sex": "male",
+    "body": "dark-elf-male-average",
+    "parts": {
+      "face": "face-dark-elf-male-1",
+      "hair": "hair-long-male",
+      "beard": "beard-none",
+      "marks": "marks-none",
+      "head-piece": "head-piece-none"
+    },
+    "colours": {
+      "skin": "Ash",
+      "hair": "White",
+      "eyes": "Blood",
+      "lips": "Natural",
+      "cloth": "Deep violet",
+      "cloth.trim": "Silver",
+      "trousers": "Plum black",
+      "leather": "Black",
+      "buckle": "Steel",
+      "hair.tie": "Crimson",
+      "marking": "Pale",
+      "brows": "Dark",
+      "eye.white": "Ivory"
+    }
+  }
+}

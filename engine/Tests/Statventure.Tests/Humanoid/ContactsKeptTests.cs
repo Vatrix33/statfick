@@ -114,6 +114,24 @@ public class ContactsKeptTests(ITestOutputHelper output)
 
     public static TheoryData<string> BodyNames => new(Bodies);
 
+    /// <summary>
+    /// The other races' bodies (GM2 steps 9b–9e, each race's six, made at its size, GM2-P38) keep the contacts as the human's
+    /// do: a foot planted on the man is where his is, the fist where his is, no pops (the ground's own bound
+    /// <see cref="HumanoidClipTests.BothBodiesStayOnTheGround"/>'s, which holds every body).
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(RaceBodyNames))]
+    public void EveryRacesBodyKeepsItsContacts(string body)
+    {
+        var report = Measure(HumanoidFiles.Load($"bodies/{body}"), body);
+        output.WriteLine(report.Summary);
+        report.Hold();
+    }
+
+    /// <summary>The bodies of the races beside the human the family makes (the manifest's).</summary>
+    public static TheoryData<string> RaceBodyNames => new(HumanoidFiles.Names()
+        .Where(n => n.StartsWith("bodies/", StringComparison.Ordinal) && !n.StartsWith("bodies/human-", StringComparison.Ordinal)).Select(n => n["bodies/".Length..]));
+
     public static TheoryData<string> MadeUpNames => new("hobbit", "heavy", "tall");
 
     /// <summary>

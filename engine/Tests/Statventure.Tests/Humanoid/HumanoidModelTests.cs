@@ -147,9 +147,23 @@ public class HumanoidModelTests
         Assert.Equal(["figure"], HumanoidFiles.MachineNames());
         Assert.Contains("clips", HumanoidFiles.Names());
         Assert.All(HumanoidFiles.Names(), n => Assert.Equal(Path.Combine(HumanoidFiles.Family, n + ".glb"), HumanoidFiles.Glb(n)));
-        // The human's six bodies (GM2 step 9a: the slender and strong builds beside step 4a's average ones).
-        Assert.Equal(["bodies/human-female-average", "bodies/human-female-slender", "bodies/human-female-strong", "bodies/human-male-average", "bodies/human-male-slender",
-            "bodies/human-male-strong"], HumanoidFiles.Names().Where(n => n.StartsWith("bodies/")).Order(StringComparer.Ordinal));
+        // Each race's six bodies (GM2 step 9a the human's: the slender and strong builds beside step 4a's average ones; steps
+        // 9b–9e each other race's).
+        Assert.Equal(BodyRaces.SelectMany(r => new[] { "female", "male" }.SelectMany(s => new[] { "average", "slender", "strong" }.Select(b => $"bodies/{r}-{s}-{b}")))
+            .Order(StringComparer.Ordinal), HumanoidFiles.Names().Where(n => n.StartsWith("bodies/")).Order(StringComparer.Ordinal));
+    }
+
+    /// <summary>The races whose bodies the family makes: the human (GM2 steps 4a and 9a) and each race steps 9b–9e have brought in.</summary>
+    public static readonly string[] BodyRaces = ["human", "elf", "dark-elf"];
+
+    /// <summary>Each race's two sexes, for the tests of a race's bodies.</summary>
+    public static TheoryData<string, string> RaceSexes()
+    {
+        var data = new TheoryData<string, string>();
+        foreach (var race in BodyRaces)
+            foreach (var sex in new[] { "male", "female" })
+                data.Add(race, sex);
+        return data;
     }
 
     /// <summary>
@@ -158,15 +172,14 @@ public class HumanoidModelTests
     /// made on the average body fit them as they fit it), only the hip and back sockets moved out or in with the build.
     /// </summary>
     [Theory]
-    [InlineData("male")]
-    [InlineData("female")]
-    public void ABuildHasItsAverageBodysBones(string sex)
+    [MemberData(nameof(RaceSexes))]
+    public void ABuildHasItsAverageBodysBones(string race, string sex)
     {
-        var average = HumanoidFiles.Load($"bodies/human-{sex}-average");
+        var average = HumanoidFiles.Load($"bodies/{race}-{sex}-average");
         var rest = average.WorldMatrices();
         foreach (var build in new[] { "slender", "strong" })
         {
-            var body = HumanoidFiles.Load($"bodies/human-{sex}-{build}");
+            var body = HumanoidFiles.Load($"bodies/{race}-{sex}-{build}");
             var other = body.WorldMatrices();
             var moved = new List<string>();
             foreach (var joint in average.Skins[0].Joints)

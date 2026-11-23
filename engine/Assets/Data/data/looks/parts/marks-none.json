@@ -5,7 +5,9 @@
   "category": "marks",
   "name": "None",
   "races": [
-    "human"
+    "human",
+    "elf",
+    "dark-elf"
   ],
   "sexes": [
     "male",

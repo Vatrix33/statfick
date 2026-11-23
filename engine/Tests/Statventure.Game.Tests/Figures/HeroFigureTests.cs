@@ -289,7 +289,11 @@ public class HeroFigureTests(GpuFixture gpu)
             using var figure = HeroFigure.Build(gpu.Device, games, preset.Look);
             var expected = Actor.GroundOf(figure.Actor.Model.Data, figure.Actor.Garments.Select(g => g.Model.Data));
             Assert.Equal(expected, figure.Actor.Ground);
-            Assert.True(MathF.Abs(figure.Actor.Ground + 0.024f) < 0.00001f, $"{name}: the ground {figure.Actor.Ground * 1000} mm");
+            // Its body's soles (no part reaches lower): the human's 24.0 mm under its origin, another race's as far times
+            // the race's size (the models carry their size, GM2-P38: the elf's 1.04, 24.96 mm).
+            Assert.Equal(Actor.GroundOf(figure.Actor.Model.Data, []), figure.Actor.Ground);
+            if (preset.Look.Race == "human")
+                Assert.True(MathF.Abs(figure.Actor.Ground + 0.024f) < 0.00001f, $"{name}: the ground {figure.Actor.Ground * 1000} mm");
             Assert.Equal(Matrix4x4.CreateTranslation(0, -figure.Actor.Ground, 0), figure.Actor.Placement);
         }
         var sample = AssemblyTests.Samples.Single(s => s.Name == "assembly-human-male-geared");

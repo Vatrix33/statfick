@@ -1,0 +1,9 @@
+{
+  "$types": {
+    "look.body": 1
+  },
+  "race": "dark-elf",
+  "sex": "female",
+  "build": "slender",
+  "model": "models/humanoid/bodies/dark-elf-female-slender"
+}

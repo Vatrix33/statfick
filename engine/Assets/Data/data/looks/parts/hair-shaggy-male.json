@@ -6,7 +6,9 @@
   "category": "hair",
   "name": "Shaggy",
   "races": [
-    "human"
+    "human",
+    "elf",
+    "dark-elf"
   ],
   "sexes": [
     "male"
@@ -18,6 +20,18 @@
         "human-male-slender",
         "human-male-average",
         "human-male-strong"
+      ],
+      "faces": []
+    },
+    {
+      "model": "models/humanoid/parts/hair/shaggy/elf-male-average",
+      "bodies": [
+        "elf-male-slender",
+        "elf-male-average",
+        "elf-male-strong",
+        "dark-elf-male-slender",
+        "dark-elf-male-average",
+        "dark-elf-male-strong"
       ],
       "faces": []
     }

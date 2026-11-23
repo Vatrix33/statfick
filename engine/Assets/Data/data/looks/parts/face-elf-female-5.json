@@ -1,0 +1,33 @@
+{
+  "$types": {
+    "look.part": 2,
+    "look.part.model": 2
+  },
+  "category": "face",
+  "name": "Face 5",
+  "races": [
+    "elf"
+  ],
+  "sexes": [
+    "female"
+  ],
+  "models": [
+    {
+      "model": "models/humanoid/parts/face/elf-female-5/elf-female-average",
+      "bodies": [
+        "elf-female-slender",
+        "elf-female-average",
+        "elf-female-strong"
+      ],
+      "faces": []
+    }
+  ],
+  "slots": [
+    "skin",
+    "eyes",
+    "brows",
+    "lips",
+    "eye.white"
+  ],
+  "order": 50
+}

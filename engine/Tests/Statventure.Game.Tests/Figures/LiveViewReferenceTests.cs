@@ -17,11 +17,13 @@ namespace Statventure.Game.Tests;
 /// <summary>
 /// The live views against Blender (GM2 step 11; Docs/Game/Hero.md, "How it works", step 11): the figure each screen shows
 /// (the sheet's hero, the race carousel's first preset, the maker's look after a preset is picked), as the screen lays its
-/// view out at the game's first window (1440 × 950) at device scales 1 and 1.65, at a moment of its stand, is written as a
-/// list (<c>Reference/live-view-looks.json</c>: the look, the view's size, ground, scale, turn and sun, the clip's moment;
-/// <c>STATVENTURE_LIVE_VIEWS=write</c>) that the humanoid scripts' assemble.py assembles and frames on its own from the data
-/// as step 5's looks are (<c>make-blender-references.sh</c>, step 7: <c>Reference/live-view-scenes.json</c>, rendered into
-/// <c>Golden/r3d-live-*.png</c>); the view is held to it: the same models, palette and camera, then the shading and the
+/// view out at the game's first window (1440 × 950) at device scales 1 and 1.65, and the carousel's figure of each other
+/// race with a body of its own at 1 (GM2 step 9: <see cref="LiveViewData.Races"/>, a race pack's body), at a moment of
+/// its stand, is written as a list (<c>Reference/live-view-looks.json</c>: the look, the view's size, ground, scale, turn
+/// and sun, the clip's moment; <c>STATVENTURE_LIVE_VIEWS=write</c>) that the humanoid scripts' assemble.py assembles and
+/// frames on its own from the data as step 5's looks are (<c>make-blender-references.sh</c>, step 7:
+/// <c>Reference/live-view-scenes.json</c>, rendered into <c>Golden/r3d-live-*.png</c>); the view is held to it: the same
+/// models, palette and camera, then the shading and the
 /// lines under <see cref="ReferenceLimits.DetailedFigure"/> (the user's Q55, Q58, Q60; unchanged). The carousel's rocking
 /// emblem of each of step 10's nine races, at 1 and 1.65, is written as its view holds it
 /// (<c>Reference/live-emblem-scenes.json</c>) and held to Blender's render of that scene under the emblems' own limits
@@ -52,6 +54,7 @@ public class LiveViewReferenceTests(GpuFixture gpu, Xunit.Abstractions.ITestOutp
         new("live-sheet-1", "sheet", 1), new("live-sheet-1.65", "sheet", 1.65f),
         new("live-races-1", "races", 1), new("live-races-1.65", "races", 1.65f),
         new("live-maker-1", "maker", 1), new("live-maker-1.65", "maker", 1.65f),
+        .. LiveViewData.Races.Select(race => new Sample($"live-races-{race}-1", "races", 1, race)),
     ];
 
     /// <summary>

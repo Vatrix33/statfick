@@ -1,0 +1,9 @@
+{
+  "$types": {
+    "look.body": 1
+  },
+  "race": "elf",
+  "sex": "male",
+  "build": "slender",
+  "model": "models/humanoid/bodies/elf-male-slender"
+}

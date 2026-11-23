@@ -1,0 +1,372 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.max-mana-per-levels": 1,
+    "effect.spell-cost-percent": 1,
+    "race.swatch": 1
+  },
+  "name": "Dark Elf",
+  "playable": true,
+  "statModifiers": {
+    "strength": -1,
+    "vitality": -2,
+    "mind": 2,
+    "dexterity": 2,
+    "intelligence": 1,
+    "wisdom": 1,
+    "speed": 1,
+    "luck": -3
+  },
+  "passive": {
+    "id": "sylvan-heritage",
+    "name": "Sylvan Heritage",
+    "condition": "Always active",
+    "description": "Gain 1 additional maximum Mana every fifth character level. All spells cost 3% less Mana.",
+    "effects": [
+      {
+        "$type": "effect.max-mana-per-levels",
+        "amount": 1,
+        "interval": 5
+      },
+      {
+        "$type": "effect.spell-cost-percent",
+        "amount": 3,
+        "namePrefix": "",
+        "element": ""
+      }
+    ]
+  },
+  "accent": "#77607e",
+  "emblem": "dark-elf",
+  "order": 30,
+  "swatches": [
+    {
+      "slot": "skin",
+      "name": "Pale ash",
+      "colour": "#9a90ae"
+    },
+    {
+      "slot": "skin",
+      "name": "Ash",
+      "colour": "#8a809f"
+    },
+    {
+      "slot": "skin",
+      "name": "Lilac",
+      "colour": "#8a78a4"
+    },
+    {
+      "slot": "skin",
+      "name": "Dusk",
+      "colour": "#7d7391"
+    },
+    {
+      "slot": "skin",
+      "name": "Slate",
+      "colour": "#6a6684"
+    },
+    {
+      "slot": "skin",
+      "name": "Storm",
+      "colour": "#585470"
+    },
+    {
+      "slot": "hair",
+      "name": "White",
+      "colour": "#cfcad6"
+    },
+    {
+      "slot": "hair",
+      "name": "Silver",
+      "colour": "#a9a6b4"
+    },
+    {
+      "slot": "hair",
+      "name": "Pale lilac",
+      "colour": "#b4a8cc"
+    },
+    {
+      "slot": "hair",
+      "name": "Lilac",
+      "colour": "#8f7fb8"
+    },
+    {
+      "slot": "hair",
+      "name": "Ash",
+      "colour": "#77726c"
+    },
+    {
+      "slot": "hair",
+      "name": "Wine",
+      "colour": "#4a1f2e"
+    },
+    {
+      "slot": "hair",
+      "name": "Midnight",
+      "colour": "#1f1c2e"
+    },
+    {
+      "slot": "hair",
+      "name": "Black",
+      "colour": "#15111a"
+    },
+    {
+      "slot": "eyes",
+      "name": "Blood",
+      "colour": "#b03030"
+    },
+    {
+      "slot": "eyes",
+      "name": "Ember",
+      "colour": "#c05a2a"
+    },
+    {
+      "slot": "eyes",
+      "name": "Gold",
+      "colour": "#c9a030"
+    },
+    {
+      "slot": "eyes",
+      "name": "Violet",
+      "colour": "#8a48c8"
+    },
+    {
+      "slot": "eyes",
+      "name": "Ice",
+      "colour": "#6fb0d8"
+    },
+    {
+      "slot": "eyes",
+      "name": "Silver",
+      "colour": "#a0a4ac"
+    },
+    {
+      "slot": "eyes",
+      "name": "Rose",
+      "colour": "#b05a80"
+    },
+    {
+      "slot": "eyes",
+      "name": "Dark",
+      "colour": "#0a0706"
+    },
+    {
+      "slot": "lips",
+      "name": "Natural",
+      "colour": "#5e3a4a"
+    },
+    {
+      "slot": "lips",
+      "name": "Plum",
+      "colour": "#5c2a34"
+    },
+    {
+      "slot": "lips",
+      "name": "Blood",
+      "colour": "#7a1f24"
+    },
+    {
+      "slot": "lips",
+      "name": "Black",
+      "colour": "#1a1218"
+    },
+    {
+      "slot": "cloth",
+      "name": "Deep violet",
+      "colour": "#3f2f4f"
+    },
+    {
+      "slot": "cloth",
+      "name": "Night",
+      "colour": "#26222d"
+    },
+    {
+      "slot": "cloth",
+      "name": "Plum",
+      "colour": "#4f2f5f"
+    },
+    {
+      "slot": "cloth",
+      "name": "Slate",
+      "colour": "#3a3f46"
+    },
+    {
+      "slot": "cloth",
+      "name": "Wine",
+      "colour": "#5a1f2a"
+    },
+    {
+      "slot": "cloth",
+      "name": "Midnight blue",
+      "colour": "#232a44"
+    },
+    {
+      "slot": "cloth",
+      "name": "Ash",
+      "colour": "#5a5660"
+    },
+    {
+      "slot": "cloth",
+      "name": "Spider silk",
+      "colour": "#a8a2b0"
+    },
+    {
+      "slot": "cloth",
+      "name": "Blood",
+      "colour": "#6e1f1c"
+    },
+    {
+      "slot": "cloth",
+      "name": "Moss black",
+      "colour": "#232a22"
+    },
+    {
+      "slot": "cloth.trim",
+      "name": "Silver",
+      "colour": "#9a9c9e"
+    },
+    {
+      "slot": "cloth.trim",
+      "name": "Gold",
+      "colour": "#bb8d3c"
+    },
+    {
+      "slot": "cloth.trim",
+      "name": "Violet",
+      "colour": "#6a4a9a"
+    },
+    {
+      "slot": "cloth.trim",
+      "name": "Crimson",
+      "colour": "#8a2a24"
+    },
+    {
+      "slot": "cloth.trim",
+      "name": "Black",
+      "colour": "#1f1c1a"
+    },
+    {
+      "slot": "trousers",
+      "name": "Night",
+      "colour": "#26222d"
+    },
+    {
+      "slot": "trousers",
+      "name": "Plum black",
+      "colour": "#2b2633"
+    },
+    {
+      "slot": "trousers",
+      "name": "Charcoal",
+      "colour": "#292320"
+    },
+    {
+      "slot": "trousers",
+      "name": "Slate",
+      "colour": "#2e3440"
+    },
+    {
+      "slot": "trousers",
+      "name": "Grey",
+      "colour": "#4a4a48"
+    },
+    {
+      "slot": "trousers",
+      "name": "Black",
+      "colour": "#151312"
+    },
+    {
+      "slot": "leather",
+      "name": "Black",
+      "colour": "#181412"
+    },
+    {
+      "slot": "leather",
+      "name": "Brown",
+      "colour": "#3a261b"
+    },
+    {
+      "slot": "leather",
+      "name": "Grey",
+      "colour": "#4a4648"
+    },
+    {
+      "slot": "buckle",
+      "name": "Steel",
+      "colour": "#8a8e94"
+    },
+    {
+      "slot": "buckle",
+      "name": "Brass",
+      "colour": "#bb8d3c"
+    },
+    {
+      "slot": "hair.tie",
+      "name": "Crimson",
+      "colour": "#7a2f3a"
+    },
+    {
+      "slot": "hair.tie",
+      "name": "Violet",
+      "colour": "#8a48c8"
+    },
+    {
+      "slot": "hair.tie",
+      "name": "Silver",
+      "colour": "#a9a6b4"
+    },
+    {
+      "slot": "hair.tie",
+      "name": "Gold",
+      "colour": "#bb8d3c"
+    },
+    {
+      "slot": "hair.tie",
+      "name": "Black",
+      "colour": "#1a1614"
+    },
+    {
+      "slot": "hair.tie",
+      "name": "White",
+      "colour": "#cfcad6"
+    },
+    {
+      "slot": "marking",
+      "name": "Dark",
+      "colour": "#2a2030"
+    },
+    {
+      "slot": "marking",
+      "name": "Ash",
+      "colour": "#5a5270"
+    },
+    {
+      "slot": "marking",
+      "name": "Pale",
+      "colour": "#b8aed0"
+    },
+    {
+      "slot": "marking",
+      "name": "Blood",
+      "colour": "#7a2a34"
+    },
+    {
+      "slot": "marking",
+      "name": "White",
+      "colour": "#d0cad8"
+    },
+    {
+      "slot": "brows",
+      "name": "Dark",
+      "colour": "#130c08"
+    },
+    {
+      "slot": "eye.white",
+      "name": "Ivory",
+      "colour": "#d2c7b2"
+    }
+  ]
+}

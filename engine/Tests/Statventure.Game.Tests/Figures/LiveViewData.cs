@@ -17,8 +17,11 @@ namespace Statventure.Game.Tests;
 /// mounts them (<see cref="TestPaths.ModelsPacks"/>): the humanoid's bodies, parts, clip library and the
 /// figures' state machine and step 10's nine emblems), and the live views' own data (<c>Reference/live-view-data/</c>,
 /// written with <c>STATVENTURE_LIVE_VIEWS=write</c> from the shipped data as GM2 step 9a left it): the human race with its
-/// swatches and two presets, copies of the game's first man's and first woman's ("Live man", "Live woman"), so a later
-/// change to the shipped human's swatches or presets doesn't move them; and, in a scratch folder, a test's own records.
+/// swatches and two presets, copies of the game's first man's and first woman's ("Live man", "Live woman"), and each
+/// other race with a body of its own (<see cref="Races"/>, GM2 step 9: as its step left it) with a copy of its first man's
+/// preset (<c>live-&lt;race&gt;-male-1</c>), so a later change to the shipped races' swatches or presets doesn't move
+/// them; and, in a scratch folder, a test's own records. Or the game's data as it ships (<c>shipped</c>: <c>data.pak</c>
+/// whole and every models pack, no overlay).
 /// The engine's test shapes (<see cref="StandInEmblem"/>), which stood in for the emblems until step 10's were in, are only
 /// test data now: an emblem of a test's own by a name of its own.
 /// </summary>
@@ -28,7 +31,7 @@ sealed class LiveViewData : IDisposable
 
     static string Reference => Path.Combine(RaceOracle.Engine, "Tests", "Statventure.Tests", "Reference");
 
-    /// <summary>The live views' own data: the human race and the tests' two presets.</summary>
+    /// <summary>The live views' own data: the human race and the tests' two presets, each other race with its preset.</summary>
     public static string Overlay => Path.Combine(Reference, "live-view-data");
 
     /// <summary>A model of the tests' as an emblem of a test's own (the engine's test shapes).</summary>
@@ -36,24 +39,45 @@ sealed class LiveViewData : IDisposable
 
     public const string Man = "live-human-male-1", Woman = "live-human-female-1";
 
+    /// <summary>
+    /// The races with bodies of their own besides the human (GM2 step 9: each race's step adds its own), in the carousel's
+    /// order: in the overlay each with its race file and a copy of its first man's preset (<see cref="PresetOf"/>), the
+    /// carousel's figure of it.
+    /// </summary>
+    public static IReadOnlyList<string> Races { get; } = ["elf", "dark-elf"];
+
+    /// <summary>The overlay's preset of <paramref name="race"/> (one of <see cref="Races"/>): its first man's, renamed.</summary>
+    public static string PresetOf(string race) => $"live-{race}-male-1";
+
     static string Shipped => Path.Combine(RaceOracle.Engine, "Assets", "Data");
 
-    /// <summary>The overlay's files as the shipped data makes them (path under the overlay, JSON form): the human race, and the first man's and woman's presets renamed.</summary>
+    /// <summary>The shipped race <paramref name="id"/> (<c>Assets/Data/data/races</c>).</summary>
+    public static Statventure.Game.Data.Races.Race ShippedRace(string id) =>
+        RecordSerializer.FromJson<Statventure.Game.Data.Races.Race>(File.ReadAllBytes(Path.Combine(Shipped, "data", "races", id + ".json")));
+
+    /// <summary>
+    /// The overlay's files as the shipped data makes them (path under the overlay, JSON form): the human race and the first
+    /// man's and woman's presets renamed; each of <see cref="Races"/> and its first man's preset renamed.
+    /// </summary>
     public static IEnumerable<(string Path, string Json)> OverlayFiles()
     {
         LookPreset Preset(string name) => RecordSerializer.FromJson<LookPreset>(File.ReadAllBytes(Path.Combine(Shipped, LookNames.PresetsFolder, name + ".json")));
         yield return ("data/races/human.json", File.ReadAllText(Path.Combine(Shipped, "data", "races", "human.json")));
         yield return ($"{LookNames.PresetsFolder}/{Woman}.json", RecordSerializer.ToJson(Preset("human-female-1") with { Label = "Live woman", Order = 50 }));
         yield return ($"{LookNames.PresetsFolder}/{Man}.json", RecordSerializer.ToJson(Preset("human-male-1") with { Label = "Live man", Order = 10 }));
+        foreach (var race in Races)
+        {
+            yield return ($"data/races/{race}.json", File.ReadAllText(Path.Combine(Shipped, "data", "races", race + ".json")));
+            var preset = Preset($"{race}-male-1");
+            yield return ($"{LookNames.PresetsFolder}/{PresetOf(race)}.json", RecordSerializer.ToJson(preset with { Label = "Live " + preset.Label }));
+        }
     }
 
-    static readonly Lazy<IReadOnlyDictionary<string, LookPreset>> PresetsRead = new(() => new Dictionary<string, LookPreset>
-    {
-        [Man] = RecordSerializer.FromJson<LookPreset>(File.ReadAllBytes(Path.Combine(Overlay, LookNames.PresetsFolder, Man + ".json"))),
-        [Woman] = RecordSerializer.FromJson<LookPreset>(File.ReadAllBytes(Path.Combine(Overlay, LookNames.PresetsFolder, Woman + ".json"))),
-    });
+    static readonly Lazy<IReadOnlyDictionary<string, LookPreset>> PresetsRead = new(() =>
+        new[] { Man, Woman }.Concat(Races.Select(PresetOf)).ToDictionary(name => name,
+            name => RecordSerializer.FromJson<LookPreset>(File.ReadAllBytes(Path.Combine(Overlay, LookNames.PresetsFolder, name + ".json")))));
 
-    /// <summary>The tests' presets (as the overlay holds them): the man (first) and the woman.</summary>
+    /// <summary>The tests' presets (as the overlay holds them): the man (first), the woman, and each other race's (<see cref="PresetOf"/>).</summary>
     public static IReadOnlyDictionary<string, LookPreset> Presets => PresetsRead.Value;
 
     /// <summary>The man's look (the game's first man: the average body, a face, a crop and stubble, in the human's colours).</summary>
@@ -74,11 +98,12 @@ sealed class LiveViewData : IDisposable
     /// <param name="emblems">Whether step 10's emblems are in the data (else the models packs without them: no emblem has a model).</param>
     /// <param name="machine">Whether the figures' state machine is in the data (else the models packs without it).</param>
     /// <param name="extra">Records of the test's own on top (path → record).</param>
-    public LiveViewData(bool emblems = true, bool machine = true, IReadOnlyDictionary<string, object>? extra = null)
+    /// <param name="shipped">The game's data as it ships: <c>data.pak</c> with its presets, no overlay (the live views' own data).</param>
+    public LiveViewData(bool emblems = true, bool machine = true, IReadOnlyDictionary<string, object>? extra = null, bool shipped = false)
     {
         foreach (var (path, record) in extra ?? new Dictionary<string, object>())
             Write(path, record);
-        _pack = new PackWithout(Path.Combine(TestPaths.Packs, "data.pak"), path => path.StartsWith(LookNames.PresetsFolder + "/", StringComparison.Ordinal));
+        _pack = new PackWithout(Path.Combine(TestPaths.Packs, "data.pak"), path => !shipped && path.StartsWith(LookNames.PresetsFolder + "/", StringComparison.Ordinal));
         // Every models pack as the game mounts them (models.pak, then a pack per race: the user's Q77 of GM2).
         var without = (machine, emblems) switch
         {
@@ -87,7 +112,7 @@ sealed class LiveViewData : IDisposable
             (true, false) => " without the emblems",
             _ => " without the figures' machine and the emblems",
         };
-        var mounts = new List<Mount> { Mount.Custom("data.pak without its presets", _pack) };
+        var mounts = new List<Mount> { Mount.Custom(shipped ? "data.pak" : "data.pak without its presets", _pack) };
         foreach (var file in TestPaths.ModelsPacks)
         {
             var pack = new PackWithout(file,
@@ -95,7 +120,8 @@ sealed class LiveViewData : IDisposable
             _models.Add(pack);
             mounts.Add(Mount.Custom(Path.GetFileName(file) + without, pack));
         }
-        mounts.Add(Mount.Folder(Overlay));
+        if (!shipped)
+            mounts.Add(Mount.Folder(Overlay));
         mounts.Add(Mount.Folder(_scratch.Root));
         Data = new VirtualFileSystem(mounts);
     }

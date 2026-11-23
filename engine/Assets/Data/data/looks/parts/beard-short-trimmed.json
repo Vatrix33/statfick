@@ -6,7 +6,9 @@
   "category": "beard",
   "name": "Short trimmed",
   "races": [
-    "human"
+    "human",
+    "elf",
+    "dark-elf"
   ],
   "sexes": [
     "male"
@@ -18,6 +20,24 @@
         "human-male-slender",
         "human-male-average",
         "human-male-strong"
+      ],
+      "faces": []
+    },
+    {
+      "model": "models/humanoid/parts/beard/short-trimmed/elf-male-average",
+      "bodies": [
+        "elf-male-slender",
+        "elf-male-average",
+        "elf-male-strong"
+      ],
+      "faces": []
+    },
+    {
+      "model": "models/humanoid/parts/beard/short-trimmed/dark-elf-male-average",
+      "bodies": [
+        "dark-elf-male-slender",
+        "dark-elf-male-average",
+        "dark-elf-male-strong"
       ],
       "faces": []
     }

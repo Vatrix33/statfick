@@ -43,6 +43,8 @@ file msvcp140.dll
 dir packs/
 file packs/audio.pak
 file packs/data.pak
+file packs/models-dark-elf.pak
+file packs/models-elf.pak
 file packs/models.pak
 file packs/ui.pak
 file png18.dll

@@ -8,6 +8,7 @@
 #   browline, browthick                 the brow's points (yaw, pitch, thickness share) and its thickness (degrees)
 #   mouth                               its width, height, curve, line thickness and its lips (0: a line alone)
 # The human man's and woman's first faces are the user's choice of the three candidates (2026-11-16: candidate A).
+import os
 import bodies
 import forms
 import kit as k
@@ -110,6 +111,125 @@ FACES = {
 }
 
 
+def elven(face, ear=(0.050, 0.35, 0.50, 0.80), tilt=7.0, narrow=0.88, frown=0.0):
+    """A human face as an elf's (GM2 step 9b; "a face list per race keeps the race's nose and features"): long pointed
+    ears, narrow eyes with their outer corners raised, a finer jaw and nose, higher cheekbones, thinner brows swept up."""
+    h = dict(face)
+    h["ear_long"] = ear
+    h["jaw"] = min(0.56, face["jaw"] + 0.07)
+    h["cheek"] = min(face["cheek"] + 0.0010, 0.0062)          # (higher, the cheekbone throws a speck of shadow)
+    h["nose"] = (face["nose"][0] * 0.96, face["nose"][1] * 0.86)
+    h["eye"] = dict(face["eye"], high=face["eye"]["high"] * narrow, tilt=tilt)
+    points = face["browline"]
+    last = len(points) - 1
+    h["browline"] = [(yaw, pitch + 1.4 * i / last - frown * (1 - i / last), thick) for i, (yaw, pitch, thick) in enumerate(points)]
+    h["browthick"] = face["browthick"] * 0.85
+    return h
+
+
+def dwarven(face, nose=(1.22, 1.28), nostril=1.3, brow=0.0012):
+    """A human face as a dwarf's (GM2 step 9c; the old `nose: "big"`): a big broad nose, a heavy brow, a broad jaw, larger
+    ears (`nose`, `nostril`, `brow`: how much; the women's less, their noses' shaded side else a dark wedge on the face)."""
+    h = dict(face)
+    h["nose"] = (face["nose"][0] * nose[0], face["nose"][1] * nose[1])
+    h["nostril"] = face.get("nostril", 0.003) * nostril
+    h["jaw"] = max(0.16, face["jaw"] - 0.06)
+    h["brow"] = face["brow"] + brow
+    h["ear"] = face["ear"] * 1.10
+    h["browthick"] = face["browthick"] * 1.12
+    return h
+
+
+def hobbitish(face):
+    """A human face as a hobbit's (GM2 step 9c; the old `nose: "small"`): a small nose, round cheeks and jaw, large eyes
+    and ears."""
+    h = dict(face)
+    h["nose"] = (face["nose"][0] * 0.84, face["nose"][1] * 0.95)
+    h["jaw"] = max(0.20, face["jaw"] - 0.04)
+    h["cheek"] = min(face["cheek"] + 0.0008, 0.0062)
+    h["chin"] = face["chin"] * 0.8
+    h["ear"] = face["ear"] * 1.15
+    h["eye"] = dict(face["eye"], high=face["eye"]["high"] * 1.10, iris=face["eye"]["iris"] * 1.06)
+    return h
+
+
+# The lizardmen's faces (GM2 step 9d): a muzzle, slit eyes at the head's sides, no ears, no nose, no brows; six per sex by
+# the muzzle's length and breadth, the brow's ridge, the eyes and the jaw.
+LIZARD = {"jaw": 0.30, "chin": 0.002, "brow": 0.0050, "nose": (0.0, 5.0), "nostril": 0.0, "cheek": 0.002, "ear": 1.0, "flat": 2.3, "ear_none": True, "lips": 0.0,
+          "brows": False, "snout": (0.080, 46.0, -15.0, 33.0, -0.10),
+          "eye": {"yaw": 31.0, "pitch": 9.0, "wide": 7.2, "high": 4.1, "iris": 3.3, "slit": True, "tilt": 8.0},
+          "browline": [(7.0, 7.6, 1.0), (27.5, 8.6, 0.5)], "browthick": 1.0,
+          "mouth": {"wide": 41.0, "pitch": -26.0, "curve": 4.5, "thick": 0.50, "lip": 0.0}, "nostrils": [(7.0, -6.0, 1.5)]}
+_LIZARDS = [dict(),
+            dict(snout=(0.094, 41.0, -15.0, 31.0, -0.13), jaw=0.34),                                      # long and narrow
+            dict(snout=(0.064, 51.0, -16.0, 34.0, -0.05), jaw=0.24, brow=0.0040),                         # short and broad
+            dict(brow=0.0085, eye={"yaw": 31.0, "pitch": 8.0, "wide": 6.6, "high": 3.2, "tilt": 12.0}),   # heavy-browed, narrow-eyed
+            dict(snout=(0.086, 49.0, -13.0, 36.0, -0.15), chin=0.005, jaw=0.26),                          # heavy-jawed
+            dict(snout=(0.072, 44.0, -15.0, 31.0, -0.08), eye={"yaw": 32.0, "pitch": 10.0, "wide": 8.0, "high": 4.8, "tilt": 5.0}, brow=0.0035)]  # large-eyed
+
+
+def lizard(n, sex):
+    h = dict(LIZARD, throat=True)          # (the paler lower jaw and throat, with the body's plates: the user's Q75)
+    for key, value in _LIZARDS[n - 1].items():
+        h[key] = dict(LIZARD["eye"], **value) if key == "eye" else value
+    if sex == "female":
+        length, wide, middle, high, droop = h["snout"]
+        h["snout"] = (length * 0.93, wide * 0.95, middle, high * 0.96, droop)
+        h["eye"] = dict(h["eye"], high=h["eye"]["high"] * 1.10, wide=h["eye"]["wide"] * 1.04)
+        h["brow"] = h["brow"] * 0.7
+        h["jaw"] = h["jaw"] + 0.04
+    return h
+
+
+def half_beast(face):
+    """A human face as a Half-Beast's (GM2 step 9e): no ears of its own (its beast ears are a part, parts/ears.py), a
+    broader nose, eyes a little slanted."""
+    h = dict(face)
+    h["ear_none"] = True
+    h["nose"] = (face["nose"][0] * 1.02, face["nose"][1] * 1.12)
+    h["eye"] = dict(face["eye"], tilt=3.5)
+    return h
+
+
+def merfolk(face, fin=(1.22, 34.0)):
+    """A human face as a Merfolk's (GM2 step 9d; T3: fin ears): fins for ears (forms.ear_fins), a small flat nose, large
+    round eyes, smooth cheeks."""
+    h = dict(face)
+    h["ear_fin"] = fin
+    h["nose"] = (face["nose"][0] * 0.84, face["nose"][1] * 0.94)
+    h["nostril"] = face.get("nostril", 0.003) * 0.8
+    h["eye"] = dict(face["eye"], high=face["eye"]["high"] * 1.07, iris=face["eye"]["iris"] * 1.06)
+    h["brow"] = face["brow"] * 0.7
+    return h
+
+
+def goliathan(face, nose=(1.14, 1.20), brow=0.0020, chin=1.25):
+    """A human face as a Goliath's (GM2 step 9e; the old `nose: "big"`): a heavy brow ridge, a big nose, a broad jaw and a
+    strong chin, brows thick and level."""
+    h = dict(face)
+    h["nose"] = (face["nose"][0] * nose[0], face["nose"][1] * nose[1])
+    h["nostril"] = face.get("nostril", 0.003) * 1.15
+    h["jaw"] = max(0.18, face["jaw"] - 0.07)
+    h["brow"] = face["brow"] + brow
+    h["chin"] = face["chin"] * chin
+    h["browthick"] = face["browthick"] * 1.15
+    return h
+
+
+for _sex in ("male", "female"):
+    for _n in range(1, 7):
+        FACES[f"lizardman-{_sex}-{_n}"] = lizard(_n, _sex)
+        FACES[f"half-beast-{_sex}-{_n}"] = half_beast(FACES[f"human-{_sex}-{_n}"])
+        FACES[f"merfolk-{_sex}-{_n}"] = merfolk(FACES[f"human-{_sex}-{_n}"])
+        FACES[f"goliath-{_sex}-{_n}"] = goliathan(FACES[f"human-{_sex}-{_n}"], **({} if _sex == "male" else dict(nose=(1.08, 1.10), brow=0.0010, chin=1.1)))
+        FACES[f"dwarf-{_sex}-{_n}"] = dwarven(FACES[f"human-{_sex}-{_n}"], **({} if _sex == "male" else dict(nose=(1.13, 1.16), nostril=1.15, brow=0.0007)))
+        FACES[f"hobbit-{_sex}-{_n}"] = hobbitish(FACES[f"human-{_sex}-{_n}"])
+        FACES[f"elf-{_sex}-{_n}"] = elven(FACES[f"human-{_sex}-{_n}"])
+        # the dark elves': sharper: longer ears swept further back, narrower eyes more raised, the brows drawn down inward
+        FACES[f"dark-elf-{_sex}-{_n}"] = elven(FACES[f"human-{_sex}-{_n}"], ear=(0.056, 0.30, 0.60, 0.74), tilt=9.5, narrow=0.84, frown=1.0)
+
+
+
 def with_face(body, face, level):
     """The body's parameters at the detail `level` with the face's features on its head frame."""
     if face not in FACES:
@@ -128,4 +248,4 @@ def face_model(path, face, body, level):
     for part in parts:
         r.bind_rigid(rig, part, "head")
     k.join_by_ink(parts, f"{body}-{face}")
-    export(path, export_skins=True)
+    bodies.export_sized(path, p, export_skins=True)

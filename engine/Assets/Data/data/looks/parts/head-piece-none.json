@@ -5,7 +5,9 @@
   "category": "head-piece",
   "name": "None",
   "races": [
-    "human"
+    "human",
+    "elf",
+    "dark-elf"
   ],
   "sexes": [
     "male",
